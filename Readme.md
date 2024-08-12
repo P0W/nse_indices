@@ -10,6 +10,9 @@
 - NSE India Defence Index is rebalance semi-annually
 - NSE Sme Emerge Index is rebalanced quaterly
 - Top 10-15 stocks can potentialy be deployed via smallcase or brokers basket.
+  
+## A look at the past 1Yr performance
+![image](https://github.com/user-attachments/assets/eed4f21a-b090-45c1-8489-479d0290dc20)
 
 ---
 
