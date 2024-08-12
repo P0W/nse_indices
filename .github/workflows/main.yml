@@ -2,7 +2,7 @@ name: Auto Run and Push
 
 on:
   schedule:
-    - cron: '58 15 * * *'
+    - cron: '59 15 * * *'
 
 jobs:
   run-script:
