@@ -33,4 +33,5 @@ jobs:
           git config --global user.email 'powprashant@gmail.com'
           git add .
           git commit -m "Add new CSV and JSON files"
-          git push https://${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git
+          git push https://P0W:${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git HEAD:main
+
