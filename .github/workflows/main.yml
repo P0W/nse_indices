@@ -2,31 +2,31 @@ name: Auto Run and Push
 
 on:
   schedule:
-    - cron: '05 16 * * *'
+    - cron: '11 16 * * *'  # Runs at 4 PM every day
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run script
-      run: python main.py
+      - name: Run script
+        run: python main.py  # Assuming `main.py` is valid
 
-    - name: Commit and push changes
-      uses: EndBug/add-and-commit@v9
-      with:
-        author_name: P0W
-        author_email: powprashant@gmail.com
-        message: "Add new CSV and JSON files"
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: P0W
+          author_email: powprashant@gmail.com
+          message: "Add new CSV and JSON files"
