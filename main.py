@@ -1,5 +1,8 @@
 """Build up the NSE SME Emerge Constituents and analyze same"""
 
+## Author: Prashant Srivastava
+## Dated: August 12th, 2024
+
 import json
 import csv
 import os
