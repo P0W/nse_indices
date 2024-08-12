@@ -18,7 +18,7 @@
     "Profit Growth": 30.7,
     "Cash/Debt": 26372.82,
     "Company Name": "Hindustan Aeronautics Ltd.",
-    "Weightage": 34.67
+    "Weightage": 34.13
   },
   "BEL": {
     "Market Cap": 220316.73,
@@ -38,7 +38,7 @@
     "ROCE": 36.04,
     "Profit Growth": 33.7,
     "Company Name": "Bharat Electronics Ltd.",
-    "Weightage": 24.17
+    "Weightage": 23.79
   },
   "MAZDOCK": {
     "Market Cap": 100033.2,
@@ -58,7 +58,7 @@
     "ROCE": 38.42,
     "Profit Growth": 82.91,
     "Company Name": "Mazagoan Dock Shipbuilders Ltd.",
-    "Weightage": 10.97
+    "Weightage": 10.8
   },
   "SOLARINDS": {
     "Market Cap": 92345.55,
@@ -79,7 +79,7 @@
     "Profit Growth": 33.88,
     "Cash/Debt": -247.3,
     "Company Name": "Solar Industries India Ltd.",
-    "Weightage": 10.13
+    "Weightage": 9.97
   },
   "COCHINSHIP": {
     "Market Cap": 61134.71,
@@ -100,7 +100,7 @@
     "Profit Growth": 42.98,
     "Cash/Debt": 4545.99,
     "Company Name": "Cochin Shipyard Ltd.",
-    "Weightage": 6.71
+    "Weightage": 6.6
   },
   "BDL": {
     "Market Cap": 49249.5,
@@ -121,7 +121,7 @@
     "Profit Growth": 29.55,
     "Cash/Debt": 3854.8,
     "Company Name": "Bharat Dynamics Ltd.",
-    "Weightage": 5.4
+    "Weightage": 5.32
   },
   "GRSE": {
     "Market Cap": 23018.65,
@@ -142,7 +142,7 @@
     "Profit Growth": 20.37,
     "Cash/Debt": 4026.64,
     "Company Name": "Garden Reach Shipbuilders & Engineers Ltd.",
-    "Weightage": 2.53
+    "Weightage": 2.49
   },
   "DATAPATTNS": {
     "Market Cap": 16291.33,
@@ -162,7 +162,28 @@
     "ROCE": 20.19,
     "Profit Growth": 46.54,
     "Company Name": "Data Patterns (India) Ltd.",
-    "Weightage": 1.79
+    "Weightage": 1.76
+  },
+  "ZENTEC": {
+    "Market Cap": 14467.8,
+    "Enterprise Value": 14326.42,
+    "No. of Shares": 8.4,
+    "P/E": 92.61,
+    "P/B": 27.44,
+    "Face Value": 1.0,
+    "Div. Yield": 0.06,
+    "Book Value (TTM)": 62.74,
+    "CASH": 147.22,
+    "DEBT": 5.84,
+    "Promoter Holding": 55.07,
+    "EPS (TTM)": 18.59,
+    "Sales Growth": 200.6,
+    "ROE": 12.43,
+    "ROCE": 17.79,
+    "Profit Growth": 1759.94,
+    "Cash/Debt": 141.38,
+    "Company Name": "Zen Technologies Ltd.",
+    "Weightage": 1.56
   },
   "ASTRAMICRO": {
     "Market Cap": 8021.9,
@@ -183,7 +204,7 @@
     "Profit Growth": 47.42,
     "Cash/Debt": -99.93,
     "Company Name": "Astra Microwave Products Ltd.",
-    "Weightage": 0.88
+    "Weightage": 0.87
   },
   "MIDHANI": {
     "Market Cap": 7887.95,
@@ -204,7 +225,7 @@
     "Profit Growth": 11.59,
     "Cash/Debt": -372.93,
     "Company Name": "Mishra Dhatu Nigam Ltd.",
-    "Weightage": 0.87
+    "Weightage": 0.85
   },
   "MTARTECH": {
     "Market Cap": 5521.65,
@@ -225,7 +246,7 @@
     "Profit Growth": 70.95,
     "Cash/Debt": -111.81,
     "Company Name": "MTAR Technologies Ltd.",
-    "Weightage": 0.61
+    "Weightage": 0.6
   },
   "PARAS": {
     "Market Cap": 4667.72,
@@ -245,7 +266,7 @@
     "ROCE": 14.63,
     "Profit Growth": 33.52,
     "Company Name": "Paras Defence and Space Technologies Ltd.",
-    "Weightage": 0.51
+    "Weightage": 0.5
   },
   "DCXINDIA": {
     "Market Cap": 4065.6,
@@ -266,7 +287,7 @@
     "Profit Growth": 9.75,
     "Cash/Debt": 87.71,
     "Company Name": "DCX Systems Ltd.",
-    "Weightage": 0.45
+    "Weightage": 0.44
   },
   "IDEAFORGE": {
     "Market Cap": 2964.31,
@@ -286,6 +307,6 @@
     "ROCE": 12.88,
     "Profit Growth": 49.57,
     "Company Name": "Ideaforge Technology Ltd.",
-    "Weightage": 0.33
+    "Weightage": 0.32
   }
 }
