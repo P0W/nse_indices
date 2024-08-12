@@ -1,0 +1,5 @@
+requests
+black
+pylint
+tqdm
+bs4
