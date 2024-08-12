@@ -1,4 +1,4 @@
-"""Build up the NSE SME Emerge Constituents and analyze same"""
+"""Builds up the NSE Thematic and Startegy Indices and analyzes same"""
 
 ## Author: Prashant Srivastava
 ## Dated: August 12th, 2024
