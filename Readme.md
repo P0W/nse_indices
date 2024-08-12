@@ -4,7 +4,7 @@
 * [Strategy Indices](https://niftyindices.com/indices/equity/strategy-indices)
 
 - Particularly analyzing [NSE INDIA DEFENCE Index](https://niftyindices.com/indices/equity/thematic-indices/nifty-india-defence) and [NSE SME EMERGE Index](https://niftyindices.com/indices/equity/thematic-indices/nifty-sme-emerge)
-- Above two indices have given a astonishing CAGR ~60.0 % over five years.
+- Above two indices have given an _**astonishing CAGR ~60.0 %**_ over five years.
 - NSE India Defence Index is rebalance semi-annually
 - NSE Sme Emerge Index is rebalanced quaterly
 - Top 10-15 stocks can potentialy be deployed via smallcase or brokers basket.
