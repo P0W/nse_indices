@@ -1,7 +1,7 @@
-# SME Emerge Project
+# NSE Thematic and Strategy indices analyzer and builder
 
-This repository contains the SME Emerge project, which includes various scripts and data files for financial analysis.
-
+* [Thematic Indices](https://niftyindices.com/indices/equity/thematic-indices)
+* [Strategy Indices](https://niftyindices.com/indices/equity/strategy-indices)
 
 ## Setup
 
@@ -41,3 +41,6 @@ Run the main script:
 ```sh
 python main.py
 ```
+
+## Last Run data
+CSVs and JSON can be found [here](https://github.com/P0W/nse_indices/tree/main/data)
