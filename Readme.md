@@ -52,3 +52,5 @@ python main.py
 
 ## Last Run data
 CSVs and JSON can be found [here](https://github.com/P0W/nse_indices/tree/main/data)
+
+<sub>_Special thanks to [finology](https://ticker.finology.in/) and [nseindia](https://niftyindices.com/) for data_</sub>
