@@ -26,8 +26,11 @@ jobs:
         run: python main.py  # Assuming `main.py` is valid
 
       - name: Commit and push changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: P0W
-          author_email: powprashant@gmail.com
-          message: "Add new CSV and JSON files"
+        env:
+          ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
+        run: |
+          git config --global user.name 'P0W'
+          git config --global user.email 'powprashant@gmail.com'
+          git add .
+          git commit -m "Add new CSV and JSON files"
+          git push https://${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git
