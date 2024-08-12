@@ -2,7 +2,8 @@ name: Auto Run and Push
 
 on:
   schedule:
-    - cron: '11 16 * * *'  # Runs at 4 PM every day
+    - cron:  '30 5,17 * * *'
+  workflow_dispatch:
 
 jobs:
   run-script:
