@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-file_list = ["ind_niftysmelist", "ind_niftyindiadefence_list"]
+file_list = ["ind_niftyindiadefence_list"] #, "ind_niftysmelist"]
 
 
 def get_nse_constituents(
