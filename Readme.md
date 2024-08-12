@@ -1,3 +1,5 @@
+[![Auto Run and Push](https://github.com/P0W/nse_indices/actions/workflows/main.yml/badge.svg)](https://github.com/P0W/nse_indices/actions/workflows/main.yml)
+
 # NSE indices analyzer and builder
 
 * [Thematic Indices](https://niftyindices.com/indices/equity/thematic-indices)
