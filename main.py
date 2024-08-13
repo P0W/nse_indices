@@ -10,6 +10,7 @@ import concurrent.futures
 import pathlib
 import logging
 from typing import Dict
+from functools import lru_cache
 
 import requests
 import tqdm
@@ -19,7 +20,12 @@ from bs4 import BeautifulSoup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-file_list = ["ind_niftyindiadefence_list", "ind_niftysmelist"]
+file_list = [
+    "ind_niftymidcap150momentum50_list",
+    "ind_niftymicrocap250_list",
+    "ind_niftyindiadefence_list",
+    "ind_niftysmelist",
+]
 
 
 def get_nse_constituents(
@@ -57,6 +63,7 @@ def get_nse_constituents(
     return symbols
 
 
+@lru_cache(maxsize=1024)
 def get_financials(symbol: str) -> Dict[str, float]:
     """Get the financials for the given symbol"""
     url = f"https://ticker.finology.in/company/{symbol}"
@@ -84,7 +91,7 @@ def get_financials(symbol: str) -> Dict[str, float]:
                 ratio_dict[small.text.strip()] = float(val)
             except ValueError:
                 ratio_dict[small.text.strip()] = -999.999
-    if "CASH" in ratio_dict and "DEBT" in ratio_dict and ratio_dict["DEBT"] > 0:
+    if "CASH" in ratio_dict and "DEBT" in ratio_dict:
         ratio_dict["Cash/Debt"] = float(
             round(ratio_dict["CASH"] - ratio_dict["DEBT"], 2)
         )
