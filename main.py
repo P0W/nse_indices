@@ -36,21 +36,23 @@ def get_nse_constituents(
     full_file_path = os.path.join(root_dir, file_name)
     ## add the extension
     full_file_path += ".csv"
-    if not pathlib.Path(full_file_path).exists():
-        url = f"https://niftyindices.com/IndexConstituent/{file_name}.csv"
-        ## NSE headers
-        ## pylint: disable=line-too-long
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*,q=0.8,application/signed-exchange;v=b3;q=0.9",
-        }
-        r = requests.get(url, timeout=5, headers=headers)
-        if r.status_code != 200:
-            logger.info("Error: %d : (%s)", r.status_code, url)
-            return {}
-        with open(full_file_path, "wb") as f:
-            f.write(r.content)
-
+    if pathlib.Path(full_file_path).exists():
+        ## remove the file if older than 1 day
+        os.remove(full_file_path)
+    url = f"https://niftyindices.com/IndexConstituent/{file_name}.csv"
+    ## NSE headers
+    ## pylint: disable=line-too-long
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*,q=0.8,application/signed-exchange;v=b3;q=0.9",
+    }
+    r = requests.get(url, timeout=5, headers=headers)
+    if r.status_code != 200:
+        logger.info("Error: %d : (%s)", r.status_code, url)
+        return {}
+    with open(full_file_path, "wb") as f:
+        f.write(r.content)
+    logger.info("Downloaded %s", full_file_path)
     ## headers = [Company Name,Industry,Symbol,Series,ISIN Code]
     ## get only the symbols and Company Name in a dictionary
     csv_header = ["Company Name", "Industry", "Symbol", "Series", "ISIN Code"]
