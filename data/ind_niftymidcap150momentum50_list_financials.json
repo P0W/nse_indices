@@ -1,10 +1,10 @@
 {
   "HINDZINC": {
-    "Market Cap": 242089.65,
-    "Enterprise Value": 250771.65,
+    "Market Cap": 241582.61,
+    "Enterprise Value": 250264.61,
     "No. of Shares": 422.53,
-    "P/E": 29.61,
-    "P/B": 13.76,
+    "P/E": 29.55,
+    "P/B": 13.73,
     "Face Value": 2.0,
     "Div. Yield": 2.27,
     "Book Value (TTM)": 41.63,
@@ -18,7 +18,7 @@
     "Profit Growth": 25.98,
     "Cash/Debt": -8682.0,
     "Company Name": "Hindustan Zinc Ltd.",
-    "Weightage": 6.32
+    "Weightage": 6.31
   },
   "LODHA": {
     "Market Cap": 127778.76,
@@ -147,11 +147,11 @@
     "Weightage": 2.8
   },
   "CUMMINSIND": {
-    "Market Cap": 103164.14,
-    "Enterprise Value": 101759.48,
+    "Market Cap": 103241.75,
+    "Enterprise Value": 101837.09,
     "No. of Shares": 27.72,
-    "P/E": 58.46,
-    "P/B": 15.67,
+    "P/E": 58.5,
+    "P/B": 15.68,
     "Face Value": 2.0,
     "Div. Yield": 1.02,
     "Book Value (TTM)": 237.48,
@@ -165,7 +165,7 @@
     "Profit Growth": 46.98,
     "Cash/Debt": 1404.66,
     "Company Name": "Cummins India Ltd.",
-    "Weightage": 2.69
+    "Weightage": 2.7
   },
   "BHEL": {
     "Market Cap": 100979.84,
@@ -192,15 +192,15 @@
     "Market Cap": 100814.75,
     "Enterprise Value": 87528.33,
     "No. of Shares": 20.17,
-    "P/E": 54.63,
+    "P/E": 45.32,
     "P/B": 18.1,
     "Face Value": 10.0,
-    "Div. Yield": 0.57,
+    "Div. Yield": 0.55,
     "Book Value (TTM)": 276.2,
     "CASH": 13286.42,
     "DEBT": 0.0,
     "Promoter Holding": 84.83,
-    "EPS (TTM)": 91.5,
+    "EPS (TTM)": 110.31,
     "Sales Growth": 36.52,
     "ROE": 28.61,
     "ROCE": 38.42,
@@ -231,11 +231,11 @@
     "Weightage": 2.56
   },
   "POLYCAB": {
-    "Market Cap": 96414.82,
-    "Enterprise Value": 96106.86,
+    "Market Cap": 96447.15,
+    "Enterprise Value": 96139.2,
     "No. of Shares": 15.04,
-    "P/E": 54.94,
-    "P/B": 11.39,
+    "P/E": 54.96,
+    "P/B": 11.4,
     "Face Value": 10.0,
     "Div. Yield": 0.47,
     "Book Value (TTM)": 562.68,
@@ -252,10 +252,10 @@
     "Weightage": 2.52
   },
   "LUPIN": {
-    "Market Cap": 94602.86,
-    "Enterprise Value": 94482.35,
+    "Market Cap": 94575.49,
+    "Enterprise Value": 94454.98,
     "No. of Shares": 45.6,
-    "P/E": 34.55,
+    "P/E": 34.54,
     "P/B": 4.42,
     "Face Value": 2.0,
     "Div. Yield": 0.39,
@@ -279,7 +279,7 @@
     "P/E": 27.32,
     "P/B": 2.46,
     "Face Value": 10.0,
-    "Div. Yield": 2.0,
+    "Div. Yield": 2.03,
     "Book Value (TTM)": 38.06,
     "CASH": 992.51,
     "DEBT": 29390.99,
@@ -294,11 +294,11 @@
     "Weightage": 2.46
   },
   "OFSS": {
-    "Market Cap": 92459.17,
-    "Enterprise Value": 89171.57,
+    "Market Cap": 92195.56,
+    "Enterprise Value": 88907.96,
     "No. of Shares": 8.67,
-    "P/E": 43.84,
-    "P/B": 14.04,
+    "P/E": 43.72,
+    "P/B": 14.0,
     "Face Value": 5.0,
     "Div. Yield": 2.25,
     "Book Value (TTM)": 759.69,
@@ -312,13 +312,13 @@
     "Profit Growth": 14.41,
     "Cash/Debt": 3287.6,
     "Company Name": "Oracle Financial Services Software Ltd.",
-    "Weightage": 2.42
+    "Weightage": 2.41
   },
   "SOLARINDS": {
-    "Market Cap": 91982.69,
-    "Enterprise Value": 92229.99,
+    "Market Cap": 91960.97,
+    "Enterprise Value": 92208.27,
     "No. of Shares": 9.05,
-    "P/E": 140.84,
+    "P/E": 140.81,
     "P/B": 36.2,
     "Face Value": 2.0,
     "Div. Yield": 0.08,
@@ -356,10 +356,10 @@
     "Weightage": 2.33
   },
   "AUROPHARMA": {
-    "Market Cap": 89015.79,
-    "Enterprise Value": 91739.29,
+    "Market Cap": 89045.09,
+    "Enterprise Value": 91768.59,
     "No. of Shares": 58.59,
-    "P/E": 46.58,
+    "P/E": 46.59,
     "P/B": 4.44,
     "Face Value": 1.0,
     "Div. Yield": 0.3,
@@ -418,11 +418,11 @@
     "Weightage": 2.11
   },
   "GODREJPROP": {
-    "Market Cap": 80023.4,
-    "Enterprise Value": 87751.16,
+    "Market Cap": 79905.23,
+    "Enterprise Value": 87632.99,
     "No. of Shares": 27.81,
-    "P/E": 85.65,
-    "P/B": 7.28,
+    "P/E": 85.52,
+    "P/B": 7.27,
     "Face Value": 5.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 395.45,
@@ -460,10 +460,10 @@
     "Weightage": 2.07
   },
   "INDIANB": {
-    "Market Cap": 73806.89,
+    "Market Cap": 74130.16,
     "CASA %": 40.77,
     "No. of Shares": 134.7,
-    "P/E": 8.43,
+    "P/E": 8.46,
     "P/B": 1.35,
     "Face Value": 10.0,
     "Div. Yield": 2.19,
@@ -477,7 +477,7 @@
     "ROCE": 16.89,
     "Profit Growth": 52.66,
     "Company Name": "Indian Bank",
-    "Weightage": 1.93
+    "Weightage": 1.94
   },
   "BHARATFORG": {
     "Market Cap": 72967.05,
@@ -522,11 +522,11 @@
     "Weightage": 1.88
   },
   "PRESTIGE": {
-    "Market Cap": 71533.76,
-    "Enterprise Value": 74475.06,
+    "Market Cap": 71654.02,
+    "Enterprise Value": 74595.32,
     "No. of Shares": 40.09,
-    "P/E": 316.52,
-    "P/B": 10.44,
+    "P/E": 317.05,
+    "P/B": 10.45,
     "Face Value": 10.0,
     "Div. Yield": 0.1,
     "Book Value (TTM)": 170.98,
@@ -543,11 +543,11 @@
     "Weightage": 1.87
   },
   "DIXON": {
-    "Market Cap": 71211.23,
-    "Enterprise Value": 71244.24,
+    "Market Cap": 71288.72,
+    "Enterprise Value": 71321.73,
     "No. of Shares": 5.98,
-    "P/E": 429.66,
-    "P/B": 50.07,
+    "P/E": 430.12,
+    "P/B": 50.12,
     "Face Value": 2.0,
     "Div. Yield": 0.04,
     "Book Value (TTM)": 237.7,
@@ -564,11 +564,11 @@
     "Weightage": 1.86
   },
   "SUPREMEIND": {
-    "Market Cap": 65857.72,
-    "Enterprise Value": 64671.48,
+    "Market Cap": 65829.13,
+    "Enterprise Value": 64642.89,
     "No. of Shares": 12.7,
-    "P/E": 62.25,
-    "P/B": 13.91,
+    "P/E": 62.22,
+    "P/B": 13.9,
     "Face Value": 2.0,
     "Div. Yield": 0.58,
     "Book Value (TTM)": 372.73,
@@ -585,11 +585,11 @@
     "Weightage": 1.72
   },
   "UNOMINDA": {
-    "Market Cap": 63097.74,
-    "Enterprise Value": 63929.81,
+    "Market Cap": 63559.94,
+    "Enterprise Value": 64392.01,
     "No. of Shares": 57.42,
-    "P/E": 110.0,
-    "P/B": 16.18,
+    "P/E": 110.8,
+    "P/B": 16.3,
     "Face Value": 2.0,
     "Div. Yield": 0.18,
     "Book Value (TTM)": 67.91,
@@ -603,14 +603,14 @@
     "Profit Growth": 26.6,
     "Cash/Debt": -832.07,
     "Company Name": "UNO Minda Ltd.",
-    "Weightage": 1.65
+    "Weightage": 1.66
   },
   "OBEROIRLTY": {
-    "Market Cap": 62477.77,
-    "Enterprise Value": 64262.21,
+    "Market Cap": 62374.15,
+    "Enterprise Value": 64158.59,
     "No. of Shares": 36.36,
-    "P/E": 41.95,
-    "P/B": 4.64,
+    "P/E": 41.88,
+    "P/B": 4.63,
     "Face Value": 10.0,
     "Div. Yield": 0.47,
     "Book Value (TTM)": 370.48,
@@ -633,7 +633,7 @@
     "P/E": 10.36,
     "P/B": 2.26,
     "Face Value": 1.0,
-    "Div. Yield": 3.23,
+    "Div. Yield": 3.44,
     "Book Value (TTM)": 93.46,
     "CASH": 7048.04,
     "DEBT": 415.98,
@@ -648,11 +648,11 @@
     "Weightage": 1.61
   },
   "LINDEINDIA": {
-    "Market Cap": 61060.95,
-    "Enterprise Value": 60081.11,
+    "Market Cap": 61094.63,
+    "Enterprise Value": 60114.8,
     "No. of Shares": 8.53,
-    "P/E": 138.86,
-    "P/B": 17.23,
+    "P/E": 138.94,
+    "P/B": 17.24,
     "Face Value": 10.0,
     "Div. Yield": 0.17,
     "Book Value (TTM)": 415.6,
@@ -669,11 +669,11 @@
     "Weightage": 1.6
   },
   "PHOENIXLTD": {
-    "Market Cap": 59873.88,
-    "Enterprise Value": 60495.51,
+    "Market Cap": 60144.65,
+    "Enterprise Value": 60766.28,
     "No. of Shares": 17.87,
-    "P/E": 184.21,
-    "P/B": 11.61,
+    "P/E": 185.04,
+    "P/B": 11.67,
     "Face Value": 2.0,
     "Div. Yield": 0.15,
     "Book Value (TTM)": 288.43,
@@ -687,13 +687,13 @@
     "Profit Growth": 21.49,
     "Cash/Debt": -621.63,
     "Company Name": "Phoenix Mills Ltd.",
-    "Weightage": 1.56
+    "Weightage": 1.57
   },
   "KALYANKJIL": {
-    "Market Cap": 58610.98,
-    "Enterprise Value": 60109.86,
+    "Market Cap": 58600.68,
+    "Enterprise Value": 60099.55,
     "No. of Shares": 103.06,
-    "P/E": 99.3,
+    "P/E": 99.28,
     "P/B": 13.56,
     "Face Value": 10.0,
     "Div. Yield": 0.21,
@@ -711,8 +711,8 @@
     "Weightage": 1.53
   },
   "MRF": {
-    "Market Cap": 57675.3,
-    "Enterprise Value": 59061.54,
+    "Market Cap": 57667.01,
+    "Enterprise Value": 59053.25,
     "No. of Shares": 0.42,
     "P/E": 28.52,
     "P/B": 3.39,
@@ -732,10 +732,10 @@
     "Weightage": 1.51
   },
   "JSL": {
-    "Market Cap": 57245.17,
-    "Enterprise Value": 59836.54,
+    "Market Cap": 57302.81,
+    "Enterprise Value": 59894.18,
     "No. of Shares": 82.34,
-    "P/E": 23.43,
+    "P/E": 23.45,
     "P/B": 4.01,
     "Face Value": 2.0,
     "Div. Yield": 0.43,
@@ -795,11 +795,11 @@
     "Weightage": 1.35
   },
   "VOLTAS": {
-    "Market Cap": 51287.13,
-    "Enterprise Value": 51187.54,
+    "Market Cap": 51297.06,
+    "Enterprise Value": 51197.47,
     "No. of Shares": 33.09,
-    "P/E": 70.37,
-    "P/B": 6.54,
+    "P/E": 70.39,
+    "P/B": 6.55,
     "Face Value": 1.0,
     "Div. Yield": 0.35,
     "Book Value (TTM)": 236.87,
@@ -899,11 +899,11 @@
     "Weightage": 1.12
   },
   "SUNDARMFIN": {
-    "Market Cap": 43008.3,
+    "Market Cap": 43067.74,
     "Advances": 41073.18,
     "No. of Shares": 11.11,
-    "P/E": 29.05,
-    "P/B": 4.4,
+    "P/E": 29.09,
+    "P/B": 4.41,
     "Face Value": 10.0,
     "Div. Yield": 0.78,
     "Book Value (TTM)": 879.58,
@@ -919,11 +919,11 @@
     "Weightage": 1.12
   },
   "ESCORTS": {
-    "Market Cap": 40595.96,
-    "Enterprise Value": 39431.29,
+    "Market Cap": 40436.84,
+    "Enterprise Value": 39272.17,
     "No. of Shares": 11.05,
-    "P/E": 38.89,
-    "P/B": 4.28,
+    "P/E": 38.74,
+    "P/B": 4.26,
     "Face Value": 10.0,
     "Div. Yield": 0.49,
     "Book Value (TTM)": 858.97,
@@ -1023,11 +1023,11 @@
     "Weightage": 0.91
   },
   "IPCALAB": {
-    "Market Cap": 34450.5,
-    "Enterprise Value": 35470.49,
+    "Market Cap": 34225.97,
+    "Enterprise Value": 35245.96,
     "No. of Shares": 25.37,
-    "P/E": 60.66,
-    "P/B": 5.26,
+    "P/E": 60.26,
+    "P/B": 5.22,
     "Face Value": 1.0,
     "Div. Yield": 0.29,
     "Book Value (TTM)": 258.29,
@@ -1041,6 +1041,6 @@
     "Profit Growth": 4.89,
     "Cash/Debt": -1019.99,
     "Company Name": "Ipca Laboratories Ltd.",
-    "Weightage": 0.9
+    "Weightage": 0.89
   }
 }
