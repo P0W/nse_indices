@@ -21,10 +21,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 file_list = [
-    "ind_niftymidcap150momentum50_list",
+    # "ind_niftymidcap150momentum50_list",
     "ind_niftymicrocap250_list",
-    "ind_niftyindiadefence_list",
-    "ind_niftysmelist",
+    # "ind_niftyindiadefence_list",
+    # "ind_niftysmelist",
 ]
 
 
@@ -135,6 +135,21 @@ def parse_finology(
     return financial_ratio
 
 
+# Custom sorting key function
+def sorting_key(company_data: Dict[str, float]) -> tuple:
+    """Custom sorting key function"""
+    return (
+        -company_data.get("Market Cap", 0),  # Largest to smallest
+        -company_data.get("Cash/Debt", 0),  # Largest to smallest
+        company_data.get("P/B", float("inf")),  # Smallest to largest
+        -company_data.get("Promoter Holding", 0),  # Largest to smallest
+        -company_data.get("ROCE", 0),  # Largest to smallest
+        -company_data.get("ROE", 0),  # Largest to smallest
+        -company_data.get("Profit Growth", 0),  # Largest to smallest
+        -company_data.get("EPS (TTM)", 0),  # Largest to smallest
+    )
+
+
 def build_table(index_file: str, root_dir: str = "."):
     """Build the table for the given index file"""
     symbols_dict = get_nse_constituents(index_file, root_dir)
@@ -148,13 +163,9 @@ def build_table(index_file: str, root_dir: str = "."):
         company_data["Weightage"] = round(
             (company_data.get("Market Cap", 0) / total_market_cap) * 100.0, 2
         )
-    ## sort the financial_ratio by the "Market Cap" then by ratio cash/debt
+    # Sort the financial_ratio dictionary
     financial_ratio = dict(
-        sorted(
-            financial_ratio.items(),
-            key=lambda x: (x[1].get("Weightage", 0), x[1].get("Cash/Debt", 0)),
-            reverse=True,
-        )
+        sorted(financial_ratio.items(), key=lambda item: sorting_key(item[1]))
     )
     ## write to a json file suffixed with financials
     financial_ratio_file = os.path.join(root_dir, index_file + "_financials.json")
