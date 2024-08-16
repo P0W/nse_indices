@@ -32,8 +32,17 @@ jobs:
           git config --global user.name 'P0W'
           git config --global user.email 'powprashant@gmail.com'
           git add .
-          git commit -m "Add new CSV and JSON files"
-          git pull --rebase https://P0W:${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git main
-          git push https://P0W:${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git HEAD:main
-          echo "Code successfully committed and pushed"
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+          else
+            if git diff --cached --name-only | grep -q '_list.csv'; then
+              COMMIT_MESSAGE="Indices changed - $(date)"
+            else
+              COMMIT_MESSAGE="Add new CSV and JSON files - $(date)"
+            fi
+            git commit -m "$COMMIT_MESSAGE"
+            git pull --rebase https://P0W:${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git main
+            git push https://P0W:${{ secrets.ACTIONS_PAT }}@github.com/P0W/nse_indices.git HEAD:main
+            echo "Code successfully committed and pushed with message: $COMMIT_MESSAGE"
+          fi
 
