@@ -21,10 +21,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 file_list = [
-    # "ind_niftymidcap150momentum50_list",
+    "ind_niftymidcap150momentum50_list",
     "ind_niftymicrocap250_list",
-    # "ind_niftyindiadefence_list",
-    # "ind_niftysmelist",
+    "ind_niftyindiadefence_list",
+    "ind_niftysmelist",
 ]
 
 
