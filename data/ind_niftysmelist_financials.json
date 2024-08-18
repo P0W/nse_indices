@@ -18,7 +18,7 @@
     "Profit Growth": 309.55,
     "Cash/Debt": 58.27,
     "Company Name": "Network People Services Technologies Ltd.",
-    "Weightage": 6.09
+    "Weightage": 6.08
   },
   "ORIANA": {
     "Market Cap": 4317.51,
@@ -39,7 +39,7 @@
     "Profit Growth": 82.38,
     "Cash/Debt": -14.86,
     "Company Name": "Oriana Power Ltd.",
-    "Weightage": 4.46
+    "Weightage": 4.45
   },
   "JSLL": {
     "Market Cap": 3305.28,
@@ -81,7 +81,7 @@
     "Profit Growth": 10.06,
     "Cash/Debt": -75.86,
     "Company Name": "Spectrum Electrical Industries Ltd.",
-    "Weightage": 2.84
+    "Weightage": 2.83
   },
   "KODYTECH": {
     "Market Cap": 2315.79,
@@ -207,7 +207,7 @@
     "Profit Growth": 3230.89,
     "Cash/Debt": 1.09,
     "Company Name": "Basilic Fly Studio Ltd.",
-    "Weightage": 1.35
+    "Weightage": 1.34
   },
   "TECHLABS": {
     "Market Cap": 1290.81,
@@ -627,7 +627,7 @@
     "Profit Growth": 1189.84,
     "Cash/Debt": -16.91,
     "Company Name": "Annapurna Swadisht Ltd.",
-    "Weightage": 0.76
+    "Weightage": 0.75
   },
   "PASHUPATI": {
     "Market Cap": 725.99,
@@ -669,7 +669,7 @@
     "Profit Growth": 47.81,
     "Cash/Debt": -1.99,
     "Company Name": "Kore Digital Ltd.",
-    "Weightage": 0.75
+    "Weightage": 0.74
   },
   "SUPREMEPWR": {
     "Market Cap": 708.0,
@@ -732,7 +732,7 @@
     "Profit Growth": 8.92,
     "Cash/Debt": -7.59,
     "Company Name": "RBM Infracon Ltd.",
-    "Weightage": 0.71
+    "Weightage": 0.7
   },
   "MEGATHERM": {
     "Market Cap": 678.36,
@@ -816,7 +816,7 @@
     "Profit Growth": 172.5,
     "Cash/Debt": -14.07,
     "Company Name": "Wise Travel India Ltd.",
-    "Weightage": 0.66
+    "Weightage": 0.65
   },
   "TGL": {
     "Market Cap": 600.64,
@@ -921,7 +921,7 @@
     "Profit Growth": 21.08,
     "Cash/Debt": -112.97,
     "Company Name": "Swaraj Suiting Ltd.",
-    "Weightage": 0.58
+    "Weightage": 0.57
   },
   "KNAGRI": {
     "Market Cap": 552.48,
@@ -1026,7 +1026,7 @@
     "Profit Growth": 230.3,
     "Cash/Debt": -3.23,
     "Company Name": "Phantom Digital Effects Ltd.",
-    "Weightage": 0.53
+    "Weightage": 0.52
   },
   "NEWJAISA": {
     "Market Cap": 502.01,
@@ -1173,7 +1173,7 @@
     "Profit Growth": 99.16,
     "Cash/Debt": -6.44,
     "Company Name": "Krishival Foods Ltd.",
-    "Weightage": 0.5
+    "Weightage": 0.49
   },
   "KRISHCA": {
     "Market Cap": 478.98,
@@ -2160,7 +2160,7 @@
     "Profit Growth": 90.81,
     "Cash/Debt": -25.54,
     "Company Name": "Konstelec Engineers Ltd.",
-    "Weightage": 0.28
+    "Weightage": 0.27
   },
   "EFACTOR": {
     "Market Cap": 263.07,
@@ -2244,7 +2244,7 @@
     "Profit Growth": 86.61,
     "Cash/Debt": -41.5,
     "Company Name": "Aurangabad Distillery Ltd.",
-    "Weightage": 0.27
+    "Weightage": 0.26
   },
   "MAXPOSURE": {
     "Market Cap": 256.52,
@@ -2328,7 +2328,7 @@
     "Profit Growth": 86.36,
     "Cash/Debt": -10.1,
     "Company Name": "Zeal Global Services Ltd.",
-    "Weightage": 0.26
+    "Weightage": 0.25
   },
   "MADHUSUDAN": {
     "Market Cap": 241.23,
@@ -2391,7 +2391,7 @@
     "Profit Growth": 86.4,
     "Cash/Debt": 2.53,
     "Company Name": "Lloyds Luxuries Ltd.",
-    "Weightage": 0.25
+    "Weightage": 0.24
   },
   "ARHAM": {
     "Market Cap": 236.88,
@@ -3104,7 +3104,7 @@
     "Profit Growth": 47.76,
     "Cash/Debt": -2.29,
     "Company Name": "Enfuse Solutions Ltd.",
-    "Weightage": 0.17
+    "Weightage": 0.16
   },
   "EFORCE": {
     "Market Cap": 158.65,
@@ -3691,6 +3691,27 @@
     "Profit Growth": 4.0,
     "Cash/Debt": -88.53,
     "Company Name": "Veekayem Fashion and Apparels Ltd",
+    "Weightage": 0.12
+  },
+  "HOLMARC": {
+    "Market Cap": 114.57,
+    "Enterprise Value": 105.62,
+    "No. of Shares": 1.01,
+    "P/E": 33.38,
+    "P/B": 4.81,
+    "Face Value": 10.0,
+    "Div. Yield": 0.35,
+    "Book Value (TTM)": 23.72,
+    "CASH": 8.95,
+    "DEBT": 0.0,
+    "Promoter Holding": 62.69,
+    "EPS (TTM)": 3.42,
+    "Sales Growth": 15.24,
+    "ROE": 19.38,
+    "ROCE": 26.03,
+    "Profit Growth": 3.61,
+    "Cash/Debt": 8.95,
+    "Company Name": "Holmarc Opto-Mechatronics Ltd.",
     "Weightage": 0.12
   },
   "BLUEPEBBLE": {
