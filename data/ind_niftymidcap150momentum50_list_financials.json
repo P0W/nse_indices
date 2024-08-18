@@ -18,7 +18,7 @@
     "Profit Growth": 25.98,
     "Cash/Debt": -8682.0,
     "Company Name": "Hindustan Zinc Ltd.",
-    "Weightage": 5.8
+    "Weightage": 5.68
   },
   "LODHA": {
     "Market Cap": 128878.37,
@@ -39,7 +39,7 @@
     "Profit Growth": 155.22,
     "Cash/Debt": -6100.9,
     "Company Name": "Macrotech Developers Ltd.",
-    "Weightage": 3.4
+    "Weightage": 3.33
   },
   "RVNL": {
     "Market Cap": 118919.12,
@@ -60,7 +60,7 @@
     "Profit Growth": 16.61,
     "Cash/Debt": -4620.73,
     "Company Name": "Rail Vikas Nigam Ltd.",
-    "Weightage": 3.14
+    "Weightage": 3.08
   },
   "JSWENERGY": {
     "Market Cap": 116165.43,
@@ -81,7 +81,7 @@
     "Profit Growth": 33.64,
     "Cash/Debt": -6174.46,
     "Company Name": "JSW Energy Ltd.",
-    "Weightage": 3.07
+    "Weightage": 3.0
   },
   "INDUSTOWER": {
     "Market Cap": 110990.98,
@@ -102,7 +102,7 @@
     "Profit Growth": 195.65,
     "Cash/Debt": -4253.8,
     "Company Name": "Indus Towers Ltd.",
-    "Weightage": 2.93
+    "Weightage": 2.87
   },
   "OIL": {
     "Market Cap": 110284.01,
@@ -123,7 +123,7 @@
     "Profit Growth": 75.2,
     "Cash/Debt": -9810.18,
     "Company Name": "Oil India Ltd.",
-    "Weightage": 2.91
+    "Weightage": 2.85
   },
   "CGPOWER": {
     "Market Cap": 109267.54,
@@ -144,7 +144,7 @@
     "Profit Growth": 27.89,
     "Cash/Debt": 778.45,
     "Company Name": "CG Power and Industrial Solutions Ltd.",
-    "Weightage": 2.89
+    "Weightage": 2.83
   },
   "CUMMINSIND": {
     "Market Cap": 104080.28,
@@ -165,7 +165,7 @@
     "Profit Growth": 46.98,
     "Cash/Debt": 1404.66,
     "Company Name": "Cummins India Ltd.",
-    "Weightage": 2.75
+    "Weightage": 2.69
   },
   "BHEL": {
     "Market Cap": 103208.36,
@@ -186,7 +186,7 @@
     "Profit Growth": 58.37,
     "Cash/Debt": -2650.53,
     "Company Name": "Bharat Heavy Electricals Ltd.",
-    "Weightage": 2.73
+    "Weightage": 2.67
   },
   "GMRINFRA": {
     "Market Cap": 101154.99,
@@ -207,7 +207,7 @@
     "Profit Growth": 106.01,
     "Cash/Debt": -497.14,
     "Company Name": "GMR Airports Infrastructure Ltd.",
-    "Weightage": 2.67
+    "Weightage": 2.62
   },
   "MAZDOCK": {
     "Market Cap": 100369.01,
@@ -228,7 +228,7 @@
     "Profit Growth": 82.91,
     "Cash/Debt": 13286.42,
     "Company Name": "Mazagoan Dock Shipbuilders Ltd.",
-    "Weightage": 2.65
+    "Weightage": 2.6
   },
   "POLYCAB": {
     "Market Cap": 100284.97,
@@ -249,7 +249,7 @@
     "Profit Growth": 39.45,
     "Cash/Debt": 307.95,
     "Company Name": "Polycab India Ltd.",
-    "Weightage": 2.65
+    "Weightage": 2.59
   },
   "LUPIN": {
     "Market Cap": 95307.4,
@@ -270,7 +270,7 @@
     "Profit Growth": 447.05,
     "Cash/Debt": 120.51,
     "Company Name": "Lupin Ltd.",
-    "Weightage": 2.52
+    "Weightage": 2.46
   },
   "SOLARINDS": {
     "Market Cap": 95010.03,
@@ -291,7 +291,7 @@
     "Profit Growth": 33.88,
     "Cash/Debt": -247.3,
     "Company Name": "Solar Industries India Ltd.",
-    "Weightage": 2.51
+    "Weightage": 2.46
   },
   "OFSS": {
     "Market Cap": 94604.47,
@@ -312,7 +312,7 @@
     "Profit Growth": 14.41,
     "Cash/Debt": 3287.6,
     "Company Name": "Oracle Financial Services Software Ltd.",
-    "Weightage": 2.5
+    "Weightage": 2.45
   },
   "NHPC": {
     "Market Cap": 94574.0,
@@ -333,7 +333,7 @@
     "Profit Growth": 2.34,
     "Cash/Debt": -28398.48,
     "Company Name": "NHPC Ltd.",
-    "Weightage": 2.5
+    "Weightage": 2.45
   },
   "HDFCAMC": {
     "Market Cap": 89927.97,
@@ -353,7 +353,7 @@
     "ROCE": 37.72,
     "Profit Growth": 36.66,
     "Company Name": "HDFC Asset Management Company Ltd.",
-    "Weightage": 2.38
+    "Weightage": 2.33
   },
   "UNIONBANK": {
     "Market Cap": 89733.03,
@@ -373,7 +373,7 @@
     "ROCE": 21.3,
     "Profit Growth": 61.84,
     "Company Name": "Union Bank of India",
-    "Weightage": 2.37
+    "Weightage": 2.32
   },
   "AUROPHARMA": {
     "Market Cap": 87744.31,
@@ -394,7 +394,7 @@
     "Profit Growth": 52.97,
     "Cash/Debt": -2723.5,
     "Company Name": "Aurobindo Pharma Ltd.",
-    "Weightage": 2.32
+    "Weightage": 2.27
   },
   "GODREJPROP": {
     "Market Cap": 81713.99,
@@ -415,7 +415,7 @@
     "Profit Growth": 13.93,
     "Cash/Debt": -7727.76,
     "Company Name": "Godrej Properties Ltd.",
-    "Weightage": 2.16
+    "Weightage": 2.11
   },
   "TORNTPOWER": {
     "Market Cap": 80818.12,
@@ -436,7 +436,28 @@
     "Profit Growth": 14.53,
     "Cash/Debt": -9392.59,
     "Company Name": "Torrent Power Ltd.",
-    "Weightage": 2.13
+    "Weightage": 2.09
+  },
+  "HINDPETRO": {
+    "Market Cap": 80729.59,
+    "Enterprise Value": 140630.93,
+    "No. of Shares": 212.78,
+    "P/E": 9.13,
+    "P/B": 1.92,
+    "Face Value": 10.0,
+    "Div. Yield": 8.3,
+    "Book Value (TTM)": 197.83,
+    "CASH": 352.35,
+    "DEBT": 60253.69,
+    "Promoter Holding": 54.9,
+    "EPS (TTM)": 41.57,
+    "Sales Growth": 1.56,
+    "ROE": 42.75,
+    "ROCE": 22.4,
+    "Profit Growth": 263.74,
+    "Cash/Debt": -59901.34,
+    "Company Name": "Hindustan Petroleum Corporation Ltd.",
+    "Weightage": 2.09
   },
   "POLICYBZR": {
     "Market Cap": 76944.37,
@@ -457,7 +478,7 @@
     "Profit Growth": 75.26,
     "Cash/Debt": 489.08,
     "Company Name": "PB Fintech Ltd.",
-    "Weightage": 2.03
+    "Weightage": 1.99
   },
   "INDIANB": {
     "Market Cap": 74029.14,
@@ -477,7 +498,7 @@
     "ROCE": 16.89,
     "Profit Growth": 52.66,
     "Company Name": "Indian Bank",
-    "Weightage": 1.96
+    "Weightage": 1.91
   },
   "DIXON": {
     "Market Cap": 73885.33,
@@ -498,7 +519,7 @@
     "Profit Growth": 39.87,
     "Cash/Debt": -33.01,
     "Company Name": "Dixon Technologies (India) Ltd.",
-    "Weightage": 1.95
+    "Weightage": 1.91
   },
   "BHARATFORG": {
     "Market Cap": 73707.34,
@@ -519,7 +540,7 @@
     "Profit Growth": 36.3,
     "Cash/Debt": -3343.65,
     "Company Name": "Bharat Forge Ltd.",
-    "Weightage": 1.95
+    "Weightage": 1.91
   },
   "PRESTIGE": {
     "Market Cap": 72557.96,
@@ -540,7 +561,7 @@
     "Profit Growth": 64.01,
     "Cash/Debt": -2941.3,
     "Company Name": "Prestige Estates Projects Ltd.",
-    "Weightage": 1.92
+    "Weightage": 1.88
   },
   "SUPREMEIND": {
     "Market Cap": 66378.53,
@@ -561,7 +582,7 @@
     "Profit Growth": 32.92,
     "Cash/Debt": 1186.24,
     "Company Name": "Supreme Industries Ltd.",
-    "Weightage": 1.75
+    "Weightage": 1.72
   },
   "UNOMINDA": {
     "Market Cap": 66307.31,
@@ -582,7 +603,7 @@
     "Profit Growth": 26.6,
     "Cash/Debt": -832.07,
     "Company Name": "UNO Minda Ltd.",
-    "Weightage": 1.75
+    "Weightage": 1.71
   },
   "OBEROIRLTY": {
     "Market Cap": 64035.81,
@@ -603,7 +624,7 @@
     "Profit Growth": 36.67,
     "Cash/Debt": -1784.44,
     "Company Name": "Oberoi Realty Ltd.",
-    "Weightage": 1.69
+    "Weightage": 1.66
   },
   "NMDC": {
     "Market Cap": 63711.37,
@@ -624,7 +645,7 @@
     "Profit Growth": 41.48,
     "Cash/Debt": 6632.06,
     "Company Name": "NMDC Ltd.",
-    "Weightage": 1.68
+    "Weightage": 1.65
   },
   "LINDEINDIA": {
     "Market Cap": 61407.2,
@@ -645,7 +666,7 @@
     "Profit Growth": 20.43,
     "Cash/Debt": 979.83,
     "Company Name": "Linde India Ltd.",
-    "Weightage": 1.62
+    "Weightage": 1.59
   },
   "PHOENIXLTD": {
     "Market Cap": 60212.57,
@@ -666,7 +687,7 @@
     "Profit Growth": 21.49,
     "Cash/Debt": -621.63,
     "Company Name": "Phoenix Mills Ltd.",
-    "Weightage": 1.59
+    "Weightage": 1.56
   },
   "KALYANKJIL": {
     "Market Cap": 59007.77,
@@ -687,7 +708,7 @@
     "Profit Growth": 42.14,
     "Cash/Debt": -1498.87,
     "Company Name": "Kalyan Jewellers India Ltd.",
-    "Weightage": 1.56
+    "Weightage": 1.53
   },
   "JSL": {
     "Market Cap": 57833.93,
@@ -708,7 +729,7 @@
     "Profit Growth": 25.65,
     "Cash/Debt": -2418.08,
     "Company Name": "Jindal Stainless Ltd.",
-    "Weightage": 1.53
+    "Weightage": 1.5
   },
   "MRF": {
     "Market Cap": 57615.93,
@@ -729,7 +750,7 @@
     "Profit Growth": 150.05,
     "Cash/Debt": -1386.24,
     "Company Name": "MRF Ltd.",
-    "Weightage": 1.52
+    "Weightage": 1.49
   },
   "SJVN": {
     "Market Cap": 56176.42,
@@ -750,7 +771,7 @@
     "Profit Growth": 39.48,
     "Cash/Debt": -4109.88,
     "Company Name": "SJVN Ltd.",
-    "Weightage": 1.48
+    "Weightage": 1.45
   },
   "SAIL": {
     "Market Cap": 52953.33,
@@ -771,7 +792,7 @@
     "Profit Growth": 84.16,
     "Cash/Debt": -30375.44,
     "Company Name": "Steel Authority of India Ltd.",
-    "Weightage": 1.4
+    "Weightage": 1.37
   },
   "THERMAX": {
     "Market Cap": 52413.88,
@@ -792,7 +813,7 @@
     "Profit Growth": 32.86,
     "Cash/Debt": 38.96,
     "Company Name": "Thermax Ltd.",
-    "Weightage": 1.38
+    "Weightage": 1.36
   },
   "VOLTAS": {
     "Market Cap": 50756.06,
@@ -813,7 +834,7 @@
     "Profit Growth": 57.0,
     "Cash/Debt": 99.59,
     "Company Name": "Voltas Ltd.",
-    "Weightage": 1.34
+    "Weightage": 1.31
   },
   "GLAXO": {
     "Market Cap": 49297.16,
@@ -834,7 +855,7 @@
     "Profit Growth": 3.31,
     "Cash/Debt": 1061.2,
     "Company Name": "Glaxosmithkline Pharmaceuticals Ltd.",
-    "Weightage": 1.3
+    "Weightage": 1.27
   },
   "BDL": {
     "Market Cap": 48358.76,
@@ -855,7 +876,7 @@
     "Profit Growth": 29.55,
     "Cash/Debt": 3854.8,
     "Company Name": "Bharat Dynamics Ltd.",
-    "Weightage": 1.28
+    "Weightage": 1.25
   },
   "SUNDARMFIN": {
     "Market Cap": 44646.53,
@@ -875,7 +896,7 @@
     "ROCE": 9.7,
     "Profit Growth": 33.6,
     "Company Name": "Sundaram Finance Ltd.",
-    "Weightage": 1.18
+    "Weightage": 1.15
   },
   "MAHABANK": {
     "Market Cap": 43316.76,
@@ -895,7 +916,7 @@
     "ROCE": 18.57,
     "Profit Growth": 55.84,
     "Company Name": "Bank of Maharashtra",
-    "Weightage": 1.14
+    "Weightage": 1.12
   },
   "ESCORTS": {
     "Market Cap": 41299.83,
@@ -916,7 +937,7 @@
     "Profit Growth": 70.87,
     "Cash/Debt": 1164.67,
     "Company Name": "Escorts Kubota Ltd.",
-    "Weightage": 1.09
+    "Weightage": 1.07
   },
   "FORTIS": {
     "Market Cap": 40239.27,
@@ -937,7 +958,7 @@
     "Profit Growth": 107.25,
     "Cash/Debt": -195.66,
     "Company Name": "Fortis Healthcare Ltd.",
-    "Weightage": 1.06
+    "Weightage": 1.04
   },
   "KEI": {
     "Market Cap": 38776.75,
@@ -958,7 +979,7 @@
     "Profit Growth": 26.89,
     "Cash/Debt": 401.9,
     "Company Name": "KEI Industries Ltd.",
-    "Weightage": 1.02
+    "Weightage": 1.0
   },
   "AJANTPHARM": {
     "Market Cap": 37516.72,
@@ -979,7 +1000,7 @@
     "Profit Growth": 44.48,
     "Cash/Debt": 63.06,
     "Company Name": "Ajanta Pharmaceuticals Ltd.",
-    "Weightage": 0.99
+    "Weightage": 0.97
   },
   "BSE": {
     "Market Cap": 35819.91,
@@ -999,7 +1020,7 @@
     "ROCE": 10.43,
     "Profit Growth": 14.46,
     "Company Name": "BSE Ltd.",
-    "Weightage": 0.95
+    "Weightage": 0.93
   },
   "IPCALAB": {
     "Market Cap": 33844.14,
@@ -1020,6 +1041,6 @@
     "Profit Growth": 4.89,
     "Cash/Debt": -1019.99,
     "Company Name": "Ipca Laboratories Ltd.",
-    "Weightage": 0.89
+    "Weightage": 0.88
   }
 }
