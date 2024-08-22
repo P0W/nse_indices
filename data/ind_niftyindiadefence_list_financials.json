@@ -1,10 +1,10 @@
 {
   "HAL": {
-    "Market Cap": 316407.48,
-    "Enterprise Value": 290034.66,
+    "Market Cap": 316798.72,
+    "Enterprise Value": 290425.9,
     "No. of Shares": 66.88,
-    "P/E": 38.51,
-    "P/B": 10.38,
+    "P/E": 38.56,
+    "P/B": 10.39,
     "Face Value": 5.0,
     "Div. Yield": 0.74,
     "Book Value (TTM)": 455.79,
@@ -18,16 +18,16 @@
     "Profit Growth": 30.7,
     "Cash/Debt": 26372.82,
     "Company Name": "Hindustan Aeronautics Ltd.",
-    "Weightage": 34.64
+    "Weightage": 34.76
   },
   "BEL": {
-    "Market Cap": 223240.65,
-    "Enterprise Value": 212272.55,
+    "Market Cap": 222802.06,
+    "Enterprise Value": 211833.96,
     "No. of Shares": 730.98,
-    "P/E": 52.34,
-    "P/B": 13.24,
+    "P/E": 52.24,
+    "P/B": 13.22,
     "Face Value": 1.0,
-    "Div. Yield": 0.73,
+    "Div. Yield": 0.72,
     "Book Value (TTM)": 23.06,
     "CASH": 10968.1,
     "DEBT": 0.0,
@@ -42,11 +42,11 @@
     "Weightage": 24.44
   },
   "SOLARINDS": {
-    "Market Cap": 92793.48,
-    "Enterprise Value": 93040.78,
+    "Market Cap": 93689.78,
+    "Enterprise Value": 93937.08,
     "No. of Shares": 9.05,
-    "P/E": 142.08,
-    "P/B": 36.52,
+    "P/E": 143.46,
+    "P/B": 36.88,
     "Face Value": 2.0,
     "Div. Yield": 0.08,
     "Book Value (TTM)": 280.77,
@@ -60,16 +60,16 @@
     "Profit Growth": 33.88,
     "Cash/Debt": -247.3,
     "Company Name": "Solar Industries India Ltd.",
-    "Weightage": 10.16
+    "Weightage": 10.28
   },
   "MAZDOCK": {
-    "Market Cap": 91560.2,
-    "Enterprise Value": 78273.78,
+    "Market Cap": 90094.92,
+    "Enterprise Value": 76808.5,
     "No. of Shares": 20.17,
-    "P/E": 41.16,
-    "P/B": 14.68,
+    "P/E": 40.5,
+    "P/B": 14.45,
     "Face Value": 10.0,
-    "Div. Yield": 0.64,
+    "Div. Yield": 0.6,
     "Book Value (TTM)": 309.22,
     "CASH": 13286.42,
     "DEBT": 0.0,
@@ -81,16 +81,16 @@
     "Profit Growth": 82.91,
     "Cash/Debt": 13286.42,
     "Company Name": "Mazagoan Dock Shipbuilders Ltd.",
-    "Weightage": 10.02
+    "Weightage": 9.88
   },
   "COCHINSHIP": {
-    "Market Cap": 55694.2,
-    "Enterprise Value": 51148.22,
+    "Market Cap": 54852.34,
+    "Enterprise Value": 50306.36,
     "No. of Shares": 26.31,
-    "P/E": 62.96,
-    "P/B": 10.7,
+    "P/E": 62.01,
+    "P/B": 10.53,
     "Face Value": 5.0,
-    "Div. Yield": 0.47,
+    "Div. Yield": 0.46,
     "Book Value (TTM)": 197.91,
     "CASH": 4671.81,
     "DEBT": 125.82,
@@ -102,14 +102,14 @@
     "Profit Growth": 42.98,
     "Cash/Debt": 4545.99,
     "Company Name": "Cochin Shipyard Ltd.",
-    "Weightage": 6.1
+    "Weightage": 6.02
   },
   "BDL": {
-    "Market Cap": 48437.57,
-    "Enterprise Value": 44582.76,
+    "Market Cap": 48122.33,
+    "Enterprise Value": 44267.52,
     "No. of Shares": 36.66,
-    "P/E": 83.79,
-    "P/B": 13.29,
+    "P/E": 83.24,
+    "P/B": 13.21,
     "Face Value": 5.0,
     "Div. Yield": 0.4,
     "Book Value (TTM)": 99.41,
@@ -123,16 +123,16 @@
     "Profit Growth": 29.55,
     "Cash/Debt": 3854.8,
     "Company Name": "Bharat Dynamics Ltd.",
-    "Weightage": 5.3
+    "Weightage": 5.28
   },
   "GRSE": {
-    "Market Cap": 20634.82,
-    "Enterprise Value": 16608.19,
+    "Market Cap": 20273.41,
+    "Enterprise Value": 16246.78,
     "No. of Shares": 11.46,
-    "P/E": 56.11,
-    "P/B": 11.72,
+    "P/E": 55.12,
+    "P/B": 11.51,
     "Face Value": 10.0,
-    "Div. Yield": 0.53,
+    "Div. Yield": 0.52,
     "Book Value (TTM)": 153.7,
     "CASH": 4327.81,
     "DEBT": 301.17,
@@ -144,14 +144,14 @@
     "Profit Growth": 20.37,
     "Cash/Debt": 4026.64,
     "Company Name": "Garden Reach Shipbuilders & Engineers Ltd.",
-    "Weightage": 2.26
+    "Weightage": 2.22
   },
   "DATAPATTNS": {
-    "Market Cap": 16126.18,
-    "Enterprise Value": 15733.49,
+    "Market Cap": 16168.17,
+    "Enterprise Value": 15775.48,
     "No. of Shares": 5.6,
-    "P/E": 85.48,
-    "P/B": 11.88,
+    "P/E": 85.7,
+    "P/B": 11.91,
     "Face Value": 2.0,
     "Div. Yield": 0.23,
     "Book Value (TTM)": 242.39,
@@ -168,11 +168,11 @@
     "Weightage": 1.77
   },
   "ZENTEC": {
-    "Market Cap": 14981.31,
-    "Enterprise Value": 14839.93,
+    "Market Cap": 14901.05,
+    "Enterprise Value": 14759.67,
     "No. of Shares": 8.4,
-    "P/E": 95.9,
-    "P/B": 28.41,
+    "P/E": 95.38,
+    "P/B": 28.26,
     "Face Value": 1.0,
     "Div. Yield": 0.06,
     "Book Value (TTM)": 62.74,
@@ -186,13 +186,13 @@
     "Profit Growth": 1759.94,
     "Cash/Debt": 141.38,
     "Company Name": "Zen Technologies Ltd.",
-    "Weightage": 1.64
+    "Weightage": 1.63
   },
   "ASTRAMICRO": {
-    "Market Cap": 8382.22,
-    "Enterprise Value": 8482.15,
+    "Market Cap": 8383.17,
+    "Enterprise Value": 8483.1,
     "No. of Shares": 9.49,
-    "P/E": 68.41,
+    "P/E": 68.42,
     "P/B": 8.61,
     "Face Value": 2.0,
     "Div. Yield": 0.23,
@@ -210,11 +210,11 @@
     "Weightage": 0.92
   },
   "MIDHANI": {
-    "Market Cap": 8020.03,
-    "Enterprise Value": 8392.96,
+    "Market Cap": 8035.95,
+    "Enterprise Value": 8408.89,
     "No. of Shares": 18.73,
-    "P/E": 103.05,
-    "P/B": 6.05,
+    "P/E": 103.25,
+    "P/B": 6.07,
     "Face Value": 10.0,
     "Div. Yield": 0.78,
     "Book Value (TTM)": 70.7,
@@ -231,11 +231,11 @@
     "Weightage": 0.88
   },
   "MTARTECH": {
-    "Market Cap": 5389.7,
-    "Enterprise Value": 5529.26,
+    "Market Cap": 5427.07,
+    "Enterprise Value": 5566.63,
     "No. of Shares": 3.08,
-    "P/E": 131.46,
-    "P/B": 7.91,
+    "P/E": 132.37,
+    "P/B": 7.96,
     "Face Value": 10.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 221.62,
@@ -249,14 +249,14 @@
     "Profit Growth": 45.94,
     "Cash/Debt": -139.57,
     "Company Name": "MTAR Technologies Ltd.",
-    "Weightage": 0.59
+    "Weightage": 0.6
   },
   "PARAS": {
-    "Market Cap": 4808.51,
-    "Enterprise Value": 4771.4,
+    "Market Cap": 4984.6,
+    "Enterprise Value": 4947.48,
     "No. of Shares": 3.9,
-    "P/E": 109.56,
-    "P/B": 11.43,
+    "P/E": 113.57,
+    "P/B": 11.85,
     "Face Value": 10.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 107.87,
@@ -270,14 +270,14 @@
     "Profit Growth": 33.52,
     "Cash/Debt": 37.11,
     "Company Name": "Paras Defence and Space Technologies Ltd.",
-    "Weightage": 0.53
+    "Weightage": 0.55
   },
   "DCXINDIA": {
-    "Market Cap": 3846.17,
-    "Enterprise Value": 3758.47,
+    "Market Cap": 3864.0,
+    "Enterprise Value": 3776.29,
     "No. of Shares": 11.14,
-    "P/E": 61.29,
-    "P/B": 3.42,
+    "P/E": 61.57,
+    "P/B": 3.44,
     "Face Value": 2.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 100.86,
@@ -294,11 +294,11 @@
     "Weightage": 0.42
   },
   "IDEAFORGE": {
-    "Market Cap": 2997.11,
-    "Enterprise Value": 2728.73,
+    "Market Cap": 3067.46,
+    "Enterprise Value": 2799.08,
     "No. of Shares": 4.3,
-    "P/E": 98.24,
-    "P/B": 4.57,
+    "P/E": 100.55,
+    "P/B": 4.68,
     "Face Value": 10.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 152.39,
@@ -312,6 +312,6 @@
     "Profit Growth": 49.57,
     "Cash/Debt": 268.38,
     "Company Name": "Ideaforge Technology Ltd.",
-    "Weightage": 0.33
+    "Weightage": 0.34
   }
 }
