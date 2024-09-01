@@ -185,7 +185,7 @@
     "Profit Growth": 83.67,
     "Cash/Debt": 32.78,
     "Company Name": "Neuland Laboratories Ltd.",
-    "Weightage": 0.91
+    "Weightage": 0.9
   },
   "WOCKPHARMA": {
     "Market Cap": 16087.29,
@@ -311,7 +311,7 @@
     "Profit Growth": 17.61,
     "Cash/Debt": -549.24,
     "Company Name": "Godrej Agrovet Ltd.",
-    "Weightage": 0.85
+    "Weightage": 0.84
   },
   "GRINFRA": {
     "Market Cap": 14827.26,
@@ -668,7 +668,7 @@
     "Profit Growth": 11.14,
     "Cash/Debt": -120.6,
     "Company Name": "Tega Industries Ltd.",
-    "Weightage": 0.64
+    "Weightage": 0.63
   },
   "PURVA": {
     "Market Cap": 10837.74,
@@ -857,7 +857,7 @@
     "Profit Growth": 221.47,
     "Cash/Debt": -1764.32,
     "Company Name": "JK Tyre & Industries Ltd.",
-    "Weightage": 0.59
+    "Weightage": 0.58
   },
   "EDELWEISS": {
     "Market Cap": 10343.06,
@@ -940,7 +940,7 @@
     "Profit Growth": 1.67,
     "Cash/Debt": -943.54,
     "Company Name": "Sheela Foam Ltd.",
-    "Weightage": 0.57
+    "Weightage": 0.56
   },
   "IONEXCHANG": {
     "Market Cap": 9826.66,
@@ -1129,7 +1129,7 @@
     "Profit Growth": 6.98,
     "Cash/Debt": 169.94,
     "Company Name": "Star Cement Ltd.",
-    "Weightage": 0.52
+    "Weightage": 0.51
   },
   "RELIGARE": {
     "Market Cap": 9106.24,
@@ -1223,14 +1223,14 @@
     "Face Value": 10.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 13.78,
-    "Operating Revenue": 12.95,
-    "Net Profit": 2.29,
+    "Operating Revenue": 12.89,
+    "Net Profit": 1.4,
     "Promoter Holding": 58.21,
     "EPS (TTM)": 0.19,
-    "Sales Growth": 14.84,
-    "ROE": 0.89,
-    "ROCE": 2.2,
-    "Profit Growth": 6.05,
+    "Sales Growth": 0.45,
+    "ROE": 0.54,
+    "ROCE": 1.85,
+    "Profit Growth": 38.94,
     "Company Name": "Choice International Ltd.",
     "Weightage": 0.5
   },
@@ -1379,7 +1379,7 @@
     "Profit Growth": 25.06,
     "Cash/Debt": 585.34,
     "Company Name": "Ahluwalia Contracts (India) Ltd.",
-    "Weightage": 0.49
+    "Weightage": 0.48
   },
   "ASTRAMICRO": {
     "Market Cap": 8620.53,
@@ -1503,7 +1503,7 @@
     "Profit Growth": 11.88,
     "Cash/Debt": 65.63,
     "Company Name": "Blue Jet Healthcare Ltd.",
-    "Weightage": 0.48
+    "Weightage": 0.47
   },
   "EMBDL": {
     "Market Cap": 8445.97,
@@ -1671,7 +1671,7 @@
     "Profit Growth": 34.49,
     "Cash/Debt": -826.84,
     "Company Name": "Indo Count Industries Ltd.",
-    "Weightage": 0.46
+    "Weightage": 0.45
   },
   "SANSERA": {
     "Market Cap": 8099.75,
@@ -1900,7 +1900,7 @@
     "Profit Growth": 11.59,
     "Cash/Debt": -372.93,
     "Company Name": "Mishra Dhatu Nigam Ltd.",
-    "Weightage": 0.44
+    "Weightage": 0.43
   },
   "EPIGRAL": {
     "Market Cap": 7744.74,
@@ -2194,7 +2194,7 @@
     "Profit Growth": 146.37,
     "Cash/Debt": -184.87,
     "Company Name": "Responsive Industries Ltd.",
-    "Weightage": 0.4
+    "Weightage": 0.39
   },
   "GANESHHOUC": {
     "Market Cap": 7048.71,
@@ -2215,7 +2215,7 @@
     "Profit Growth": 194.47,
     "Cash/Debt": 92.74,
     "Company Name": "Ganesh Housing Corporation Ltd.",
-    "Weightage": 0.4
+    "Weightage": 0.39
   },
   "GULFOILLUB": {
     "Market Cap": 6991.21,
@@ -2403,7 +2403,7 @@
     "Profit Growth": 40.38,
     "Cash/Debt": 189.51,
     "Company Name": "TD Power Systems Ltd.",
-    "Weightage": 0.38
+    "Weightage": 0.37
   },
   "NIITMTS": {
     "Market Cap": 6692.49,
@@ -2424,7 +2424,7 @@
     "Profit Growth": 69.73,
     "Cash/Debt": 0.18,
     "Company Name": "NIIT Learning Systems Ltd.",
-    "Weightage": 0.38
+    "Weightage": 0.37
   },
   "NESCO": {
     "Market Cap": 6635.57,
@@ -2512,22 +2512,22 @@
   },
   "JKIL": {
     "Market Cap": 6529.93,
-    "Enterprise Value": 6669.78,
+    "Enterprise Value": 6601.67,
     "No. of Shares": 7.57,
     "P/E": 19.08,
     "P/B": 2.39,
     "Face Value": 5.0,
     "Div. Yield": 0.47,
     "Book Value (TTM)": 360.58,
-    "CASH": 376.53,
-    "DEBT": 516.37,
+    "CASH": 504.25,
+    "DEBT": 575.99,
     "Promoter Holding": 46.65,
     "EPS (TTM)": 45.22,
-    "Sales Growth": 19.16,
-    "ROE": 12.4,
-    "ROCE": 17.59,
-    "Profit Growth": 33.28,
-    "Cash/Debt": -139.84,
+    "Sales Growth": 16.08,
+    "ROE": 13.19,
+    "ROCE": 18.59,
+    "Profit Growth": 19.75,
+    "Cash/Debt": -71.74,
     "Company Name": "J.Kumar Infraprojects Ltd.",
     "Weightage": 0.37
   },
@@ -2550,7 +2550,7 @@
     "Profit Growth": 186.74,
     "Cash/Debt": -1861.04,
     "Company Name": "Kesoram Industries Ltd.",
-    "Weightage": 0.37
+    "Weightage": 0.36
   },
   "GOCOLORS": {
     "Market Cap": 6432.47,
@@ -2847,22 +2847,22 @@
   },
   "GUJALKALI": {
     "Market Cap": 5649.5,
-    "Enterprise Value": 5762.4,
+    "Enterprise Value": 6031.16,
     "No. of Shares": 7.34,
     "P/E": 0.0,
     "P/B": 0.89,
     "Face Value": 10.0,
     "Div. Yield": 1.8,
     "Book Value (TTM)": 861.51,
-    "CASH": 482.91,
-    "DEBT": 595.81,
+    "CASH": 161.76,
+    "DEBT": 543.43,
     "Promoter Holding": 46.28,
     "EPS (TTM)": 16.81,
-    "Sales Growth": 20.16,
-    "ROE": 9.43,
-    "ROCE": 13.14,
-    "Profit Growth": 2.44,
-    "Cash/Debt": -112.9,
+    "Sales Growth": 15.72,
+    "ROE": 2.09,
+    "ROCE": 2.19,
+    "Profit Growth": 122.97,
+    "Cash/Debt": -381.67,
     "Company Name": "Gujarat Alkalies & Chemicals Ltd.",
     "Weightage": 0.32
   },
@@ -2926,7 +2926,7 @@
     "Profit Growth": 38.05,
     "Cash/Debt": -3721.14,
     "Company Name": "Bajaj Hindusthan Sugar Ltd.",
-    "Weightage": 0.31
+    "Weightage": 0.3
   },
   "UTKARSHBNK": {
     "Market Cap": 5407.91,
@@ -3075,22 +3075,22 @@
   },
   "JCHAC": {
     "Market Cap": 5235.88,
-    "Enterprise Value": 5356.79,
+    "Enterprise Value": 5163.95,
     "No. of Shares": 2.72,
     "P/E": 3610.73,
     "P/B": 8.46,
     "Face Value": 10.0,
     "Div. Yield": 0.0,
     "Book Value (TTM)": 227.69,
-    "CASH": 22.12,
-    "DEBT": 143.03,
+    "CASH": 71.93,
+    "DEBT": 0.0,
     "Promoter Holding": 74.25,
     "EPS (TTM)": 0.53,
-    "Sales Growth": 10.44,
-    "ROE": 11.74,
-    "ROCE": 12.32,
-    "Profit Growth": 609.55,
-    "Cash/Debt": -120.91,
+    "Sales Growth": 19.53,
+    "ROE": 12.19,
+    "ROCE": 11.89,
+    "Profit Growth": 7.83,
+    "Cash/Debt": 71.93,
     "Company Name": "Johnson Controls - Hitachi Air Conditioning India Ltd.",
     "Weightage": 0.29
   },
@@ -3512,7 +3512,7 @@
     "Profit Growth": 22.47,
     "Cash/Debt": -281.57,
     "Company Name": "Samhi Hotels Ltd.",
-    "Weightage": 0.26
+    "Weightage": 0.25
   },
   "TIDEWATER": {
     "Market Cap": 4538.52,
@@ -3955,22 +3955,22 @@
   },
   "POLYPLEX": {
     "Market Cap": 3900.83,
-    "Enterprise Value": 3897.17,
+    "Enterprise Value": 3987.16,
     "No. of Shares": 3.14,
     "P/E": 0.0,
     "P/B": 5.78,
     "Face Value": 10.0,
     "Div. Yield": 0.24,
     "Book Value (TTM)": 214.98,
-    "CASH": 29.9,
-    "DEBT": 26.24,
+    "CASH": 24.5,
+    "DEBT": 110.83,
     "Promoter Holding": 26.69,
     "EPS (TTM)": 0.98,
-    "Sales Growth": 7.67,
-    "ROE": 41.34,
-    "ROCE": 41.83,
-    "Profit Growth": 40.05,
-    "Cash/Debt": 3.66,
+    "Sales Growth": 14.2,
+    "ROE": 1.33,
+    "ROCE": 1.36,
+    "Profit Growth": 103.07,
+    "Cash/Debt": -86.33,
     "Company Name": "Polyplex Corporation Ltd.",
     "Weightage": 0.22
   },
@@ -4266,6 +4266,27 @@
     "Company Name": "Mahindra Logistics Ltd.",
     "Weightage": 0.2
   },
+  "NAVNETEDUL": {
+    "Market Cap": 3586.61,
+    "Enterprise Value": 3794.31,
+    "No. of Shares": 22.62,
+    "P/E": 4.68,
+    "P/B": 1.7,
+    "Face Value": 2.0,
+    "Div. Yield": 1.64,
+    "Book Value (TTM)": 93.47,
+    "CASH": 14.46,
+    "DEBT": 222.16,
+    "Promoter Holding": 63.31,
+    "EPS (TTM)": 33.87,
+    "Sales Growth": 3.46,
+    "ROE": 14.42,
+    "ROCE": 15.4,
+    "Profit Growth": 2.31,
+    "Cash/Debt": -207.7,
+    "Company Name": "Navneet Education Ltd.",
+    "Weightage": 0.2
+  },
   "DELTACORP": {
     "Market Cap": 3573.41,
     "Enterprise Value": 3532.91,
@@ -4556,7 +4577,7 @@
     "Profit Growth": 12.18,
     "Cash/Debt": -68.59,
     "Company Name": "Venky's (India) Ltd.",
-    "Weightage": 0.19
+    "Weightage": 0.18
   },
   "SBCL": {
     "Market Cap": 3248.3,
@@ -5058,7 +5079,7 @@
     "Profit Growth": 19.82,
     "Cash/Debt": -50.67,
     "Company Name": "Tarsons Products Ltd.",
-    "Weightage": 0.14
+    "Weightage": 0.13
   },
   "LANDMARK": {
     "Market Cap": 2397.19,
