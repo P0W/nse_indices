@@ -370,12 +370,32 @@ def build_top_n_basket(json_indices_file, num_stocks):
 
     return basket
 
+def momentum_basket():
+    return [
+    "TATAELXSI.NS",
+    "PAYTM.NS",
+    "AUBANK.NS",
+    "LTIM.NS",
+    "BAJAJFINSV.NS",
+    "OIL.NS",
+    "PRESTIGE.NS",
+    "LODHA.NS",
+    "ALKEM.NS",
+    "CHOLAFIN.NS",
+    "LUPIN.NS",
+    "BAJFINANCE.NS",
+    "POLICYBZR.NS",
+    "MANKIND.NS",
+    "PFC.NS",
+]
+
 
 if __name__ == "__main__":
     YEARS = 5
     now = datetime.datetime.now()
     years_ago = now - datetime.timedelta(days=365 * YEARS)
     download_dir = os.path.join(os.getcwd(), "chart_data")
+    os.makedirs(download_dir, exist_ok=True)
     defence_basket = build_top_n_basket(
         json_indices_file="data/ind_niftyindiadefence_list_financials.json",
         num_stocks=5,
@@ -391,7 +411,7 @@ if __name__ == "__main__":
     logger.info(microcap_basket)
     logger.info(momentum50_basket)
     charter = Charter(
-        defence_basket,
+        momentum_basket(),
         years_ago,
         now,
         download_dir,

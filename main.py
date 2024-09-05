@@ -16,6 +16,8 @@ import requests
 import tqdm
 from bs4 import BeautifulSoup
 
+import delivery
+
 ## set the logging level
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -195,7 +197,9 @@ def build_table(index_file: str, root_dir: str = "."):
 
 if __name__ == "__main__":
     DATA_DIR = "data"
+    delivery.main(DATA_DIR)
     if not pathlib.Path(DATA_DIR).exists():
         os.makedirs(DATA_DIR)
     for file in file_list:
         build_table(index_file=file, root_dir=DATA_DIR)
+    
