@@ -135,7 +135,9 @@ class NSEClient:
         results = {
             symbol: data
             for symbol, data in results.items()
-            if data is not None and data["delivery"] > 0.0
+            if data is not None
+            and data["delivery"] is not None
+            and data["delivery"] > 0.0
         }
         results = dict(
             sorted(
@@ -148,7 +150,7 @@ class NSEClient:
         return results
 
 
-def main(base_folder:str):
+def main(base_folder: str):
     nse_client = NSEClient()
     # scrip_quotes = nse_client.get_quotes(NSEClient.Index.ETF, 20)
     # logger.info(json.dumps(scrip_quotes, indent=2))
@@ -170,4 +172,4 @@ def main(base_folder:str):
 
 
 if __name__ == "__main__":
-    main()
+    main("data")
