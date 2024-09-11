@@ -11,10 +11,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    # pylint: disable=line-too-long
+    format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 class NSEClient:
@@ -34,12 +37,22 @@ class NSEClient:
         """Create a session with the required headers"""
         session = requests.Session()
         session.headers.update(self.headers)
-        session.get(self.base_url, timeout=10)
+        try:
+            session.get(self.base_url, timeout=10)
+        except requests.exceptions.RequestException as e:
+            logger.error("Error in creating session: %s", e)
+            return None
         return session
 
     def _get_data(self, url: str, top_n: int = None) -> List[Dict[str, float]]:
         """Get the top N ETFs by traded quantity"""
-        response = self.session.get(url, timeout=5)
+        if not self.session:
+            return []
+        try:
+            response = self.session.get(url, timeout=5)
+        except requests.exceptions.RequestException as e:
+            logger.error("Request failed for %s: %s", url, e)
+            return []
         response.raise_for_status()
         data_response = response.json()
         scrip_list = []
@@ -151,6 +164,7 @@ class NSEClient:
 
 
 def main(base_folder: str):
+    """Main function to fetch the top 25 stocks by delivery percentage"""
     nse_client = NSEClient()
     # scrip_quotes = nse_client.get_quotes(NSEClient.Index.ETF, 20)
     # logger.info(json.dumps(scrip_quotes, indent=2))

@@ -6,6 +6,7 @@
 import json
 import csv
 import os
+import argparse
 import concurrent.futures
 import pathlib
 import logging
@@ -19,8 +20,13 @@ from bs4 import BeautifulSoup
 import delivery
 
 ## set the logging level
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    # pylint: disable=line-too-long
+    format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 file_list = [
     "ind_niftymidcap150momentum50_list",
@@ -48,7 +54,11 @@ def get_nse_constituents(
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*,q=0.8,application/signed-exchange;v=b3;q=0.9",
     }
-    r = requests.get(url, timeout=5, headers=headers)
+    try:
+        r = requests.get(url, timeout=10, headers=headers)
+    except requests.exceptions.RequestException as e:
+        logger.error("Request failed for %s: %s", url, e)
+        return {}
     if r.status_code != 200:
         logger.info("Error: %d : (%s)", r.status_code, url)
         return {}
@@ -72,7 +82,11 @@ def get_financials(symbol: str) -> Dict[str, float]:
     """Get the financials for the given symbol"""
     url = f"https://ticker.finology.in/company/{symbol}"
     ratio_dict = {}
-    res = requests.get(url, timeout=5)
+    try:
+        res = requests.get(url, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logger.error("Request failed for %s: %s", url, e)
+        return ratio_dict
     if res.status_code != 200:
         logger.info("Error: %d : (%s)", res.status_code, symbol)
         return ratio_dict
@@ -152,7 +166,7 @@ def sorting_key(company_data: Dict[str, float]) -> tuple:
     )
 
 
-def build_table(index_file: str, root_dir: str = "."):
+def build_table(index_file: str, root_dir: str = ".", generate_json: bool = False):
     """Build the table for the given index file"""
     symbols_dict = get_nse_constituents(index_file, root_dir)
     ## call the get_financials for each symbol,
@@ -170,9 +184,10 @@ def build_table(index_file: str, root_dir: str = "."):
         sorted(financial_ratio.items(), key=lambda item: sorting_key(item[1]))
     )
     ## write to a json file suffixed with financials
-    financial_ratio_file = os.path.join(root_dir, index_file + "_financials.json")
-    with open(financial_ratio_file, "w", encoding="utf-8") as file_handle:
-        json.dump(financial_ratio, file_handle, indent=2)
+    if generate_json:
+        financial_ratio_file = os.path.join(root_dir, index_file + "_financials.json")
+        with open(financial_ratio_file, "w", encoding="utf-8") as file_handle:
+            json.dump(financial_ratio, file_handle, indent=2)
 
     ## write to a csv file
     # Access the first key of the financial_ratio dictionary
@@ -195,11 +210,33 @@ def build_table(index_file: str, root_dir: str = "."):
     logger.info("Done")
 
 
+arg_parser = argparse.ArgumentParser(description="NSE Indicies analyzer")
+
+arg_parser.add_argument(
+    "-d", "--data_dir", type=str, help="folder where to output", required=True
+)
+arg_parser.add_argument(
+    "-g",
+    "--generate_json",
+    action="store_true",
+    help="Generate JSON files, along with csv",
+)
+
+
 if __name__ == "__main__":
-    DATA_DIR = "data"
-    delivery.main(DATA_DIR)
-    if not pathlib.Path(DATA_DIR).exists():
-        os.makedirs(DATA_DIR)
+    args = arg_parser.parse_args()
+    if not pathlib.Path(args.data_dir).exists():
+        os.makedirs(args.data_dir)
+    try:
+        delivery.main(args.data_dir)
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("Error in delivery.main: %s", e)
     for file in file_list:
-        build_table(index_file=file, root_dir=DATA_DIR)
-    
+        try:
+            build_table(
+                index_file=file,
+                root_dir=args.data_dir,
+                generate_json=args.generate_json,
+            )
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Error in build_table: %s", e)
