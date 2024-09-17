@@ -2,7 +2,8 @@ name: Auto Run and Push
 
 on:
   schedule:
-    - cron: '30 5,17 * * *'
+    - cron: '0 4,12,16 * * *'
+    - cron: '30 6 * * *'
   workflow_dispatch:
 
 jobs:
