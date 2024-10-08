@@ -36,7 +36,7 @@ Confidence Petroleum India Ltd.,Oil Gas & Consumable Fuels,CONFIPET,EQ,INE552D01
 Cyient DLM Ltd.,Capital Goods,CYIENTDLM,EQ,INE055S01018
 DCB Bank Ltd.,Financial Services,DCBBANK,EQ,INE503A01015
 DCM Shriram Ltd.,Diversified,DCMSHRIRAM,EQ,INE499A01024
-DCX Systems Ltd.,Capital Goods,DCXINDIA,BE,INE0KL801015
+DCX Systems Ltd.,Capital Goods,DCXINDIA,EQ,INE0KL801015
 Datamatics Global Services Ltd.,Information Technology,DATAMATICS,EQ,INE365B01017
 Delta Corp Ltd.,Consumer Services,DELTACORP,EQ,INE124G01033
 Den Networks Ltd.,Media Entertainment & Publication,DEN,EQ,INE947J01015
@@ -157,7 +157,7 @@ National Fertilizers Ltd.,Chemicals,NFL,EQ,INE870D01012
 Nava Ltd.,Power,NAVA,EQ,INE725A01022
 Nazara Technologies Ltd.,Media Entertainment & Publication,NAZARA,EQ,INE418L01021
 Neuland Laboratories Ltd.,Healthcare,NEULANDLAB,EQ,INE794A01010
-Optiemus Infracom Ltd.,Telecommunication,OPTIEMUS,EQ,INE350C01017
+Optiemus Infracom Ltd.,Telecommunication,OPTIEMUS,BE,INE350C01017
 Orchid Pharma Ltd.,Healthcare,ORCHPHARMA,EQ,INE191A01027
 Orient Cement Ltd.,Construction Materials,ORIENTCEM,EQ,INE876N01018
 Orient Electric Ltd.,Consumer Durables,ORIENTELEC,EQ,INE142Z01019
@@ -166,7 +166,7 @@ PG Electroplast Ltd.,Consumer Durables,PGEL,EQ,INE457L01029
 PTC India Ltd.,Power,PTC,EQ,INE877F01012
 Paisalo Digital Ltd.,Financial Services,PAISALO,EQ,INE420C01059
 Paradeep Phosphates Ltd.,Chemicals,PARADEEP,EQ,INE088F01024
-Paras Defence and Space Technologies Ltd.,Capital Goods,PARAS,BE,INE045601015
+Paras Defence and Space Technologies Ltd.,Capital Goods,PARAS,EQ,INE045601015
 Patel Engineering Ltd.,Construction,PATELENG,EQ,INE244B01030
 Polyplex Corporation Ltd.,Capital Goods,POLYPLEX,EQ,INE633B01018
 Power Mech Projects Ltd.,Construction,POWERMECH,EQ,INE211R01019
@@ -180,7 +180,7 @@ Rallis India Ltd.,Chemicals,RALLIS,EQ,INE613A01020
 Ramky Infra Ltd.,Construction,RAMKY,EQ,INE874I01013
 Rategain Travel Technologies Ltd.,Information Technology,RATEGAIN,EQ,INE0CLI01024
 Redtape Ltd.,Consumer Durables,REDTAPE,EQ,INE0LXT01019
-Reliance Infrastructure Ltd.,Power,RELINFRA,EQ,INE036A01016
+Reliance Infrastructure Ltd.,Power,RELINFRA,BE,INE036A01016
 Religare Enterprises Ltd.,Financial Services,RELIGARE,EQ,INE621H01010
 Responsive Industries Ltd.,Consumer Durables,RESPONIND,EQ,INE688D01026
 Restaurant Brands Asia Ltd.,Consumer Services,RBA,EQ,INE07T201019
@@ -195,7 +195,7 @@ Sanghvi Movers Ltd.,Capital Goods,SANGHVIMOV,EQ,INE989A01032
 Sansera Engineering Ltd.,Automobile and Auto Components,SANSERA,EQ,INE953O01021
 Sarda Energy and Minerals Ltd.,Metals & Mining,SARDAEN,EQ,INE385C01021
 Senco Gold Ltd.,Consumer Durables,SENCO,EQ,INE602W01019
-Sequent Scientific Ltd.,Healthcare,SEQUENT,EQ,INE807F01027
+Sequent Scientific Ltd.,Healthcare,SEQUENT,BE,INE807F01027
 Sharda Motor Industries Ltd.,Automobile and Auto Components,SHARDAMOTR,EQ,INE597I01028
 Share India Securities Ltd.,Financial Services,SHAREINDIA,EQ,INE932X01026
 Sheela Foam Ltd.,Consumer Durables,SFL,EQ,INE916U01025
@@ -220,7 +220,7 @@ Supreme Petrochem Ltd.,Chemicals,SPLPETRO,EQ,INE663A01033
 Supriya Lifescience Ltd.,Healthcare,SUPRIYA,EQ,INE07RO01027
 Surya Roshni Ltd.,Capital Goods,SURYAROSNI,EQ,INE335A01020
 Symphony Ltd.,Consumer Durables,SYMPHONY,EQ,INE225D01027
-TARC Ltd.,Realty,TARC,BE,INE0EK901012
+TARC Ltd.,Realty,TARC,EQ,INE0EK901012
 TCI Express Ltd.,Services,TCIEXP,EQ,INE586V01016
 TD Power Systems Ltd.,Capital Goods,TDPOWERSYS,EQ,INE419M01027
 Teamlease Services Ltd.,Services,TEAMLEASE,EQ,INE985S01024
@@ -244,7 +244,7 @@ Vesuvius India Ltd.,Capital Goods,VESUVIUS,EQ,INE386A01015
 Voltamp Transformers Ltd,Capital Goods,VOLTAMP,EQ,INE540H01012
 Welspun Enterprises Ltd.,Construction,WELENT,EQ,INE625G01013
 West Coast Paper Mills Ltd.,Forest Materials,WSTCSTPAPR,EQ,INE976A01021
-Wockhardt Ltd.,Healthcare,WOCKPHARMA,BE,INE049B01025
+Wockhardt Ltd.,Healthcare,WOCKPHARMA,EQ,INE049B01025
 Wonderla Holidays Ltd.,Consumer Services,WONDERLA,EQ,INE066O01014
 Yatharth Hospital & Trauma Care Services Ltd.,Healthcare,YATHARTH,EQ,INE0JO301016
 Zen Technologies Ltd.,Capital Goods,ZENTEC,EQ,INE251B01027
