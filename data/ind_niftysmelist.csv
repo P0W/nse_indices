@@ -13,7 +13,7 @@ Addictive Learning Technology Ltd.,Consumer Services,LAWSIKHO,SM,INE0RDH01021
 Agarwal Float Glass India Ltd.,Capital Goods,AGARWALFT,SM,INE0MLA01012
 Agni Green Power Ltd.,Construction,AGNI,SM,INE0LF301013
 Aimtron Electronics Ltd.,Capital Goods,AIMTRON,ST,INE0RUV01018
-Akanksha Power and Infrastructure Ltd.,Capital Goods,AKANKSHA,SM,INE0PCY01014
+Akanksha Power and Infrastructure Ltd.,Capital Goods,AKANKSHA,ST,INE0PCY01014
 Akiko Global Services Ltd.,Financial Services,AKIKO,SM,INE0PMR01017
 All E Technologies Ltd.,Information Technology,ALLETEC,SM,INE0M2X01012
 Alpex Solar Ltd.,Capital Goods,ALPEXSOLAR,SM,INE0R4701017
@@ -45,7 +45,7 @@ Beta Drugs Ltd.,Healthcare,BETA,SM,INE351Y01019
 Blue Pebble Ltd.,Services,BLUEPEBBLE,SM,INE0SAK01011
 Bombay Metrics Supply Chain Ltd.,Services,BMETRICS,SM,INE0I3Y01014
 C P S Shapers Ltd.,Textiles,CPS,ST,INE0QBU01012
-CMM Infraprojects Ltd.,Construction,CMMIPL,ST,INE289S01013
+CMM Infraprojects Ltd.,Construction,CMMIPL,SM,INE289S01013
 Cadsys (India) Ltd.,Services,CADSYS,ST,INE090Y01013
 Canarys Automations Ltd.,Information Technology,CANARYS,SM,INE0QG301017
 Cell Point (India) Ltd.,Consumer Services,CELLPOINT,SM,INE0O0001013
@@ -122,7 +122,7 @@ Integrated Personnel Services Ltd.,Services,IPSL,ST,INE02EE01019
 Interiors & More Ltd.,Consumer Durables,INM,SM,INE0OPC01015
 Ishan International Ltd.,Capital Goods,ISHAN,ST,INE0LCW01025
 Italian Edibles Ltd.,Fast Moving Consumer Goods,ITALIANE,ST,INE0R7R01018
-JFL Life Sciences Ltd.,Healthcare,JFLLIFE,SM,INE0LA901015
+JFL Life Sciences Ltd.,Healthcare,JFLLIFE,ST,INE0LA901015
 Jainam Ferro Alloys (I) Ltd.,Metals & Mining,JAINAM,SM,INE02KC01010
 Jalan Transolutions (India) Ltd.,Services,JALAN,SM,INE349X01015
 Jay Jalaram Technologies Ltd.,Consumer Services,KORE,SM,INE0J6801010
@@ -256,7 +256,7 @@ Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,SM,INE238Y01018
 Shri Techtex Ltd.,Capital Goods,SHRITECH,SM,INE0OMF01015
 Shubhlaxmi Jewel Art Ltd.,Consumer Durables,SHUBHLAXMI,ST,INE01Z401013
 Siddhika Coatings Ltd.,Consumer Durables,SIDDHIKA,SM,INE0A1E01018
-Signoria Creation Ltd.,Textiles,SIGNORIA,SM,INE0RDE01010
+Signoria Creation Ltd.,Textiles,SIGNORIA,ST,INE0RDE01010
 Silkflex Polymers (India) Ltd.,Chemicals,SILKFLEX,ST,INE0STN01015
 Slone Infosystems Ltd.,Information Technology,SLONE,SM,INE0SMA01017
 Solex Energy Ltd.,Capital Goods,SOLEX,SM,INE880Y01017
@@ -322,7 +322,7 @@ Wise Travel India Ltd.,Services,WTICAB,SM,INE623Y01011
 Womancart Ltd.,Consumer Services,WOMANCART,ST,INE0Q9601016
 Yash Optics & Lens Ltd.,Consumer Durables,YASHOPTICS,SM,INE0TO601017
 Yasons Chemex Care Ltd.,Chemicals,YCCL,SM,INE08S201019
-Yudiz Solutions Ltd.,Information Technology,YUDIZ,SM,INE09FA01019
+Yudiz Solutions Ltd.,Information Technology,YUDIZ,ST,INE09FA01019
 Z-Tech (India) Ltd.,Utilities,ZTECH,ST,INE0ISZ01012
 Zeal Global Services Ltd.,Services,ZEAL,SM,INE0PPS01018
 Zenith Drugs Ltd.,Healthcare,ZENITHDRUG,ST,INE0QWN01013
