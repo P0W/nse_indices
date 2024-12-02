@@ -31,14 +31,17 @@ class NSEClient:
             "Accept-Language": "en,gu;q=0.9,hi;q=0.8",
             "Accept-Encoding": "gzip, deflate, br",
         }
+        self.cookies = None
         self.session = self._create_session()
 
     def _create_session(self) -> requests.Session:
         """Create a session with the required headers"""
         session = requests.Session()
-        session.headers.update(self.headers)
+        # session.headers.update(self.headers)
+
         try:
-            session.get(self.base_url, timeout=10)
+            request = session.get(self.base_url, headers=self.headers, timeout=10)
+            self.cookies = dict(request.cookies)
         except requests.exceptions.RequestException as e:
             logger.error("Error in creating session: %s", e)
             return None
@@ -49,10 +52,15 @@ class NSEClient:
         if not self.session:
             return []
         try:
-            response = self.session.get(url, timeout=5)
+            logging.info("Cookies: %s", self.cookies)
+            logging.info("headers: %s", self.headers)
+            response = self.session.get(
+                url, timeout=5, cookies=self.cookies, headers=self.headers
+            )
         except requests.exceptions.RequestException as e:
             logger.error("Request failed for %s: %s", url, e)
             return []
+        logger.info("Response Code %s", response.status_code)
         response.raise_for_status()
         data_response = response.json()
         scrip_list = []
