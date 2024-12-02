@@ -52,8 +52,6 @@ class NSEClient:
         if not self.session:
             return []
         try:
-            logging.info("Cookies: %s", self.cookies)
-            logging.info("headers: %s", self.headers)
             response = self.session.get(
                 url, timeout=5, cookies=self.cookies, headers=self.headers
             )
