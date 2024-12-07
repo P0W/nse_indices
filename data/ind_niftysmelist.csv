@@ -35,7 +35,7 @@ Atmastco Ltd.,Construction,ATMASTCO,ST,INE05DH01017
 Aurangabad Distillery Ltd.,Fast Moving Consumer Goods,AURDIS,SM,INE448V01019
 Auro Impex & Chemicals Ltd.,Capital Goods,AUROIMPEX,SM,INE0NUL01018
 Australian Premium Solar (India) Limited,Capital Goods,APS,ST,INE0P0001010
-BEW Engineering Ltd.,Capital Goods,BEWLTD,SM,INE0HQI01014
+BEW Engineering Ltd.,Capital Goods,BEWLTD,ST,INE0HQI01014
 Baba Food Processing (India) Ltd.,Fast Moving Consumer Goods,BABAFP,SM,INE0QW501012
 Baheti Recycling Industries Ltd.,Capital Goods,BAHETI,ST,INE029Q01017
 Basilic Fly Studio Ltd.,Media Entertainment & Publication,BASILIC,ST,INE0OCC01013
@@ -73,14 +73,15 @@ Docmode Health Technologies Ltd.,Consumer Services,DHTL,ST,INE0OGG01015
 Dollex Agrotech Ltd.,Fast Moving Consumer Goods,DOLLEX,SM,INE0JHH01011
 Drone Destination Ltd.,Consumer Services,DRONE,ST,INE0P7201019
 Ducol Organics And Colours Ltd.,Chemicals,DUCOL,SM,INE0LZO01015
+Dummy Emkay Taps and Cutting Tools Ltd.,Capital Goods,DUMMYEMKTL,ST,DUM332S01011
 Durlax Top Surface Ltd.,Consumer Durables,DURLAX,SM,INE0OUW01013
 Dynamic Services & Security Ltd.,Services,DYNAMIC,ST,INE0DZ701010
 E Factor Experiences Ltd.,Consumer Services,EFACTOR,ST,INE0KFF01017
 Effwa Infra & Research Ltd.,Utilities,EFFWA,ST,INE0U9101019
 Electro Force (India) Ltd.,Capital Goods,EFORCE,SM,INE0Q1W01012
-Emkay Taps and Cutting Tools Ltd.,Capital Goods,EMKAYTOOLS,SM,INE332S01011
-Energy Mission Machineries (India) Ltd.,Capital Goods,EMMIL,SM,INE0S1L01013
-Enfuse Solutions Ltd.,Information Technology,ENFUSE,SM,INE0S3X01014
+Emkay Taps and Cutting Tools Ltd.,Power,EMKAYTOOLS,ST,INE332S01011
+Energy Mission Machineries (India) Ltd.,Capital Goods,EMMIL,ST,INE0S1L01013
+Enfuse Solutions Ltd.,Information Technology,ENFUSE,ST,INE0S3X01014
 Enser Communications Ltd.,Information Technology,ENSER,ST,INE0R9I01013
 Esconet Technologies Ltd.,Information Technology,ESCONET,ST,INE0RQZ01017
 Essen Speciality Films Ltd.,Consumer Durables,ESFL,ST,INE0ITO01014
@@ -91,7 +92,7 @@ Fidel Softech Ltd.,Information Technology,FIDEL,SM,INE0LQQ01019
 Foce India Ltd.,Consumer Durables,FOCE,ST,INE0I7D01019
 Fonebox Retail Ltd.,Consumer Services,FONEBOX,SM,INE0Q4701019
 Frog Cellsat Ltd.,Telecommunication,FROG,SM,INE385O01018
-GP Eco Solutions India Ltd.,Capital Goods,GPECO,SM,INE0S7E01015
+GP Eco Solutions India Ltd.,Capital Goods,GPECO,ST,INE0S7E01015
 GSM Foils Ltd.,Capital Goods,GSMFOILS,ST,INE0SQY01018
 Ganesh Green Bharat Ltd.,Capital Goods,GGBL,SM,INE0R8C01018
 Gayatri Rubbers And Chemicals Ltd.,Capital Goods,GRCL,ST,INE0LVM01018
@@ -203,7 +204,7 @@ Pramara Promotions Ltd.,Media Entertainment & Publication,PRAMARA,SM,INE0O7A0101
 Pratham EPC Projects Ltd.,Construction,PRATHAM,ST,INE0QA601016
 Precision Metaliks Ltd.,Automobile and Auto Components,PRECISION,SM,INE0HKW01018
 Premier Roadlines Ltd.,Services,PRLIND,SM,INE0CFG01012
-Presstonic Engineering Ltd.,Capital Goods,PRESSTONIC,SM,INE0R1601012
+Presstonic Engineering Ltd.,Capital Goods,PRESSTONIC,ST,INE0R1601012
 Pritika Engineering Components Ltd.,Automobile and Auto Components,PRITIKA,ST,INE0MJQ01012
 Prolife Industries Ltd.,Chemicals,PROLIFE,SM,INE994V01012
 Proventus Agrocom Ltd.,Fast Moving Consumer Goods,PROV,SM,INE0ONE01016
@@ -237,7 +238,7 @@ Sabar Flex India Ltd.,Capital Goods,SABAR,ST,INE0DZ101013
 Sadhav Shipping Ltd.,Services,SADHAV,SM,INE0K5H01010
 Sahaj Fashions Ltd.,Textiles,SAHAJ,SM,INE013901017
 Sahana System Ltd.,Information Technology,SAHANA,SM,INE0LEX01011
-Salasar Exteriors and Contour Ltd.,Construction,SECL,SM,INE00Y701026
+Salasar Exteriors and Contour Ltd.,Construction,SECL,ST,INE00Y701026
 Sameera Agro And Infra Ltd.,Fast Moving Consumer Goods,SAIFL,SM,INE0PZA01015
 Sangani Hospitals Ltd.,Healthcare,SANGANI,ST,INE0OVI01010
 Sar Televenture Ltd.,Telecommunication,SARTELE,SM,INE0PUC01020
@@ -281,7 +282,7 @@ Tapi Fruit Processing Ltd.,Fast Moving Consumer Goods,TAPIFRUIT,SM,INE0M7001010
 Teerth Gopicon Ltd.,Construction,TGL,ST,INE0K6601012
 Thaai Casting Ltd.,Automobile and Auto Components,TCL,SM,INE0QJL01014
 Timescan Logistics (India) Ltd.,Services,TIMESCAN,SM,INE0IJY01014
-Transteel Seating Technologies Ltd.,Consumer Durables,TRANSTEEL,SM,INE0NVI01020
+Transteel Seating Technologies Ltd.,Consumer Durables,TRANSTEEL,ST,INE0NVI01020
 Transwind Infra Ltd.,Construction,TRANSWIND,ST,INE792X01016
 Trident Techlabs Ltd.,Information Technology,TECHLABS,SM,INE0QD201012
 Tridhya Tech Ltd.,Services,TRIDHYA,SM,INE0LWY01029
