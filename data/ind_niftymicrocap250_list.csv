@@ -26,7 +26,7 @@ Bharat Bijlee Ltd.,Capital Goods,BBL,EQ,INE464A01036
 Blue Jet Healthcare Ltd.,Healthcare,BLUEJET,EQ,INE0KBH01020
 Bombay Dyeing & Manufacturing Co. Ltd.,Textiles,BOMDYEING,EQ,INE032A01023
 Borosil Ltd.,Consumer Durables,BOROLTD,EQ,INE02PY01013
-Borosil Renewables Ltd.,Capital Goods,BORORENEW,EQ,INE666D01022
+Borosil Renewables Ltd.,Capital Goods,BORORENEW,BE,INE666D01022
 CMS Info Systems Ltd.,Services,CMSINFO,EQ,INE925R01014
 CSB Bank Ltd.,Financial Services,CSBBANK,EQ,INE679A01013
 Cartrade Tech Ltd.,Consumer Services,CARTRADE,EQ,INE290S01011
@@ -158,7 +158,7 @@ Nava Ltd.,Power,NAVA,EQ,INE725A01022
 Nazara Technologies Ltd.,Media Entertainment & Publication,NAZARA,EQ,INE418L01021
 Neuland Laboratories Ltd.,Healthcare,NEULANDLAB,EQ,INE794A01010
 Odigma Consultancy Solutions Ltd.,Media Entertainment & Publication,ODIGMA,EQ,INE054301028
-Optiemus Infracom Ltd.,Telecommunication,OPTIEMUS,BE,INE350C01017
+Optiemus Infracom Ltd.,Telecommunication,OPTIEMUS,EQ,INE350C01017
 Orchid Pharma Ltd.,Healthcare,ORCHPHARMA,EQ,INE191A01027
 Orient Cement Ltd.,Construction Materials,ORIENTCEM,EQ,INE876N01018
 Orient Electric Ltd.,Consumer Durables,ORIENTELEC,EQ,INE142Z01019
@@ -181,7 +181,7 @@ Rallis India Ltd.,Chemicals,RALLIS,EQ,INE613A01020
 Ramky Infra Ltd.,Construction,RAMKY,EQ,INE874I01013
 Rategain Travel Technologies Ltd.,Information Technology,RATEGAIN,EQ,INE0CLI01024
 Redtape Ltd.,Consumer Durables,REDTAPE,EQ,INE0LXT01019
-Reliance Infrastructure Ltd.,Power,RELINFRA,BE,INE036A01016
+Reliance Infrastructure Ltd.,Power,RELINFRA,EQ,INE036A01016
 Religare Enterprises Ltd.,Financial Services,RELIGARE,EQ,INE621H01010
 Responsive Industries Ltd.,Consumer Durables,RESPONIND,EQ,INE688D01026
 Restaurant Brands Asia Ltd.,Consumer Services,RBA,EQ,INE07T201019
@@ -196,7 +196,7 @@ Sanghvi Movers Ltd.,Capital Goods,SANGHVIMOV,EQ,INE989A01032
 Sansera Engineering Ltd.,Automobile and Auto Components,SANSERA,EQ,INE953O01021
 Sarda Energy and Minerals Ltd.,Metals & Mining,SARDAEN,EQ,INE385C01021
 Senco Gold Ltd.,Consumer Durables,SENCO,EQ,INE602W01019
-Sequent Scientific Ltd.,Healthcare,SEQUENT,BE,INE807F01027
+Sequent Scientific Ltd.,Healthcare,SEQUENT,EQ,INE807F01027
 Sharda Motor Industries Ltd.,Automobile and Auto Components,SHARDAMOTR,EQ,INE597I01028
 Share India Securities Ltd.,Financial Services,SHAREINDIA,EQ,INE932X01026
 Sheela Foam Ltd.,Consumer Durables,SFL,EQ,INE916U01025
@@ -214,7 +214,7 @@ Stylam Industries Ltd.,Consumer Durables,STYLAMIND,EQ,INE239C01020
 Subros Ltd.,Automobile and Auto Components,SUBROS,EQ,INE287B01021
 Sudarshan Chemical Industries Ltd.,Chemicals,SUDARSCHEM,EQ,INE659A01023
 Sula Vineyards Ltd.,Fast Moving Consumer Goods,SULA,EQ,INE142Q01026
-Sunflag Iron & Steel Company Ltd.,Metals & Mining,SUNFLAG,EQ,INE947A01014
+Sunflag Iron & Steel Company Ltd.,Metals & Mining,SUNFLAG,BE,INE947A01014
 Sunteck Realty Ltd.,Realty,SUNTECK,EQ,INE805D01034
 Suprajit Engineering Ltd.,Automobile and Auto Components,SUPRAJIT,EQ,INE399C01030
 Supreme Petrochem Ltd.,Chemicals,SPLPETRO,EQ,INE663A01033
