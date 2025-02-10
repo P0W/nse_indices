@@ -32,9 +32,9 @@ Aprameya Engineering Ltd.,Healthcare,APRAMEYA,ST,INE0LQG01010
 Arabian Petroleum Ltd.,Oil Gas & Consumable Fuels,ARABIAN,SM,INE08NJ01024
 Arham Technologies Ltd.,Consumer Durables,ARHAM,SM,INE0L2Y01011
 Arihant Academy Ltd.,Consumer Services,ARIHANTACA,ST,INE0NCC01015
-Aristo Bio-Tech and Lifescience Ltd.,Chemicals,ARISTO,ST,INE082101010
+Aristo Bio-Tech and Lifescience Ltd.,Chemicals,ARISTO,SM,INE082101010
 Arvind Port and Infra Ltd.,Services,ARVINDPORT,ST,INE0P4T01013
-Ashapura Logistics Ltd.,Services,ASHALOG,ST,INE0LAA01017
+Ashapura Logistics Ltd.,Services,ASHALOG,SM,INE0LAA01017
 Aspire & Innovative Advertising Ltd.,Consumer Durables,ASPIRE,ST,INE0S7801010
 Atmastco Ltd.,Construction,ATMASTCO,ST,INE05DH01017
 Aurangabad Distillery Ltd.,Fast Moving Consumer Goods,AURDIS,ST,INE448V01019
@@ -92,7 +92,7 @@ Dummy Emkay Taps and Cutting Tools Ltd.,Capital Goods,DUMMYEMKTL,ST,DUM332S01011
 Durlax Top Surface Ltd.,Consumer Durables,DURLAX,SM,INE0OUW01013
 Dynamic Services & Security Ltd.,Services,DYNAMIC,ST,INE0DZ701010
 E Factor Experiences Ltd.,Consumer Services,EFACTOR,ST,INE0KFF01017
-Effwa Infra & Research Ltd.,Utilities,EFFWA,ST,INE0U9101019
+Effwa Infra & Research Ltd.,Utilities,EFFWA,SM,INE0U9101019
 Electro Force (India) Ltd.,Capital Goods,EFORCE,SM,INE0Q1W01012
 Emkay Taps and Cutting Tools Ltd.,Power,EMKAYTOOLS,SM,INE332S01011
 Energy Mission Machineries (India) Ltd.,Capital Goods,EMMIL,ST,INE0S1L01013
@@ -125,7 +125,7 @@ Globesecure Technologies Ltd.,Information Technology,GSTL,ST,INE00WS01056
 Goldkart Jewels Ltd.,Consumer Durables,GOLDKART,ST,INE06MH01016
 Goldstar Power Ltd.,Automobile and Auto Components,GOLDSTAR,SM,INE405Y01021
 Goyal Salt Ltd.,Fast Moving Consumer Goods,GOYALSALT,SM,INE0QFE01017
-Graphisads Ltd.,Media Entertainment & Publication,GRAPHISAD,ST,INE0POU01017
+Graphisads Ltd.,Media Entertainment & Publication,GRAPHISAD,SM,INE0POU01017
 Greenchef Appliances Ltd.,Consumer Durables,GREENCHEF,SM,INE0O7P01015
 Gretex Industries Ltd.,Media Entertainment & Publication,GRETEX,ST,INE985P01012
 Grill Splendour Services Ltd.,Consumer Services,BIRDYS,SM,INE0PC901019
@@ -139,9 +139,9 @@ IBL Finance Ltd.,Financial Services,IBLFL,ST,INE0O7401018
 Ideal Technoplast Industries Ltd.,Capital Goods,IDEALTECHO,ST,INE0T9I01011
 Indian Emulsifiers Ltd.,Chemicals,IEML,SM,INE0RRU01016
 Indian Phosphate Ltd.,Chemicals,IPHL,ST,INE0DHF01018
-Indifra Ltd.,Oil Gas & Consumable Fuels,INDIFRA,SM,INE0PS301014
+Indifra Ltd.,Oil Gas & Consumable Fuels,INDIFRA,ST,INE0PS301014
 Infinium Pharmachem Ltd.,Healthcare,INFINIUM,SM,INE0MRE01011
-Infollion Research Services Ltd.,Services,INFOLLION,ST,INE0NNZ01013
+Infollion Research Services Ltd.,Services,INFOLLION,SM,INE0NNZ01013
 Innomet Advanced Materials Ltd.,Metals & Mining,INNOMET,SM,INE0S1D01010
 Inspire Films Ltd.,Media Entertainment & Publication,INSPIRE,SM,INE0NDX01019
 Integrated Personnel Services Ltd.,Services,IPSL,SM,INE02EE01019
@@ -256,7 +256,7 @@ Pritika Engineering Components Ltd.,Automobile and Auto Components,PRITIKA,ST,IN
 Prizor Viztech Ltd.,Capital Goods,PRIZOR,ST,INE0V9N01017
 Prolife Industries Ltd.,Chemicals,PROLIFE,SM,INE994V01012
 Proventus Agrocom Ltd.,Fast Moving Consumer Goods,PROV,SM,INE0ONE01016
-Pulz Electronics Ltd.,Consumer Durables,PULZ,ST,INE335X01014
+Pulz Electronics Ltd.,Consumer Durables,PULZ,SM,INE335X01014
 Purv Flexipack Ltd.,Capital Goods,PURVFLEXI,SM,INE0R6C01012
 QMS Medical Allied Services Ltd.,Healthcare,QMSMEDI,SM,INE0FMW01018
 QVC Exports Ltd.,Metals & Mining,QVCEL,ST,INE0KZF01015
@@ -286,7 +286,7 @@ S D Retail Ltd.,Textiles,SDREAMS,SM,INE0X6F01017
 S J Logistics (India) Ltd.,Services,SJLOGISTIC,SM,INE0F3301020
 SKP Bearing Industries Ltd.,Capital Goods,SKP,SM,INE0KZA01016
 SMVD Ploy Pack Ltd.,Capital Goods,SMVD,SM,INE702Y01013
-SP Refractories Ltd.,Capital Goods,SPRL,ST,INE0JW501011
+SP Refractories Ltd.,Capital Goods,SPRL,SM,INE0JW501011
 SPP Polymer Ltd.,Capital Goods,SPPPOLY,ST,INE0QR801013
 Saakshi Medtech and Panels Ltd.,Capital Goods,SAAKSHI,SM,INE0PSK01027
 Sabar Flex India Ltd.,Capital Goods,SABAR,ST,INE0DZ101013
@@ -297,8 +297,8 @@ Sahana System Ltd.,Information Technology,SAHANA,ST,INE0LEX01011
 Sahasra Electronic Solutions Ltd.,Capital Goods,SAHASRA,SM,INE0RBQ01018
 Saj Hotels Ltd.,Consumer Services,SAJHOTELS,ST,INE00MT01022
 Salasar Exteriors and Contour Ltd.,Construction,SECL,ST,INE00Y701026
-Sameera Agro And Infra Ltd.,Fast Moving Consumer Goods,SAIFL,SM,INE0PZA01015
-Sangani Hospitals Ltd.,Healthcare,SANGANI,ST,INE0OVI01010
+Sameera Agro And Infra Ltd.,Fast Moving Consumer Goods,SAIFL,ST,INE0PZA01015
+Sangani Hospitals Ltd.,Healthcare,SANGANI,SM,INE0OVI01010
 Sar Televenture Ltd.,Telecommunication,SARTELE,SM,INE0PUC01020
 Saroja Pharma Industries India Ltd.,Chemicals,SAROJA,SM,INE0PCL01011
 Sathlokhar Synergys E&C Global Ltd.,Construction,SSEGL,SM,INE0RFP01011
@@ -326,7 +326,7 @@ Sona Machinery Ltd.,Capital Goods,SONAMAC,ST,INE0Q6H01012
 Sonu Infratech Ltd.,Construction,SONUINFRA,ST,INE0JZA01018
 Sotac Pharmaceuticals Ltd.,Healthcare,SOTAC,SM,INE0O2D01012
 Spectrum Electrical Industries Ltd.,Capital Goods,SPECTRUM,SM,INE01EO01010
-Spectrum Talent Management Ltd.,Services,SPECTSTM,ST,INE0OL001018
+Spectrum Talent Management Ltd.,Services,SPECTSTM,SM,INE0OL001018
 Srivari Spices And Foods Ltd.,Fast Moving Consumer Goods,SSFL,SM,INE0ON201012
 Srivasavi Adhesive Tapes Ltd.,Capital Goods,SRIVASAVI,SM,INE0NPI01014
 Sungarner Energies Ltd.,Capital Goods,SEL,ST,INE0O3O01017
@@ -360,7 +360,7 @@ Unihealth Hospitals Ltd.,Healthcare,UNIHEALTH,SM,INE0PRF01011
 Unilex Colours and Chemicals Ltd.,Chemicals,UNILEX,SM,INE0B2801011
 United Heat Transfer Ltd.,Capital Goods,UHTL,ST,INE0SMR01011
 Upsurge Seeds of Agriculture Ltd.,Fast Moving Consumer Goods,USASEEDS,SM,INE0CBM01019
-Urban Enviro Waste Management Ltd.,Utilities,URBAN,ST,INE0O0201019
+Urban Enviro Waste Management Ltd.,Utilities,URBAN,SM,INE0O0201019
 Usha Financial Services Ltd.,Financial Services,USHAFIN,SM,INE0LS001014
 Ushanti Colour Chem Ltd.,Chemicals,UCL,SM,INE00NI01015
 Utssav CZ Gold Jewels Ltd.,Consumer Durables,UTSSAV,ST,INE06IJ01010
@@ -381,7 +381,7 @@ Viaz Tyres Ltd.,Automobile and Auto Components,VIAZ,SM,INE0MO401019
 Vilas Transcore Ltd.,Capital Goods,VILAS,SM,INE0AZY01017
 Vilin Bio Med Ltd.,Healthcare,VILINBIO,SM,INE0L4V01013
 Vinsys IT Services India Ltd.,Consumer Services,VINSYS,SM,INE0OSJ01014
-Vinyas Innovative Technologies Ltd.,Capital Goods,VINYAS,ST,INE0OLS01010
+Vinyas Innovative Technologies Ltd.,Capital Goods,VINYAS,SM,INE0OLS01010
 Visaman Global Sales Ltd.,Capital Goods,VISAMAN,SM,INE0BHK01012
 Vishnusurya Projects and Infra Ltd.,Construction Materials,VISHNUINFR,SM,INE0PQ001012
 Vishwas Agri Seeds Ltd.,Fast Moving Consumer Goods,VISHWAS,SM,INE0S2E01016
