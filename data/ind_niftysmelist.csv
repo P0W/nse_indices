@@ -41,7 +41,7 @@ Aurangabad Distillery Ltd.,Fast Moving Consumer Goods,AURDIS,ST,INE448V01019
 Auro Impex & Chemicals Ltd.,Capital Goods,AUROIMPEX,SM,INE0NUL01018
 Australian Premium Solar (India) Limited,Capital Goods,APS,SM,INE0P0001010
 Avi Ansh Textile Ltd.,Textiles,AVIANSH,ST,INE0TFB01017
-BEW Engineering Ltd.,Capital Goods,BEWLTD,ST,INE0HQI01014
+BEW Engineering Ltd.,Capital Goods,BEWLTD,SM,INE0HQI01014
 Baba Food Processing (India) Ltd.,Fast Moving Consumer Goods,BABAFP,SM,INE0QW501012
 Baheti Recycling Industries Ltd.,Capital Goods,BAHETI,SM,INE029Q01017
 Basilic Fly Studio Ltd.,Media Entertainment & Publication,BASILIC,ST,INE0OCC01013
@@ -96,7 +96,7 @@ Effwa Infra & Research Ltd.,Utilities,EFFWA,SM,INE0U9101019
 Electro Force (India) Ltd.,Capital Goods,EFORCE,SM,INE0Q1W01012
 Emkay Taps and Cutting Tools Ltd.,Power,EMKAYTOOLS,SM,INE332S01011
 Energy Mission Machineries (India) Ltd.,Capital Goods,EMMIL,ST,INE0S1L01013
-Enfuse Solutions Ltd.,Information Technology,ENFUSE,ST,INE0S3X01014
+Enfuse Solutions Ltd.,Information Technology,ENFUSE,SM,INE0S3X01014
 Enser Communications Ltd.,Information Technology,ENSER,ST,INE0R9I01021
 Envirotech Systems Ltd.,Capital Goods,ENVIRO,SM,INE0SUH01015
 Esconet Technologies Ltd.,Information Technology,ESCONET,ST,INE0RQZ01017
@@ -151,7 +151,7 @@ Italian Edibles Ltd.,Fast Moving Consumer Goods,ITALIANE,SM,INE0R7R01018
 JFL Life Sciences Ltd.,Healthcare,JFLLIFE,ST,INE0LA901015
 Jainam Ferro Alloys (I) Ltd.,Metals & Mining,JAINAM,ST,INE02KC01010
 Jalan Transolutions (India) Ltd.,Services,JALAN,ST,INE349X01015
-Jay Bee Laminations Ltd.,Capital Goods,JAYBEE,ST,INE0SMY01017
+Jay Bee Laminations Ltd.,Capital Goods,JAYBEE,SM,INE0SMY01017
 Jay Jalaram Technologies Ltd.,Consumer Services,KORE,ST,INE0J6801010
 Jeena Sikho Lifecare Ltd.,Healthcare,JSLL,SM,INE0J5801011
 Jeyyam Global Foods Ltd.,Fast Moving Consumer Goods,JEYYAM,SM,INE0RXB01022
@@ -220,7 +220,7 @@ Newjaisa Technologies Ltd.,Information Technology,NEWJAISA,ST,INE0PW501021
 Nidan Laboratories And Healthcare Ltd.,Healthcare,NIDAN,SM,INE0J6L01013
 Nirman Agri Gentics Ltd.,Fast Moving Consumer Goods,NIRMAN,SM,INE0OK701014
 OBSC Perfection Ltd.,Automobile and Auto Components,OBSCP,ST,INE0YHV01011
-Omfurn India Ltd.,Consumer Durables,OMFURN,ST,INE338Y01016
+Omfurn India Ltd.,Consumer Durables,OMFURN,SM,INE338Y01016
 On Door Concepts Ltd.,Consumer Services,ONDOOR,ST,INE00ER01015
 Oneclick Logistics India Ltd.,Services,OLIL,ST,INE0OPS01011
 Oriana Power Ltd.,Capital Goods,ORIANA,SM,INE0OUT01019
@@ -248,10 +248,10 @@ Positron Energy Ltd.,Services,POSITRON,SM,INE0S3H01017
 Pramara Promotions Ltd.,Media Entertainment & Publication,PRAMARA,SM,INE0O7A01017
 Pranik Logistics Ltd.,Services,PRANIK,SM,INE0VJG01014
 Pratham EPC Projects Ltd.,Construction,PRATHAM,ST,INE0QA601016
-Precision Metaliks Ltd.,Automobile and Auto Components,PRECISION,ST,INE0HKW01018
+Precision Metaliks Ltd.,Automobile and Auto Components,PRECISION,SM,INE0HKW01018
 Premier Roadlines Ltd.,Services,PRLIND,SM,INE0CFG01012
 Premium Plast Ltd.,Automobile and Auto Components,PREMIUM,SM,INE0M1F01011
-Presstonic Engineering Ltd.,Capital Goods,PRESSTONIC,ST,INE0R1601012
+Presstonic Engineering Ltd.,Capital Goods,PRESSTONIC,SM,INE0R1601012
 Pritika Engineering Components Ltd.,Automobile and Auto Components,PRITIKA,ST,INE0MJQ01020
 Prizor Viztech Ltd.,Capital Goods,PRIZOR,SM,INE0V9N01017
 Prolife Industries Ltd.,Chemicals,PROLIFE,SM,INE994V01012
@@ -314,14 +314,14 @@ Shree Karni Fabcom Ltd.,Textiles,SHREEKARNI,ST,INE0S4Y01010
 Shree OSFM E-Mobility Ltd.,Services,SHREEOSFM,SM,INE02S501018
 Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,SM,INE238Y01018
 Shri Techtex Ltd.,Capital Goods,SHRITECH,SM,INE0OMF01015
-Shubhlaxmi Jewel Art Ltd.,Consumer Durables,SHUBHLAXMI,ST,INE01Z401013
+Shubhlaxmi Jewel Art Ltd.,Consumer Durables,SHUBHLAXMI,SM,INE01Z401013
 Shubhshree Biofuels Energy Ltd.,Capital Goods,SHUBHSHREE,ST,INE0UL701015
 Siddhika Coatings Ltd.,Consumer Durables,SIDDHIKA,ST,INE0A1E01018
 Signoria Creation Ltd.,Textiles,SIGNORIA,ST,INE0RDE01010
 Silkflex Polymers (India) Ltd.,Chemicals,SILKFLEX,SM,INE0STN01015
 Slone Infosystems Ltd.,Information Technology,SLONE,ST,INE0SMA01017
 Solex Energy Ltd.,Capital Goods,SOLEX,ST,INE880Y01017
-Solve Plastic Products Ltd.,Capital Goods,BALCO,ST,INE0U0201016
+Solve Plastic Products Ltd.,Capital Goods,BALCO,SM,INE0U0201016
 Sona Machinery Ltd.,Capital Goods,SONAMAC,SM,INE0Q6H01012
 Sonu Infratech Ltd.,Construction,SONUINFRA,ST,INE0JZA01018
 Sotac Pharmaceuticals Ltd.,Healthcare,SOTAC,SM,INE0O2D01012
@@ -345,7 +345,7 @@ Tapi Fruit Processing Ltd.,Fast Moving Consumer Goods,TAPIFRUIT,SM,INE0M7001010
 TechEra Engineering (India) Ltd.,Capital Goods,TECHERA,ST,INE0JQS01019
 Teerth Gopicon Ltd.,Construction,TGL,ST,INE0K6601012
 Thaai Casting Ltd.,Automobile and Auto Components,TCL,SM,INE0QJL01014
-Thinking Hats Entertainment Solutions Ltd.,Consumer Services,THESL,ST,INE0SHE01019
+Thinking Hats Entertainment Solutions Ltd.,Consumer Services,THESL,SM,INE0SHE01019
 Timescan Logistics (India) Ltd.,Services,TIMESCAN,SM,INE0IJY01014
 Transteel Seating Technologies Ltd.,Consumer Durables,TRANSTEEL,ST,INE0NVI01020
 Transwind Infra Ltd.,Construction,TRANSWIND,SM,INE792X01016
@@ -358,7 +358,7 @@ Ultra Wiring Connectivity System Ltd.,Automobile and Auto Components,UWCSL,ST,IN
 Uma Converter Ltd.,Capital Goods,UMA,SM,INE067901012
 Unihealth Hospitals Ltd.,Healthcare,UNIHEALTH,SM,INE0PRF01011
 Unilex Colours and Chemicals Ltd.,Chemicals,UNILEX,SM,INE0B2801011
-United Heat Transfer Ltd.,Capital Goods,UHTL,ST,INE0SMR01011
+United Heat Transfer Ltd.,Capital Goods,UHTL,SM,INE0SMR01011
 Upsurge Seeds of Agriculture Ltd.,Fast Moving Consumer Goods,USASEEDS,SM,INE0CBM01019
 Urban Enviro Waste Management Ltd.,Utilities,URBAN,SM,INE0O0201019
 Usha Financial Services Ltd.,Financial Services,USHAFIN,SM,INE0LS001014
@@ -400,4 +400,4 @@ Yasons Chemex Care Ltd.,Chemicals,YCCL,SM,INE08S201019
 Yudiz Solutions Ltd.,Information Technology,YUDIZ,SM,INE09FA01019
 Z-Tech (India) Ltd.,Utilities,ZTECH,ST,INE0ISZ01012
 Zeal Global Services Ltd.,Services,ZEAL,SM,INE0PPS01018
-Zenith Drugs Ltd.,Healthcare,ZENITHDRUG,ST,INE0QWN01013
+Zenith Drugs Ltd.,Healthcare,ZENITHDRUG,SM,INE0QWN01013
