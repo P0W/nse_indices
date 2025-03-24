@@ -1,5 +1,5 @@
 Company Name,Industry,Symbol,Series,ISIN Code
-A B Cotspin India Ltd.,Textiles,ABCOTS,ST,INE08PH01015
+A B Cotspin India Ltd.,Textiles,ABCOTS,SM,INE08PH01015
 A G Universal Ltd.,Capital Goods,AGUL,SM,INE0O6N01012
 A and M Jumbo Bags Ltd.,Capital Goods,AMJUMBO,SM,INE749Y01014
 ABS Marine Services Ltd.,Services,ABSMARINE,ST,INE0QRV01016
@@ -63,7 +63,7 @@ Chaman Metallics Ltd.,Metals & Mining,CMNL,SM,INE06PV01010
 Chavda Infra Ltd.,Construction,CHAVDA,SM,INE0PT101017
 Chetana Education Ltd.,Media Entertainment & Publication,CHETANA,SM,INE0U1T01012
 Committed Cargo Care Ltd.,Services,COMMITTED,ST,INE597Z01014
-Continental Seeds and Chemicals Ltd.,Fast Moving Consumer Goods,CONTI,ST,INE340Z01019
+Continental Seeds and Chemicals Ltd.,Fast Moving Consumer Goods,CONTI,SM,INE340Z01019
 Cool Caps Industries Ltd.,Capital Goods,COOLCAPS,ST,INE0HS001010
 Crayons Advertising Ltd.,Media Entertainment & Publication,CRAYONS,ST,INE0OFK01019
 Creative Graphics Solutions India Ltd.,Capital Goods,CGRAPHICS,SM,INE0R7401011
@@ -135,7 +135,7 @@ Hi-Green Carbon Ltd.,Utilities,HIGREEN,SM,INE0PIC01017
 Hoac Foods India Ltd.,Fast Moving Consumer Goods,HOACFOODS,ST,INE0S6S01017
 Holmarc Opto-Mechatronics Ltd.,Capital Goods,HOLMARC,SM,INE0LXA01019
 Homesfy Realty Ltd.,Realty,HOMESFY,SM,INE0N7F01017
-IBL Finance Ltd.,Financial Services,IBLFL,ST,INE0O7401018
+IBL Finance Ltd.,Financial Services,IBLFL,SM,INE0O7401018
 Ideal Technoplast Industries Ltd.,Capital Goods,IDEALTECHO,ST,INE0T9I01011
 Indian Emulsifiers Ltd.,Chemicals,IEML,ST,INE0RRU01016
 Indian Phosphate Ltd.,Chemicals,IPHL,ST,INE0DHF01018
@@ -195,7 +195,7 @@ Mangalam Alloys Ltd.,Capital Goods,MAL,SM,INE00C401011
 Mangalam Worldwide Ltd.,Metals & Mining,MWL,SM,INE0JYY01011
 Manglam Infra & Engineering Ltd.,Services,MIEL,ST,INE0R3101011
 Marco Cables & Conductors Ltd.,Capital Goods,MARCO,SM,INE0QP001012
-Marinetrans India Ltd.,Services,MARINETRAN,ST,INE0P1P01017
+Marinetrans India Ltd.,Services,MARINETRAN,SM,INE0P1P01017
 Marvel Decor Ltd.,Consumer Durables,MDL,SM,INE575Z01010
 Mason Infratech Ltd.,Realty,MASON,SM,INE0SH001010
 Master Components Ltd.,Capital Goods,MASTER,SM,INE0OJM01017
@@ -287,7 +287,7 @@ S J Logistics (India) Ltd.,Services,SJLOGISTIC,SM,INE0F3301020
 SKP Bearing Industries Ltd.,Capital Goods,SKP,SM,INE0KZA01016
 SMVD Ploy Pack Ltd.,Capital Goods,SMVD,SM,INE702Y01013
 SP Refractories Ltd.,Capital Goods,SPRL,SM,INE0JW501011
-SPP Polymer Ltd.,Capital Goods,SPPPOLY,ST,INE0QR801013
+SPP Polymer Ltd.,Capital Goods,SPPPOLY,SM,INE0QR801013
 Saakshi Medtech and Panels Ltd.,Capital Goods,SAAKSHI,SM,INE0PSK01027
 Sabar Flex India Ltd.,Capital Goods,SABAR,ST,INE0DZ101013
 Sadhav Shipping Ltd.,Services,SADHAV,SM,INE0K5H01010
@@ -364,7 +364,7 @@ Usha Financial Services Ltd.,Financial Services,USHAFIN,ST,INE0LS001014
 Ushanti Colour Chem Ltd.,Chemicals,UCL,SM,INE00NI01015
 Utssav CZ Gold Jewels Ltd.,Consumer Durables,UTSSAV,SM,INE06IJ01010
 V Marc India Ltd.,Capital Goods,VMARCIND,ST,INE0GXK01018
-V R Infraspace Ltd.,Realty,VR,ST,INE0QQM01017
+V R Infraspace Ltd.,Realty,VR,SM,INE0QQM01017
 V.L.Infraprojects Ltd.,Construction,VLINFRA,ST,INE0QXL01015
 Vadivarhe Speciality Chemicals Ltd.,Chemicals,VSCL,ST,INE551Q01028
 Vaidya Sane Ayurved Laboratories Ltd.,Healthcare,MADHAVBAUG,SM,INE0JR301013
@@ -391,7 +391,7 @@ Vivo Collaboration Solutions Ltd.,Telecommunication,VIVO,SM,INE0IA701014
 Walpar Nutritions Ltd.,Healthcare,WALPAR,SM,INE0G2G01015
 Winny Immigration & Education Services Ltd.,Consumer Services,WINNY,ST,INE0S9101013
 Winsol Engineers Ltd.,Construction,WINSOL,SM,INE0S3D01016
-Wise Travel India Ltd.,Services,WTICAB,ST,INE623Y01011
+Wise Travel India Ltd.,Services,WTICAB,SM,INE623Y01011
 Wol 3D India Ltd.,Capital Goods,WOL3D,SM,INE0OO201011
 Womancart Ltd.,Consumer Services,WOMANCART,ST,INE0Q9601016
 Yash Optics & Lens Ltd.,Consumer Durables,YASHOPTICS,SM,INE0TO601017
