@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}NSE Indices Analysis Results{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-card {
+        margin-bottom: 30px;
+    }    .chart-img {
+        width: 100%;
+        height: 400px; /* Consistent height for all charts */
+        object-fit: contain; /* Preserve aspect ratio while fitting within dimensions */
+        border-radius: 8px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        background-color: #ffffff;
+        padding: 10px;
+    }
+    .chart-img:hover {
+        transform: scale(1.02);
+    }
+    .chart-card {
+        height: 500px; /* Fixed height for all chart cards */
+        overflow: hidden;
+        margin-bottom: 30px;
+        display: flex;
+        flex-direction: column;
+    }
+    .tab-pane {
+        padding: 20px 0;
+    }
+    .recommendation-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .recommendation-card .indices-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    .index-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: #e9ecef;
+        transition: all 0.2s ease;
+    }
+    .index-badge:hover {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.05);
+    }
+    #dataTable_wrapper .row:first-child {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="container">
+            <h1 class="display-4 mb-4">Analysis Results</h1>
+            <p class="lead mb-4">Comprehensive insights and visualizations from NSE indices analysis</p>
+            <p class="text-white">Analysis Date: {{ analysis_date }}</p>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- No results message -->
+    {% if not recommendations and not charts %}
+    <div class="alert alert-warning text-center my-5 p-5">
+        <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+        <h3>No Analysis Results Available</h3>
+        <p class="mb-4">Please run the analysis first to view results.</p>
+        <a href="{{ url_for('index') }}#start-analysis" class="btn btn-primary">Run Analysis</a>
+    </div>
+    {% else %}
+    
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4 justify-content-center" id="resultsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="visualizations-tab" data-bs-toggle="tab" 
+                    data-bs-target="#visualizations" type="button" role="tab">
+                <i class="fas fa-chart-pie me-2"></i>Visualizations
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" 
+                    data-bs-target="#recommendations" type="button" role="tab">
+                <i class="fas fa-lightbulb me-2"></i>Recommendations
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="data-tab" data-bs-toggle="tab" 
+                    data-bs-target="#data" type="button" role="tab">
+                <i class="fas fa-table me-2"></i>Data Table
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="resultsTabContent">
+        <!-- Visualizations Tab -->
+        <div class="tab-pane fade show active" id="visualizations" role="tabpanel">
+            <h2 class="section-title">Performance Visualizations</h2>
+              {% if charts %}
+            <div class="row">
+                {% for chart in charts %}
+                <div class="col-lg-6" data-aos="fade-up">
+                    <div class="chart-card">
+                        <h5 class="mb-3">{{ chart|replace('.png', '')|replace('_', ' ')|title }}</h5>
+                        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                            <a href="{{ url_for('static_files', filename=chart) }}" target="_blank" class="d-block w-100">
+                                <img src="{{ url_for('static_files', filename=chart) }}" alt="{{ chart }}" class="chart-img">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">No visualizations available. Please wait while the system generates them.</div>
+            {% endif %}
+        </div>
+        
+        <!-- Recommendations Tab -->
+        <div class="tab-pane fade" id="recommendations" role="tabpanel">
+            <h2 class="section-title">Investment Recommendations</h2>
+            
+            {% if recommendations and recommendations.categories %}
+                {% for category_key, category in recommendations.categories.items() %}
+                <div class="recommendation-card" data-aos="fade-up">
+                    <div class="title">
+                        <i class="fas fa-award text-success me-2"></i>
+                        {{ category.title }}
+                    </div>
+                    <p>{{ category.description }}</p>
+                    <div class="indices-list">
+                        {% for index in category.indices %}
+                        <span class="index-badge">{{ index }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="alert alert-info">No recommendations available.</div>
+            {% endif %}
+        </div>
+        
+        <!-- Data Table Tab -->
+        <div class="tab-pane fade" id="data" role="tabpanel">
+            <h2 class="section-title">Complete Data Table</h2>
+            
+            {% if combined_data %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="dataTable">
+                            <thead>
+                                <tr>
+                                    {% for key in combined_data[0].keys() %}
+                                    <th>{{ key }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in combined_data %}
+                                <tr>
+                                    {% for key, value in row.items() %}
+                                    <td>{{ value }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No data table available.</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Download Section -->
+    <div class="text-center mt-5">
+        <h3 class="mb-4">Download Results</h3>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('api_data', type='recommendations') }}" class="btn btn-outline-primary" download="recommendations.json">
+                <i class="fas fa-download me-2"></i>Download Recommendations (JSON)
+            </a>
+            <a href="{{ url_for('api_data', type='combined') }}" class="btn btn-outline-primary" download="data.json">
+                <i class="fas fa-download me-2"></i>Download Full Data (JSON)
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable if it exists
+        if ($('#dataTable').length > 0) {
+            $('#dataTable').DataTable({
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "scrollX": true
+            });
+        }
+        
+        // Handle tab change to fix chart rendering issues
+        $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $(window).trigger('resize');
+        });
+        
+        // Enable image zoom on click
+        $('.chart-img').click(function(e) {
+            e.preventDefault();
+            const imgSrc = $(this).attr('src');
+            
+            // Create a modal with the image
+            const modal = `
+                <div class="modal fade" id="imageModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="${imgSrc}" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('body').append(modal);
+            $('#imageModal').modal('show');
+            
+            // Remove modal from DOM when hidden
+            $('#imageModal').on('hidden.bs.modal', function() {
+                $(this).remove();
+            });
+        });
+    });
+</script>
+{% endblock %}

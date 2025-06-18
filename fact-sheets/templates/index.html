@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}NSE Indices Analysis Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="container">
+            <h1 class="display-4 mb-4">NSE Indices Analytics</h1>
+            <p class="lead mb-4">Comprehensive analysis and visualization of NSE indices performance metrics</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('results') }}" class="btn btn-light btn-lg px-4">View Analysis Results</a>
+                <a href="#analysis-info" class="btn btn-outline-light btn-lg px-4">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Key Metrics -->
+    <section class="mb-5" data-aos="fade-up">
+        <h2 class="section-title">Dashboard</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <i class="fas fa-file-alt fa-2x text-primary"></i>
+                    <div class="metric-value">{{ factsheets|length }}</div>
+                    <div class="metric-title">Factsheets Available</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <i class="fas fa-chart-bar fa-2x text-success"></i>
+                    <div class="metric-value">{{ "Yes" if has_results else "No" }}</div>
+                    <div class="metric-title">Analysis Completed</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <i class="fas fa-calendar-alt fa-2x text-info"></i>
+                    <div class="metric-value">{{ analysis_date }}</div>
+                    <div class="metric-title">Last Updated</div>
+                </div>
+            </div>
+        </div>
+    </section>    <!-- Analysis Info Section -->
+    <section class="mb-5" id="analysis-info" data-aos="fade-up">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Analysis Information</h5>
+                <span class="badge bg-success">Auto-Generated</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Analysis is automatically run when the application starts if results don't already exist.
+                    The latest analysis includes comprehensive insights and visualizations from all available factsheets.
+                </p>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                    <a href="{{ url_for('results') }}" class="btn btn-primary">
+                        <i class="fas fa-chart-line me-2"></i>View Analysis Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Available Factsheets -->
+    <section class="mb-5" data-aos="fade-up">
+        <h2 class="section-title">Available Factsheets</h2>
+        
+        {% if factsheets %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="factsheetsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Index Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factsheet in factsheets %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ factsheet }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No factsheets found in the parsed_factsheets directory.
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#factsheetsTable').DataTable({
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "order": [[1, "asc"]]
+        });
+    });
+</script>
+{% endblock %}

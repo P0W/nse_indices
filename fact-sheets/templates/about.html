@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}About NSE Indices Analysis Tool{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="container">
+            <h1 class="display-4 mb-4">About the Project</h1>
+            <p class="lead mb-4">Learn more about the NSE Indices Analysis Tool</p>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <section class="mb-5" data-aos="fade-up">
+                <h2 class="section-title">Overview</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <p>The NSE Indices Analysis Tool is a comprehensive solution for analyzing and visualizing performance metrics across NSE (National Stock Exchange of India) index factsheets. It provides valuable insights into returns, risk metrics, correlations, and generates investment recommendations.</p>
+                        
+                        <p>This web application serves as an interface to the underlying analysis engine, making it easy to run complex analyses and view the results in an interactive manner.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="mb-5" data-aos="fade-up">
+                <h2 class="section-title">Key Features</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-chart-line text-primary me-3"></i>
+                                <div>
+                                    <strong>Performance Analysis</strong>
+                                    <p class="mb-0">Analyze returns across different timeframes and compare index performance</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-shield-alt text-primary me-3"></i>
+                                <div>
+                                    <strong>Risk Assessment</strong>
+                                    <p class="mb-0">Evaluate standard deviation, beta, and other risk metrics</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-balance-scale text-primary me-3"></i>
+                                <div>
+                                    <strong>Risk-Adjusted Returns</strong>
+                                    <p class="mb-0">Calculate and compare Sharpe ratios to identify optimal risk-return profiles</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-lightbulb text-primary me-3"></i>
+                                <div>
+                                    <strong>Investment Recommendations</strong>
+                                    <p class="mb-0">Get data-driven investment recommendations across different categories</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-project-diagram text-primary me-3"></i>
+                                <div>
+                                    <strong>Correlation Analysis</strong>
+                                    <p class="mb-0">Understand relationships between different indices and metrics</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-download text-primary me-3"></i>
+                                <div>
+                                    <strong>Data Export</strong>
+                                    <p class="mb-0">Export analysis results in JSON format for further processing</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="mb-5" data-aos="fade-up">
+                <h2 class="section-title">How It Works</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="mb-4">
+                                <h5><i class="fas fa-file-pdf text-danger me-2"></i> 1. PDF Processing</h5>
+                                <p>The system starts by processing NSE index factsheet PDFs, extracting key data points like returns, risk metrics, and other statistics.</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-database text-success me-2"></i> 2. Data Structuring</h5>
+                                <p>Extracted data is structured into JSON format for easy analysis and comparison across indices.</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-calculator text-primary me-2"></i> 3. Analysis</h5>
+                                <p>The system performs comprehensive analysis, calculating risk-adjusted metrics, rankings, and identifying patterns.</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-chart-bar text-warning me-2"></i> 4. Visualization</h5>
+                                <p>Results are visualized through charts and tables for easy interpretation and decision-making.</p>
+                            </div>
+                            
+                            <div>
+                                <h5><i class="fas fa-lightbulb text-info me-2"></i> 5. Recommendations</h5>
+                                <p>Based on the analysis, the system generates investment recommendations across different categories.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="mb-5 text-center" data-aos="fade-up">
+                <h2 class="section-title text-center">Get Started</h2>
+                <p class="mb-4">Ready to analyze NSE indices and get valuable insights?</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('index') }}#start-analysis" class="btn btn-primary btn-lg">Run Analysis</a>
+                    <a href="{{ url_for('results') }}" class="btn btn-outline-primary btn-lg">View Results</a>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}NSE Indices Factsheets{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="container">
+            <h1 class="display-4 mb-4">NSE Factsheets</h1>
+            <p class="lead mb-4">View all available factsheets for analysis</p>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <section class="mb-5" data-aos="fade-up">
+        <h2 class="section-title">Available Factsheets</h2>
+        
+        {% if factsheets %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="factsheetsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Index Name</th>
+                                <th>File Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factsheet in factsheets %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ factsheet.name }}</td>
+                                <td>{{ (factsheet.size / 1024)|round(1) }} KB</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No factsheets found in the parsed_factsheets directory.
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#factsheetsTable').DataTable({
+            "pageLength": 25,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "order": [[1, "asc"]]
+        });
+    });
+</script>
+{% endblock %}
