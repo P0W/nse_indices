@@ -104,7 +104,7 @@ class NSEFactsheetDownloader:
             logger.warning(f"HTTP error {response.status_code} for {url}")
             response.raise_for_status()
 
-    def find_factsheet_links(self):
+    def _find_factsheet_links(self):
         """Find factsheet links from the NSE India website by scanning all category pages"""
         logger.info(f"Searching for factsheet links across all category pages")
 
@@ -146,7 +146,7 @@ class NSEFactsheetDownloader:
 
             # Visit each individual index page to find factsheet links
             for index_link in index_links:
-                logger.info(f"Checking for factsheet on index page: {index_link}")
+                logger.debug(f"Checking for factsheet on index page: {index_link}")
                 try:
                     index_response = self._make_request(index_link)
                     if not index_response:
@@ -192,7 +192,7 @@ class NSEFactsheetDownloader:
                             if absolute_url not in factsheet_links:
                                 factsheet_links.append(absolute_url)
                                 factsheet_found = True
-                                logger.info(
+                                logger.debug(
                                     f"Found factsheet link by text: {absolute_url}"
                                 )
 
@@ -237,7 +237,7 @@ class NSEFactsheetDownloader:
                                 absolute_url = urljoin(self.base_url, button["href"])
                                 if absolute_url not in factsheet_links:
                                     factsheet_links.append(absolute_url)
-                                    logger.info(
+                                    logger.debug(
                                         f"Found PDF through button: {absolute_url}"
                                     )
 
@@ -257,7 +257,7 @@ class NSEFactsheetDownloader:
                                     absolute_url = urljoin(self.base_url, link["href"])
                                     if absolute_url not in factsheet_links:
                                         factsheet_links.append(absolute_url)
-                                        logger.info(
+                                        logger.debug(
                                             f"Found potential factsheet by name matching: {absolute_url}"
                                         )
 
@@ -391,7 +391,7 @@ class NSEFactsheetDownloader:
 
     def download_all_factsheets(self):
         """Download all available factsheets"""
-        factsheet_links = self.find_factsheet_links()
+        factsheet_links = self._find_factsheet_links()
 
         # Add direct factsheet URLs for key indices that might not be found through the regular process
         # These are common index factsheets that should be available
@@ -536,7 +536,7 @@ class PDFFactsheetParser:
                     # Extract tables - pdfplumber is excellent at identifying tables
                     tables = page.extract_tables()
                     if tables:
-                        logger.info(f"Found {len(tables)} tables on page {i+1}")
+                        logger.debug(f"Found {len(tables)} tables on page {i+1}")
                         for table in tables:
                             # Convert to pandas DataFrame for easier processing
                             # Filter out completely empty rows and columns
@@ -602,7 +602,7 @@ class PDFFactsheetParser:
 
     def _extract_returns_from_image_format(self, tables, result):
         """Extract returns data specifically from the format shown in the factsheet image"""
-        logger.info("Attempting to extract returns from image format")
+        logger.debug("Attempting to extract returns from image format")
 
         for table in tables:
             # Skip very small tables
@@ -617,7 +617,7 @@ class PDFFactsheetParser:
             if (
                 "index" in table_str and "returns (%)" in table_str
             ) or "returns (%)" in table_str:
-                logger.info(f"Found returns table matching image format: {table}")
+                logger.debug(f"Found returns table matching image format: {table}")
 
                 # Process the returns table
                 for idx, row in table.iterrows():
@@ -719,11 +719,11 @@ class PDFFactsheetParser:
                                             number_match.group(1)
                                         )
 
-                logger.info(f"Extracted returns: {result['returns']}")
+                logger.debug(f"Extracted returns: {result['returns']}")
 
             # Check if this looks like the statistics table from the image
             elif "statistics" in table_str:
-                logger.info(f"Found statistics table matching image format: {table}")
+                logger.debug(f"Found statistics table matching image format: {table}")
 
                 # Process the statistics table
                 for idx, row in table.iterrows():
@@ -777,7 +777,7 @@ class PDFFactsheetParser:
                                             f"{stat_name} ({period})"
                                         ] = number_match.group(1)
 
-                logger.info(f"Extracted statistics: {result['statistics']}")
+                logger.debug(f"Extracted statistics: {result['statistics']}")
 
     def _extract_from_tables(self, tables, result):
         """Extract structured data from tables"""
@@ -824,7 +824,7 @@ class PDFFactsheetParser:
 
     def _process_returns_table(self, table, result):
         """Extract returns data from a table"""
-        logger.info("Processing returns table")
+        logger.debug("Processing returns table")
 
         # Look for specific headers that indicate this is the returns table
         table_cols = [str(col).lower() for col in table.columns]
@@ -833,7 +833,7 @@ class PDFFactsheetParser:
         if any("qtd" in col for col in table_cols) or any(
             "ytd" in col for col in table_cols
         ):
-            logger.info("Found returns table with period columns")
+            logger.debug("Found returns table with period columns")
 
             # Try to find the rows that contain 'price return' and 'total return'
             for idx, row in table.iterrows():
@@ -911,7 +911,7 @@ class PDFFactsheetParser:
         # Handle case where the table has different layout
         else:
             # If the table doesn't match the expected format, try alternative approach
-            logger.info("Using alternative approach for returns table")
+            logger.debug("Using alternative approach for returns table")
 
             # Convert columns and rows to lowercase for case-insensitive matching
             table_lower = table.astype(str).apply(lambda x: x.str.lower())
@@ -1121,7 +1121,7 @@ class PDFFactsheetParser:
 
     def _process_stats_table(self, table, result):
         """Extract statistics and fundamentals from a table"""
-        logger.info("Processing statistics table")
+        logger.debug("Processing statistics table")
 
         # Check for specific headers that would indicate it's a statistics table
         # First, convert all column names and values to lowercase strings for matching
@@ -1131,7 +1131,7 @@ class PDFFactsheetParser:
         if any("statistics" in col for col in col_names_lower) or any(
             "std" in col for col in col_names_lower
         ):
-            logger.info("Found statistics table with standard format")
+            logger.debug("Found statistics table with standard format")
 
             # Try to find the key statistics rows (Std. Deviation, Beta, Correlation)
             for idx, row in table.iterrows():
@@ -1175,7 +1175,7 @@ class PDFFactsheetParser:
 
         # Alternative approach if the standard approach doesn't work
         else:
-            logger.info("Using alternative approach for statistics table")
+            logger.debug("Using alternative approach for statistics table")
 
             # Keys to look for in statistics and fundamentals
             stats_keys = {
@@ -1416,7 +1416,7 @@ class PDFFactsheetParser:
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(parsed_data, f, indent=2, ensure_ascii=False)
-            logger.info(f"Saved parsed data to {output_path}")
+            logger.debug(f"Saved parsed data to {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Error saving to JSON: {str(e)}")
@@ -1431,7 +1431,7 @@ class PDFFactsheetParser:
             logger.warning(f"No PDF files found in {pdf_folder}")
             return []
 
-        logger.info(f"Found {len(pdf_files)} PDF files to process with pdfplumber")
+        logger.debug(f"Found {len(pdf_files)} PDF files to process with pdfplumber")
 
         processed_files = []
 
@@ -1459,7 +1459,7 @@ class PDFFactsheetParser:
                 except Exception as e:
                     logger.error(f"Error processing {pdf_file}: {str(e)}")
 
-        logger.info(
+        logger.debug(
             f"Successfully processed {len(processed_files)} PDFs with pdfplumber"
         )
         return processed_files
