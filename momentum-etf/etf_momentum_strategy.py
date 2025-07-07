@@ -13,7 +13,9 @@ warnings.filterwarnings("ignore")
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -22,20 +24,23 @@ logger = logging.getLogger(__name__)
 class StrategyConfig:
     """Configuration class for ETF momentum strategy parameters."""
 
-    # ETF Universe - Indian ETFs only (actively traded, excluding liquid/money market funds)
+    # List of Highly Liquid, High-Volume NSE ETF Symbols (Minimal Overlap, Trading >5 Years, No Debt)
     etf_universe: List[str] = field(
         default_factory=lambda: [
             "NIFTYBEES.NS",  # Nifty 50 ETF
-            "JUNIORBEES.NS",  # Nifty Next 50 ETF
-            "BANKBEES.NS",  # Bank Nifty ETF
-            "GOLDBEES.NS",  # Gold ETF
+            "SETFNN50.NS",  # Nifty Next 50 ETF
+            #  "BANKBEES.NS",  # Bank Nifty ETF
+            "GOLDBEES.NS",  # Gold ETF,
+            "SILVERBEES.NS",  # Silver ETF,
             "CPSEETF.NS",  # CPSE ETF
             "PSUBNKBEES.NS",  # PSU Bank ETF
             "PHARMABEES.NS",  # Pharma ETF
             "ITBEES.NS",  # IT ETF
             "AUTOBEES.NS",  # Auto ETF
+            "INFRAIETF.NS",  # Infra ETF,
+            "SHARIABEES.NS",  # Shariah ETF
             "DIVOPPBEES.NS",  # Dividend Opportunities ETF
-            "SMALLCAP.NS",  # Small Cap ETF (if available)
+            "CONSUMBEES.NS",  # Consumer Goods - Nifty India Consumption
         ]
     )
 
