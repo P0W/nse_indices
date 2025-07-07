@@ -142,47 +142,8 @@ uv run cli.py backtest
 uv run cli.py backtest --amounts 1000000 5000000
 ```
 
-## 🎯 Investment Guide for Today (July 7, 2025)
+---
 
-### Your Action Plan:
-
-**TODAY (July 7, 2025):**
-- ✅ **Perfect time to invest** - you're between rebalancing dates
-- ✅ Invest in the top 5 ETFs shown by `portfolio` command
-- ✅ System shows strong momentum opportunities
-
-**WEEKLY MONITORING:**
-```bash
-# Run this every Sunday for awareness
-uv run cli.py portfolio
-```
-
-**PRE-REBALANCE CHECK:**
-```bash
-# Run this around August 1-3, 2025
-uv run cli.py historical --from-date 2025-07-07
-```
-
-**REBALANCING SCHEDULE:**
-- **August 5, 2025** - Check if portfolio needs adjustment
-- **September 5, 2025** - Next scheduled rebalance
-- **October 5, 2025** - Next scheduled rebalance
-- **Every 5th** of the month thereafter
-
-### Example Investment Scenario (₹5,00,000):
-
-If you invest today, your allocation would be:
-- Each ETF: ₹1,00,000 (equal weighted)
-- **GOLDBEES.NS**: ~1,242 units (₹80.53/share)
-- **PSUBNKBEES.NS**: ~1,258 units (₹79.50/share)  
-- **BANKBEES.NS**: ~171 units (₹585.55/share)
-- **NIFTYBEES.NS**: ~349 units (₹286.07/share)
-- **ITBEES.NS**: ~2,364 units (₹42.30/share)
-
-**On August 5, check if:**
-- Any ETF falls below rank #10 → Sell it
-- Any new ETF enters top 5 → Buy it
-- Rebalance to maintain equal weights
 
 ## Command Line Interface
 
