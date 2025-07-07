@@ -55,7 +55,7 @@ uv run cli.py portfolio
 
 # Custom amount and size
 uv run cli.py portfolio --amount 500000 --size 3
-uv run cli.py portfolio --amount 2000000 --size 7
+uv run cli.py portfolio --amount 2000000 --size 5
 ```
 
 **Output Example:**
@@ -68,14 +68,29 @@ uv run cli.py portfolio --amount 2000000 --size 7
 +========+===============+=========+=========+==============+==========+
 | 1      | GOLDBEES.NS   | ₹80.53  | 2,483   | ₹199,956     | 20.0%    |
 +--------+---------------+---------+---------+--------------+----------+
-| 2      | PSUBNKBEES.NS | ₹79.50  | 2,515   | ₹199,942     | 20.0%    |
+| 2      | SILVERBEES.NS | ₹103.79 | 1,926   | ₹199,900     | 20.0%    |
 +--------+---------------+---------+---------+--------------+----------+
-| 3      | BANKBEES.NS   | ₹585.55 | 341     | ₹199,673     | 20.0%    |
+| 3      | PSUBNKBEES.NS | ₹79.50  | 2,515   | ₹199,942     | 20.0%    |
 +--------+---------------+---------+---------+--------------+----------+
-| 4      | NIFTYBEES.NS  | ₹286.07 | 699     | ₹199,963     | 20.0%    |
+| 4      | INFRAIETF.NS  | ₹96.63  | 2,069   | ₹199,927     | 20.0%    |
 +--------+---------------+---------+---------+--------------+----------+
-| 5      | ITBEES.NS     | ₹42.30  | 4,728   | ₹199,994     | 20.0%    |
+| 5      | NIFTYBEES.NS  | ₹286.07 | 699     | ₹199,963     | 20.0%    |
 +--------+---------------+---------+---------+--------------+----------+
+|        | TOTAL         |         |         | ₹999,688     | 100.0%   |
++--------+---------------+---------+---------+--------------+----------+
+💰 Cash Remaining: ₹312 (0.0%)
+📊 MOMENTUM SCORES:
+  Rank  ETF              Score
+------  -------------  -------
+     1  GOLDBEES.NS     0.1799
+     2  SILVERBEES.NS   0.1696
+     3  PSUBNKBEES.NS   0.1164
+     4  INFRAIETF.NS    0.0804
+     5  NIFTYBEES.NS    0.0721
+💡 NEXT STEPS:
+   1. Buy the above ETFs in specified quantities
+   2. Monitor monthly for rebalancing needs
+   3. Use 'rebalance' command if you already have a portfolio
 ```
 
 ### 2. 📅 Historical Portfolio Analysis
@@ -96,28 +111,69 @@ uv run cli.py historical --from-date 2025-01-01 --amount 500000 --size 3
 **Output Example:**
 ```
 📅 HISTORICAL PORTFOLIO ANALYSIS
-📊 From: 2025-06-01 To: 2025-07-07
+📊 From: 2025-01-01 To: 2025-07-07
+💰 Investment Amount: ₹500,000.00
+================================================================================
+📡 Fetching historical data from 2024-03-07 to 2025-07-07...
+📈 PORTFOLIO ON 2025-01-01:
+------------------------------------------------------------
++--------+---------------+---------+---------+--------------+---------+
+|   Rank | ETF Name      | Price   | Units   | Investment   |   Score |
++========+===============+=========+=========+==============+=========+
+|      1 | PHARMABEES.NS | ₹23.87  | 6,982   | ₹166,660     |  0.1428 |
++--------+---------------+---------+---------+--------------+---------+
+|      2 | GOLDBEES.NS   | ₹64.35  | 2,590   | ₹166,666     |  0.0403 |
++--------+---------------+---------+---------+--------------+---------+
+📈 PORTFOLIO ON 2025-07-07:
+------------------------------------------------------------
++--------+---------------+---------+---------+--------------+---------+
+|   Rank | ETF Name      | Price   | Units   | Investment   |   Score |
++========+===============+=========+=========+==============+=========+
+|      1 | GOLDBEES.NS   | ₹80.53  | 2,069   | ₹166,617     |  0.1799 |
++--------+---------------+---------+---------+--------------+---------+
+|      2 | SILVERBEES.NS | ₹103.79 | 1,605   | ₹166,583     |  0.1696 |
++--------+---------------+---------+---------+--------------+---------+
+|      3 | PSUBNKBEES.NS | ₹79.50  | 2,096   | ₹166,632     |  0.1164 |
++--------+---------------+---------+---------+--------------+---------+
 🔄 REBALANCING CHANGES NEEDED:
-❌ SELL (no longer in top 5):
-   • CPSEETF.NS: 2184 units
-✅ BUY (new entries to top 5):
-   • ITBEES.NS: 4728 units
+------------------------------------------------------------
+❌ SELL (no longer in top 3):
+   • PHARMABEES.NS: 6982 units
+✅ BUY (new entries to top 3):
+   • SILVERBEES.NS: 1605 units
+   • PSUBNKBEES.NS: 2096 units
 🔄 ADJUST (remained in portfolio):
-   • GOLDBEES.NS: SELL 33 units
-� OVERALL PORTFOLIO PERFORMANCE:
-   From Portfolio Value: ₹999,423
-   To Portfolio Value:   ₹1,019,898
-   Absolute Gain/Loss:   ₹+20,475
-   Percentage Return:    +2.05%
-   Annualized Return:    +22.83%
-�📈 INDIVIDUAL ETF PERFORMANCE:
-+---------------+--------------+------------+----------+
-| ETF           | From Price   | To Price   | Return   |
-+===============+==============+============+==========+
-| ITBEES.NS     | ₹40.53       | ₹42.30     | +4.4%    |
-+---------------+--------------+------------+----------+
-| GOLDBEES.NS   | ₹79.49       | ₹80.53     | +1.3%    |
-+---------------+--------------+------------+----------+
+   • GOLDBEES.NS: SELL 521 units
+📊 PERIOD PERFORMANCE SUMMARY:
+----------------------------------------
+📅 Period: 187 days
+💰 OVERALL PORTFOLIO PERFORMANCE:
+   From Portfolio Value: ₹333,327
+   To Portfolio Value:   ₹367,972
+   Absolute Gain/Loss:   ₹+34,645
+   Percentage Return:    +10.39%
+   Annualized Return:    +21.29%
+📈 ETF PERFORMANCE DURING PERIOD:
+🔄 HELD FOR ENTIRE PERIOD:
++-------------+--------------+------------+----------+
+| ETF         | From Price   | To Price   | Return   |
++=============+==============+============+==========+
+| GOLDBEES.NS | ₹64.35       | ₹80.53     | +25.1%   |
++-------------+--------------+------------+----------+
+❌ SOLD DURING PERIOD (price movement after exit):
++---------------+--------------+-----------------+-----------------+
+| ETF           | Exit Price   | Current Price   | Missed Return   |
++===============+==============+=================+=================+
+| PHARMABEES.NS | ₹23.87       | ₹22.83          | -4.4%           |
++---------------+--------------+-----------------+-----------------+
+✅ NEWLY ADDED (not held during period):
++---------------+----------------------+---------------+-----------------------+
+| ETF           | Period Start Price   | Entry Price   | Period Performance    |
++===============+======================+===============+=======================+
+| SILVERBEES.NS | ₹83.85               | ₹103.79       | +23.8% (not realized) |
++---------------+----------------------+---------------+-----------------------+
+| PSUBNKBEES.NS | ₹72.83               | ₹79.50        | +9.2% (not realized)  |
++---------------+----------------------+---------------+-----------------------+
 ```
 
 ### 3. 🔄 Portfolio Rebalancing  
@@ -142,6 +198,34 @@ uv run cli.py backtest
 uv run cli.py backtest --amounts 1000000 5000000
 ```
 
+**Output Example:**
+```
+📊 Running backtest with amounts: [1000000.0]
+============================================================
+TESTING WITH INITIAL CAPITAL: ₹1,000,000.00
+============================================================
+=== Backtest Results ===
+Initial Capital: ₹1,000,000.00
+Final Value: ₹2,770,287.60
+Absolute Gain: ₹1,770,287.60
+Total Return: 177.03%
+Annualized Return: 25.41%
+Max Drawdown: -7.01%
+Sharpe Ratio: 1.89
+Total Trades: 232
+Transaction Costs: ₹26,088.80
+Transaction Costs %: 0.94%
+Win Ratio: 89.21%
+================================================================================
+INVESTMENT COMPARISON SUMMARY
+================================================================================
++-------------------+---------------+----------------+---------------+----------+----------+--------------+---------------+
+| Initial Capital   | Final Value   | Total Return   | Ann. Return   |   Sharpe | Max DD   | Tx Costs %   | Win Ratio %   |
++===================+===============+================+===============+==========+==========+==============+===============+
+| ₹10L              | ₹27.7L        | 177.0%         | 25.4%         |     1.89 | -7.0%    | 0.94%        | 89.21%        |
++-------------------+---------------+----------------+---------------+----------+----------+--------------+---------------+
+```
+
 ---
 
 
@@ -152,7 +236,7 @@ uv run cli.py backtest --amounts 1000000 5000000
 uv run cli.py portfolio
 
 # Custom amount and portfolio size
-uv run cli.py portfolio --amount 500000 --size 7
+uv run cli.py portfolio --amount 500000 --size 5
 
 # Show rebalancing needed for existing portfolio
 uv run cli.py rebalance
@@ -185,15 +269,18 @@ The strategy uses optimized defaults that work well for real-time usage:
 
 The strategy analyzes these liquid Indian ETFs:
 - **NIFTYBEES.NS** (Nifty 50 ETF)
-- **JUNIORBEES.NS** (Nifty Next 50 ETF)
-- **BANKBEES.NS** (Bank Nifty ETF)
+- **SETFNN50.NS** (Nifty Next 50 ETF)
 - **GOLDBEES.NS** (Gold ETF)
+- **SILVERBEES.NS** (Silver ETF)
 - **CPSEETF.NS** (CPSE ETF)
 - **PSUBNKBEES.NS** (PSU Bank ETF)
 - **PHARMABEES.NS** (Pharma ETF)
 - **ITBEES.NS** (IT ETF)
 - **AUTOBEES.NS** (Auto ETF)
+- **INFRAIETF.NS** (Infra ETF)
+- **SHARIABEES.NS** (Shariah ETF)
 - **DIVOPPBEES.NS** (Dividend Opportunities ETF)
+- **CONSUMBEES.NS** (Consumer Goods - Nifty India Consumption)
 
 ## Current Market Analysis (July 2025)
 
@@ -201,15 +288,16 @@ Based on the latest analysis, the top 5 momentum ETFs are:
 
 1. **GOLDBEES.NS** (Gold ETF) - 17.99% momentum score
 2. **PSUBNKBEES.NS** (PSU Banks) - 11.64% momentum score  
-3. **BANKBEES.NS** (Banking) - 11.46% momentum score
-4. **NIFTYBEES.NS** (Nifty 50) - 7.21% momentum score
-5. **ITBEES.NS** (IT) - 4.18% momentum score
+3. **NIFTYBEES.NS** (Nifty 50) - 7.21% momentum score
+4. **ITBEES.NS** (IT) - 4.18% momentum score
+5. **SILVERBEES.NS** (Silver ETF) - 3.85% momentum score
 
 **Key Insights:**
-- Gold ETF showing strongest momentum (safe haven demand)
-- Banking sector (both general and PSU) performing well
+- Gold and Silver ETFs showing strong momentum (safe haven demand)
+- Banking sector (PSU) performing well
 - Broad market participation through Nifty 50 ETF
 - Technology sector showing recovery
+- Infrastructure and Consumer sectors providing diversification
 
 ## Simple Investment Process
 
@@ -258,7 +346,7 @@ uv run cli.py backtest --help
 
 ## Risk Management Features
 
-- **Maximum Position Size**: 20% limit per ETF (safety constraint)
+- **Maximum Position Size**: 14.3% limit per ETF (safety constraint)
 - **Data Quality Filter**: Minimum 200 days historical data required
 - **Moving Average Filter**: Only ETFs above 50-day MA
 - **Retracement Filter**: Excludes ETFs with >50% drawdown
