@@ -8,6 +8,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import warnings
 from tabulate import tabulate
+import itertools  # Import itertools for permutations
 
 warnings.filterwarnings("ignore")
 
@@ -141,6 +142,15 @@ class DataProvider:
         # Extract Close prices (yfinance auto_adjust=True gives adjusted prices)
         prices = data.xs("Close", level=1, axis=1)
         return prices.fillna(method="ffill").dropna(how="all")
+
+    def get_volumes(self, data: pd.DataFrame) -> Optional[pd.DataFrame]:
+        """Extract volume data from the fetched data."""
+        if data.empty:
+            return None
+        if "Volume" not in data.columns.get_level_values(1):
+            return None
+        volumes = data.xs("Volume", level=1, axis=1)
+        return volumes.fillna(method="ffill").dropna(how="all")
 
 
 class MomentumCalculator:
@@ -334,14 +344,24 @@ class Portfolio:
 
         # Exit positions
         for ticker in tickers_to_exit:
-            self._sell_position(
-                ticker, current_prices[ticker], rebalance_date, "rank_exit"
-            )
+            # Ensure the ticker is still in current_prices before attempting to sell
+            if ticker in current_prices.index:
+                self._sell_position(
+                    ticker, current_prices[ticker], rebalance_date, "rank_exit"
+                )
+            else:
+                logger.warning(
+                    f"Cannot sell {ticker} on {rebalance_date.date()}: Price data not available."
+                )
 
         # Calculate target allocation for remaining + new positions
         target_positions = {}
+        # Only consider tickers that are in current_prices for buying
         remaining_tickers = [
-            t for t in target_tickers if t in self.holdings or t not in tickers_to_exit
+            t
+            for t in target_tickers
+            if t in current_prices.index
+            and (t in self.holdings or t not in tickers_to_exit)
         ]
 
         if remaining_tickers:
@@ -362,13 +382,29 @@ class Portfolio:
 
             if abs(shares_diff) > 0.01:  # Minimum trade threshold
                 if shares_diff > 0:
-                    self._buy_shares(
-                        ticker, shares_diff, current_prices[ticker], rebalance_date
-                    )
+                    # Ensure price data is available for buying
+                    if ticker in current_prices.index:
+                        self._buy_shares(
+                            ticker, shares_diff, current_prices[ticker], rebalance_date
+                        )
+                    else:
+                        logger.warning(
+                            f"Cannot buy {ticker} on {rebalance_date.date()}: Price data not available."
+                        )
+
                 else:
-                    self._sell_shares(
-                        ticker, abs(shares_diff), current_prices[ticker], rebalance_date
-                    )
+                    # Ensure price data is available for selling
+                    if ticker in current_prices.index:
+                        self._sell_shares(
+                            ticker,
+                            abs(shares_diff),
+                            current_prices[ticker],
+                            rebalance_date,
+                        )
+                    else:
+                        logger.warning(
+                            f"Cannot sell {ticker} on {rebalance_date.date()}: Price data not available."
+                        )
 
     def _update_portfolio_value(self, current_prices: pd.Series) -> None:
         """Update total portfolio value based on current prices."""
@@ -479,11 +515,7 @@ class ETFMomentumStrategy:
             if prices_df.index.tz is not None:
                 prices_df.index = prices_df.index.tz_localize(None)
 
-            volume_df = (
-                all_data.xs("Volume", level=1, axis=1)
-                if "Volume" in all_data.columns.get_level_values(1)
-                else None
-            )
+            volume_df = self.data_provider.get_volumes(all_data)
             if volume_df is not None and volume_df.index.tz is not None:
                 volume_df.index = volume_df.index.tz_localize(None)
 
@@ -648,24 +680,25 @@ class ETFMomentumStrategy:
         rebalance_dates = self._generate_rebalance_dates(start_date, end_date)
 
         # Fetch all historical data
-        data_start = start_date - timedelta(days=self.config.min_data_points + 50)
+        # Fetch enough data to cover the longest lookback period plus the backtest range
+        max_lookback = max(
+            self.config.long_term_period_days, self.config.moving_average_period
+        )
+        data_fetch_start = start_date - timedelta(days=max_lookback + 50)  # Add buffer
+
         all_data = self.data_provider.fetch_etf_data(
-            self.config.etf_universe, data_start, end_date
+            self.config.etf_universe, data_fetch_start, end_date
         )
 
-        prices_df = self.data_provider.get_prices(all_data)
+        prices_df_full = self.data_provider.get_prices(all_data)
         # Convert timezone-aware index to timezone-naive to avoid comparison issues
-        if prices_df.index.tz is not None:
-            prices_df.index = prices_df.index.tz_localize(None)
+        if prices_df_full.index.tz is not None:
+            prices_df_full.index = prices_df_full.index.tz_localize(None)
 
-        volume_df = (
-            all_data.xs("Volume", level=1, axis=1)
-            if "Volume" in all_data.columns.get_level_values(1)
-            else None
-        )
+        volume_df_full = self.data_provider.get_volumes(all_data)
         # Convert timezone-aware index to timezone-naive for volume data too
-        if volume_df is not None and volume_df.index.tz is not None:
-            volume_df.index = volume_df.index.tz_localize(None)
+        if volume_df_full is not None and volume_df_full.index.tz is not None:
+            volume_df_full.index = volume_df_full.index.tz_localize(None)
 
         portfolio_history = []
         # Track portfolio value at last rebalance for threshold comparisons
@@ -680,53 +713,99 @@ class ETFMomentumStrategy:
                 f"Threshold rebalancing enabled: profit {self.config.profit_threshold_pct}%, loss {self.config.loss_threshold_pct}%"
             )
 
-        while current_date <= end_date:
-            # Get data up to current_date
-            current_data = prices_df[prices_df.index <= current_date]
-            current_volume = (
-                volume_df[volume_df.index <= current_date]
-                if volume_df is not None
+        while rebalance_idx < len(rebalance_dates):
+            current_date = rebalance_dates[rebalance_idx]
+
+            # Ensure current_date is within the fetched data range
+            if (
+                current_date < prices_df_full.index.min()
+                or current_date > prices_df_full.index.max()
+            ):
+                logger.warning(
+                    f"Rebalance date {current_date.date()} is outside fetched data range."
+                )
+                rebalance_idx += 1
+                continue
+
+            # Get data strictly up to current_date for calculations (addressing look-ahead bias)
+            current_data_prices = prices_df_full[prices_df_full.index <= current_date]
+            current_data_volume = (
+                volume_df_full[volume_df_full.index <= current_date]
+                if volume_df_full is not None
                 else None
             )
-            if current_data.empty:
-                # Move to next scheduled date
+
+            if current_data_prices.empty:
+                logger.warning(
+                    f"No data available up to {current_date.date()}. Skipping rebalance."
+                )
                 rebalance_idx += 1
-                if rebalance_idx < len(rebalance_dates):
-                    current_date = rebalance_dates[rebalance_idx]
-                else:
-                    break
                 continue
+
             # Apply filters
             eligible_tickers = self.momentum_calculator.apply_filters(
-                current_data, current_volume
+                current_data_prices, current_data_volume
             )
+
             if not eligible_tickers:
                 logger.warning(f"No eligible ETFs found for {current_date.date()}")
+                # Still record portfolio value on rebalance date even if no trades
+                if not current_data_prices.empty:
+                    current_prices_for_value = current_data_prices.iloc[-1]
+                    self.portfolio._update_portfolio_value(current_prices_for_value)
+                    portfolio_history.append(
+                        {
+                            "date": current_date,
+                            "total_value": self.portfolio.total_value,
+                            "cash": self.portfolio.cash,
+                            "holdings": dict(self.portfolio.holdings),
+                            "top_etfs": [],  # No eligible ETFs means no top ETFs
+                        }
+                    )
                 rebalance_idx += 1
-                if rebalance_idx < len(rebalance_dates):
-                    current_date = rebalance_dates[rebalance_idx]
-                else:
-                    break
                 continue
+
             # Calculate momentum scores
-            eligible_data = current_data[eligible_tickers]
+            eligible_data = current_data_prices[eligible_tickers]
             momentum_scores = self.momentum_calculator.calculate_momentum_scores(
                 eligible_data
             )
+
             if momentum_scores.empty:
+                logger.warning(
+                    f"Could not calculate momentum scores for {current_date.date()}"
+                )
+                # Record portfolio value
+                if not current_data_prices.empty:
+                    current_prices_for_value = current_data_prices.iloc[-1]
+                    self.portfolio._update_portfolio_value(current_prices_for_value)
+                    portfolio_history.append(
+                        {
+                            "date": current_date,
+                            "total_value": self.portfolio.total_value,
+                            "cash": self.portfolio.cash,
+                            "holdings": dict(self.portfolio.holdings),
+                            "top_etfs": [],  # No momentum scores means no top ETFs
+                        }
+                    )
                 rebalance_idx += 1
-                if rebalance_idx < len(rebalance_dates):
-                    current_date = rebalance_dates[rebalance_idx]
-                else:
-                    break
                 continue
+
             # Rank ETFs
             ranked_etfs = [(ticker, score) for ticker, score in momentum_scores.items()]
-            # Get current prices
-            current_prices = current_data.iloc[-1]
+
+            # Get current prices for rebalancing (using the latest available price on or before current_date)
+            current_prices_for_rebalance = current_data_prices.iloc[-1]
+
             # Rebalance portfolio
-            self.portfolio.rebalance(ranked_etfs, current_prices, current_date)
-            # Record portfolio state
+            self.portfolio.rebalance(
+                ranked_etfs, current_prices_for_rebalance, current_date
+            )
+
+            # Record portfolio state AFTER rebalancing
+            self.portfolio._update_portfolio_value(
+                current_prices_for_rebalance
+            )  # Update value after trades
             portfolio_history.append(
                 {
                     "date": current_date,
@@ -736,8 +815,12 @@ class ETFMomentumStrategy:
                     "top_etfs": ranked_etfs[:10],  # Top 10 for analysis
                 }
             )
-            logger.info(f"Portfolio value: ₹{self.portfolio.total_value:,.2f}")
-            # Threshold-based rebalancing: check after each rebalance
+            logger.info(
+                f"Rebalanced on {current_date.date()}. Portfolio value: ₹{self.portfolio.total_value:,.2f}"
+            )
+
+            # Threshold-based rebalancing: check after each scheduled rebalance
+            threshold_triggered = False
             if self.config.use_threshold_rebalancing:
                 # Calculate return since LAST rebalance (not just from initial capital)
                 period_return = (
@@ -762,34 +845,40 @@ class ETFMomentumStrategy:
                         f"  Portfolio value: ₹{self.portfolio.total_value:,.2f} vs last: ₹{last_rebalance_value:,.2f}"
                     )
 
-                if threshold_triggered:
-                    # Update last rebalance value before moving to next date
-                    last_rebalance_value = self.portfolio.total_value
-                    last_rebalance_date = current_date
+            # Update last rebalance value and date if a threshold was triggered or it's a scheduled rebalance
+            if threshold_triggered or not self.config.use_threshold_rebalancing:
+                last_rebalance_value = self.portfolio.total_value
+                last_rebalance_date = current_date
 
-                    # Move to next available trading date (might need to check data availability)
-                    next_trading_date = current_date + timedelta(days=1)
-                    while (
-                        next_trading_date not in prices_df.index
-                        and next_trading_date <= end_date
-                    ):
-                        next_trading_date += timedelta(days=1)
+            # If threshold was triggered, find the next trading day to rebalance again
+            if threshold_triggered:
+                next_trading_date = current_date + timedelta(days=1)
+                while (
+                    next_trading_date not in prices_df_full.index
+                    and next_trading_date <= end_date
+                ):
+                    next_trading_date += timedelta(days=1)
 
-                    if next_trading_date <= end_date:
-                        current_date = next_trading_date
-                        continue
-                    else:
-                        break
-            # Update last rebalance value after each scheduled rebalance
-            last_rebalance_value = self.portfolio.total_value
-            last_rebalance_date = current_date
+                if next_trading_date <= end_date:
+                    # Insert the next trading date into the rebalance_dates list
+                    # Find the correct position to maintain sorted order
+                    insert_pos = len(rebalance_dates)
+                    for i, date in enumerate(rebalance_dates[rebalance_idx + 1 :]):
+                        if next_trading_date < date:
+                            insert_pos = rebalance_idx + 1 + i
+                            break
+                    rebalance_dates.insert(insert_pos, next_trading_date)
+                    logger.info(
+                        f"Scheduled next threshold rebalance on {next_trading_date.date()}"
+                    )
+                else:
+                    logger.info(
+                        "End of backtest period reached after threshold trigger."
+                    )
 
-            # Move to next scheduled rebalance date
+            # Move to next scheduled rebalance date (or the inserted threshold rebalance date)
             rebalance_idx += 1
-            if rebalance_idx < len(rebalance_dates):
-                current_date = rebalance_dates[rebalance_idx]
-            else:
-                break
+
         # Calculate performance metrics
         self.performance_metrics = self._calculate_performance_metrics(
             portfolio_history
@@ -814,18 +903,51 @@ class ETFMomentumStrategy:
 
         # If start date is after rebalance day, move to next month
         if start_date.day > self.config.rebalance_day_of_month:
-            if current.month == 12:
-                current = current.replace(year=current.year + 1, month=1)
-            else:
-                current = current.replace(month=current.month + 1)
+            # Handle potential ValueError if day is out of range for the next month
+            try:
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1)
+                else:
+                    current = current.replace(month=current.month + 1)
+            except ValueError:
+                # If day is out of range (e.g., 31st of Jan to Feb), set to last day of month
+                if current.month == 12:
+                    current = current.replace(
+                        year=current.year + 1,
+                        month=1,
+                        day=pd.Timestamp(current.year + 1, 1, 1).days_in_month,
+                    )
+                else:
+                    current = current.replace(
+                        month=current.month + 1,
+                        day=pd.Timestamp(
+                            current.year, current.month + 1, 1
+                        ).days_in_month,
+                    )
 
         while current <= end_date:
             dates.append(current)
             # Move to next month
-            if current.month == 12:
-                current = current.replace(year=current.year + 1, month=1)
-            else:
-                current = current.replace(month=current.month + 1)
+            try:
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1)
+                else:
+                    current = current.replace(month=current.month + 1)
+            except ValueError:
+                # If day is out of range (e.g., 31st of Jan to Feb), set to last day of month
+                if current.month == 12:
+                    current = current.replace(
+                        year=current.year + 1,
+                        month=1,
+                        day=pd.Timestamp(current.year + 1, 1, 1).days_in_month,
+                    )
+                else:
+                    current = current.replace(
+                        month=current.month + 1,
+                        day=pd.Timestamp(
+                            current.year, current.month + 1, 1
+                        ).days_in_month,
+                    )
 
         return dates
 
@@ -833,6 +955,9 @@ class ETFMomentumStrategy:
         """Calculate comprehensive performance metrics."""
         if not portfolio_history:
             return {}
+
+        # Ensure portfolio_history is sorted by date
+        portfolio_history = sorted(portfolio_history, key=lambda x: x["date"])
 
         values = [p["total_value"] for p in portfolio_history]
         dates = [p["date"] for p in portfolio_history]
@@ -843,26 +968,58 @@ class ETFMomentumStrategy:
 
         # Basic metrics
         total_return = (values[-1] / self.config.initial_capital - 1) * 100
-        annualized_return = (
-            (values[-1] / self.config.initial_capital)
-            ** (365.25 / (dates[-1] - dates[0]).days)
-            - 1
-        ) * 100
+        # Ensure enough history for annualized return calculation
+        if (dates[-1] - dates[0]).days > 0:
+            annualized_return = (
+                (values[-1] / self.config.initial_capital)
+                ** (365.25 / (dates[-1] - dates[0]).days)
+                - 1
+            ) * 100
+        else:
+            annualized_return = 0.0  # Or NaN, depending on desired behavior
 
         # Risk metrics
-        volatility = (
-            returns.std() * np.sqrt(12) * 100
-        )  # Annualized volatility (monthly data)
+        # Annualize volatility based on the frequency of portfolio history points
+        # Assuming portfolio_history points are roughly monthly for monthly rebalancing
+        if len(returns) > 1:
+            # Estimate frequency based on average difference between dates
+            avg_days_between_rebalances = (
+                (dates[-1] - dates[0]).days / (len(dates) - 1) if len(dates) > 1 else 30
+            )
+            annualization_factor = (
+                365.25 / avg_days_between_rebalances
+                if avg_days_between_rebalances > 0
+                else 12
+            )  # Default to monthly if only one data point
+
+            volatility = returns.std() * np.sqrt(annualization_factor) * 100
+        else:
+            volatility = 0.0  # Not enough data points to calculate volatility
+
         max_drawdown = ((value_series / value_series.expanding().max()) - 1).min() * 100
 
         # Sharpe ratio (assuming risk-free rate of 3%)
         risk_free_rate = 0.03
-        excess_returns = returns - risk_free_rate / 12
-        sharpe_ratio = (
-            excess_returns.mean() / returns.std() * np.sqrt(12)
-            if returns.std() > 0
-            else 0
-        )
+        # Adjust risk-free rate to the frequency of returns
+        if len(returns) > 0:
+            # Assuming returns are approximately monthly
+            risk_free_rate_per_period = (
+                (1 + risk_free_rate) ** (avg_days_between_rebalances / 365.25) - 1
+                if "avg_days_between_rebalances" in locals()
+                and avg_days_between_rebalances > 0
+                else risk_free_rate / 12
+            )
+            excess_returns = returns - risk_free_rate_per_period
+
+            sharpe_ratio = (
+                excess_returns.mean() / returns.std() * np.sqrt(annualization_factor)
+                if returns.std() > 0
+                and "annualization_factor" in locals()
+                and annualization_factor > 0
+                else 0
+            )
+        else:
+            sharpe_ratio = 0.0
 
         # Win ratio: count profitable trades vs total trades
         trade_log = getattr(self.portfolio, "trade_log", [])
@@ -891,47 +1048,40 @@ class ETFMomentumStrategy:
                 if ticker in buy_prices and buy_prices[ticker]:
                     # Use FIFO (First In, First Out) for matching buys and sells
                     avg_buy_price = 0
-                    total_shares = 0
+                    total_shares_matched = 0
                     shares_to_match = sell_shares
 
-                    # Keep track of buys to remove or modify
-                    buys_to_process = []
-                    remaining_shares = 0
+                    # Create a temporary list to hold shares from buys being used
+                    used_shares_list = []
 
-                    # Calculate weighted average buy price for the sold shares
+                    # Find and use shares from buy_prices
                     i = 0
                     while shares_to_match > 0 and i < len(buy_prices[ticker]):
                         buy_price, buy_shares = buy_prices[ticker][i]
-                        used_shares = min(buy_shares, shares_to_match)
-                        avg_buy_price += buy_price * used_shares
-                        total_shares += used_shares
-                        shares_to_match -= used_shares
+                        shares_from_this_buy = min(buy_shares, shares_to_match)
 
-                        if used_shares >= buy_shares:
-                            # Used all shares from this buy
-                            buys_to_process.append((i, None))
-                        else:
-                            # Mark for update with remaining shares
-                            remaining_shares = buy_shares - used_shares
-                            buys_to_process.append((i, remaining_shares))
+                        avg_buy_price += buy_price * shares_from_this_buy
+                        total_shares_matched += shares_from_this_buy
+                        shares_to_match -= shares_from_this_buy
+
+                        # Record how many shares were used from this specific buy transaction
+                        used_shares_list.append((i, shares_from_this_buy))
 
                         i += 1
 
-                    # Now process the buys (remove or update)
-                    # Process in reverse order to avoid index issues
-                    for idx, remaining in reversed(buys_to_process):
-                        if remaining is None:
-                            # Remove the buy entry
-                            if idx < len(buy_prices[ticker]):
-                                buy_prices[ticker].pop(idx)
+                    # Update or remove used buy entries in reverse order
+                    for idx, used_shares in reversed(used_shares_list):
+                        buy_price, buy_shares = buy_prices[ticker][idx]
+                        remaining_shares = buy_shares - used_shares
+                        if (
+                            remaining_shares <= 0.01
+                        ):  # Use a small threshold for floating point comparison
+                            buy_prices[ticker].pop(idx)
                         else:
-                            # Update with remaining shares
-                            if idx < len(buy_prices[ticker]):
-                                buy_price = buy_prices[ticker][idx][0]
-                                buy_prices[ticker][idx] = (buy_price, remaining)
+                            buy_prices[ticker][idx] = (buy_price, remaining_shares)
 
-                    if total_shares > 0:
-                        avg_buy_price /= total_shares
+                    if total_shares_matched > 0:
+                        avg_buy_price /= total_shares_matched
                         # Determine if this was a winning trade
                         if sell_price > avg_buy_price:
                             win_trades += 1
@@ -951,110 +1101,157 @@ class ETFMomentumStrategy:
         }
 
 
-# Example usage with configurable initial investments
+# Modified function to run backtest with multiple initial investment amounts
+# and permute portfolio_size and rebalance_day_of_month
 def run_multi_investment_backtest(
     investment_amounts: List[float] = None,
+    portfolio_sizes: List[int] = None,  # New parameter: list of portfolio sizes
+    rebalance_days: List[int] = None,  # New parameter: list of rebalance days
+    exit_rank_buffers: List[
+        float
+    ] = None,  # New parameter: list of exit rank buffer multipliers
     use_threshold_rebalancing: bool = False,
     profit_threshold_pct: float = 10.0,
     loss_threshold_pct: float = -5.0,
-    portfolio_size: int = 5,
 ) -> List[Dict]:
-    """Run backtest with multiple initial investment amounts and rebalancing options."""
+    """
+    Run backtest with multiple initial investment amounts and permute
+    portfolio_size, rebalance_day_of_month, and exit_rank_buffer_multiplier.
+    """
 
-    # Different investment amounts to test
-    investment_amounts = investment_amounts or [1000000, 2000000, 5000000, 10000000]
+    investment_amounts = investment_amounts or [
+        1000000
+    ]  # Default to 1M if not provided
+    portfolio_sizes = portfolio_sizes or [5, 7]  # Default portfolio sizes
+    rebalance_days = rebalance_days or [1, 5, 10, 15]  # Default rebalance days
+    exit_rank_buffers = exit_rank_buffers or [
+        1.5,
+        2.0,
+        2.5,
+    ]  # Default exit rank buffers
 
-    results_summary = []
+    all_results = []
 
-    for initial_capital in investment_amounts:
-        print(f"\n{'='*60}")
-        print(f"TESTING WITH INITIAL CAPITAL: ₹{initial_capital:,.2f}")
-        print(f"{'='*60}")
-        # Create configuration with specific initial capital and rebalancing options
-        config = StrategyConfig(
-            portfolio_size=portfolio_size,
-            long_term_period_days=252,
-            short_term_period_days=60,
-            initial_capital=initial_capital,
-            use_threshold_rebalancing=use_threshold_rebalancing,
-            profit_threshold_pct=profit_threshold_pct,
-            loss_threshold_pct=loss_threshold_pct,
+    # Iterate through all combinations of portfolio_size, rebalance_day_of_month, and exit_rank_buffer_multiplier
+    for p_size, r_day, exit_buffer in itertools.product(
+        portfolio_sizes, rebalance_days, exit_rank_buffers
+    ):
+        print(f"\n{'='*80}")
+        print(
+            f"RUNNING PERMUTATION: Portfolio Size = {p_size}, Rebalance Day = {r_day}, Exit Buffer = {exit_buffer}"
         )
+        print(f"{'='*80}")
 
-        # Initialize strategy
-        strategy = ETFMomentumStrategy(config)
+        results_for_permutation = []
 
-        # Run backtest
-        start_date = datetime(2020, 1, 1)
-        end_date = datetime(2024, 12, 31)
-
-        try:
-            results = strategy.run_backtest(start_date, end_date)
-
-            print(f"\n=== Backtest Results ===")
-            print(f"Initial Capital: ₹{config.initial_capital:,.2f}")
-            print(f"Final Value: ₹{results['final_value']:,.2f}")
-            print(
-                f"Absolute Gain: ₹{results['final_value'] - config.initial_capital:,.2f}"
-            )
-            print(f"Total Return: {results['total_return']:.2f}%")
-            print(
-                f"Annualized Return: {results['performance_metrics']['annualized_return_pct']:.2f}%"
-            )
-            print(
-                f"Max Drawdown: {results['performance_metrics']['max_drawdown_pct']:.2f}%"
-            )
-            print(f"Sharpe Ratio: {results['performance_metrics']['sharpe_ratio']:.2f}")
-            print(f"Total Trades: {results['performance_metrics']['total_trades']}")
-            print(
-                f"Transaction Costs: ₹{results['performance_metrics']['transaction_costs']:,.2f}"
-            )
-            print(
-                f"Transaction Costs %: {(results['performance_metrics']['transaction_costs']/results['final_value']*100):.2f}%"
-            )
-            print(
-                f"Win Ratio: {results['performance_metrics'].get('win_ratio_pct', 0):.2f}%"
-            )
-            # Store results for comparison
-            results_summary.append(
-                {
-                    "initial_capital": initial_capital,
-                    "final_value": results["final_value"],
-                    "total_return_pct": results["total_return"],
-                    "annualized_return_pct": results["performance_metrics"][
-                        "annualized_return_pct"
-                    ],
-                    "sharpe_ratio": results["performance_metrics"]["sharpe_ratio"],
-                    "max_drawdown_pct": results["performance_metrics"][
-                        "max_drawdown_pct"
-                    ],
-                    "total_trades": results["performance_metrics"]["total_trades"],
-                    "transaction_costs": results["performance_metrics"][
-                        "transaction_costs"
-                    ],
-                    "transaction_costs_pct": results["performance_metrics"][
-                        "transaction_costs"
-                    ]
-                    / results["final_value"]
-                    * 100,
-                    "win_ratio_pct": results["performance_metrics"].get(
-                        "win_ratio_pct", 0
-                    ),
-                }
+        for initial_capital in investment_amounts:
+            print(f"\n{'='*60}")
+            print(f"TESTING WITH INITIAL CAPITAL: ₹{initial_capital:,.2f}")
+            print(f"{'='*60}")
+            # Create configuration with specific initial capital and rebalancing options
+            config = StrategyConfig(
+                portfolio_size=p_size,  # Use permuted portfolio size
+                rebalance_day_of_month=r_day,  # Use permuted rebalance day
+                exit_rank_buffer_multiplier=exit_buffer,  # Use permuted exit buffer
+                long_term_period_days=252,
+                short_term_period_days=60,
+                initial_capital=initial_capital,
+                use_threshold_rebalancing=use_threshold_rebalancing,
+                profit_threshold_pct=profit_threshold_pct,
+                loss_threshold_pct=loss_threshold_pct,
             )
 
-        except Exception as e:
-            logger.error(f"Backtest failed for ₹{initial_capital:,.2f}: {e}")
-            continue
+            # Initialize strategy
+            strategy = ETFMomentumStrategy(config)
 
-    # Print comparison summary
-    print(f"\n{'='*80}")
-    print("INVESTMENT COMPARISON SUMMARY")
-    print(f"{'='*80}")
+            # Run backtest
+            start_date = datetime(2020, 1, 1)
+            end_date = datetime(2024, 12, 31)
+
+            try:
+                results = strategy.run_backtest(start_date, end_date)
+
+                print(f"\n=== Backtest Results for this Configuration ===")
+                print(f"Initial Capital: ₹{config.initial_capital:,.2f}")
+                print(f"Final Value: ₹{results['final_value']:,.2f}")
+                print(
+                    f"Absolute Gain: ₹{results['final_value'] - config.initial_capital:,.2f}"
+                )
+                print(f"Total Return: {results['total_return']:.2f}%")
+                print(
+                    f"Annualized Return: {results['performance_metrics']['annualized_return_pct']:.2f}%"
+                )
+                print(
+                    f"Max Drawdown: {results['performance_metrics']['max_drawdown_pct']:.2f}%"
+                )
+                print(
+                    f"Sharpe Ratio: {results['performance_metrics']['sharpe_ratio']:.2f}"
+                )
+                print(f"Total Trades: {results['performance_metrics']['total_trades']}")
+                print(
+                    f"Transaction Costs: ₹{results['performance_metrics']['transaction_costs']:,.2f}"
+                )
+                print(
+                    f"Transaction Costs %: {(results['performance_metrics']['transaction_costs']/results['final_value']*100):.2f}%"
+                )
+                print(
+                    f"Win Ratio: {results['performance_metrics'].get('win_ratio_pct', 0):.2f}%"
+                )
+
+                # Store results for comparison, including permutation parameters
+                results_for_permutation.append(
+                    {
+                        "portfolio_size": p_size,
+                        "rebalance_day": r_day,
+                        "exit_buffer": exit_buffer,  # Include exit buffer in results
+                        "initial_capital": initial_capital,
+                        "final_value": results["final_value"],
+                        "total_return_pct": results["total_return"],
+                        "annualized_return_pct": results["performance_metrics"][
+                            "annualized_return_pct"
+                        ],
+                        "sharpe_ratio": results["performance_metrics"]["sharpe_ratio"],
+                        "max_drawdown_pct": results["performance_metrics"][
+                            "max_drawdown_pct"
+                        ],
+                        "total_trades": results["performance_metrics"]["total_trades"],
+                        "transaction_costs": results["performance_metrics"][
+                            "transaction_costs"
+                        ],
+                        "transaction_costs_pct": (
+                            (
+                                results["performance_metrics"]["transaction_costs"]
+                                / results["final_value"]
+                                * 100
+                            )
+                            if results["final_value"] > 0
+                            else 0.0
+                        ),  # Handle division by zero
+                        "win_ratio_pct": results["performance_metrics"].get(
+                            "win_ratio_pct", 0
+                        ),
+                    }
+                )
+
+            except Exception as e:
+                logger.error(
+                    f"Backtest failed for Portfolio Size {p_size}, Rebalance Day {r_day}, Exit Buffer {exit_buffer}, Capital ₹{initial_capital:,.2f}: {e}"
+                )
+                continue
+
+        all_results.extend(results_for_permutation)
+
+    # Print overall comparison summary for all permutations
+    print(f"\n{'='*100}")
+    print("OVERALL PERMUTATION COMPARISON SUMMARY")
+    print(f"{'='*100}")
 
     # Prepare data for tabulate
     summary_table_data = []
     headers = [
+        "Port. Size",
+        "Rebal. Day",
+        "Exit Buffer",  # Add Exit Buffer to headers
         "Initial Capital",
         "Final Value",
         "Total Return",
@@ -1064,9 +1261,12 @@ def run_multi_investment_backtest(
         "Tx Costs %",
         "Win Ratio %",
     ]
-    for result in results_summary:
+    for result in all_results:
         summary_table_data.append(
             [
+                result["portfolio_size"],
+                result["rebalance_day"],
+                result["exit_buffer"],  # Add Exit Buffer to data
                 f"₹{result['initial_capital']/100000:.0f}L",
                 f"₹{result['final_value']/100000:.1f}L",
                 f"{result['total_return_pct']:.1f}%",
@@ -1078,11 +1278,36 @@ def run_multi_investment_backtest(
             ]
         )
 
-    print(tabulate(summary_table_data, headers=headers, tablefmt="grid"))
+    # Sort results for better comparison in the table (e.g., by Annualized Return descending)
+    summary_table_data_sorted = sorted(
+        summary_table_data, key=lambda x: float(x[6].replace("%", "")), reverse=True
+    )
 
-    return results_summary
+    print(tabulate(summary_table_data_sorted, headers=headers, tablefmt="grid"))
+
+    return all_results
 
 
 if __name__ == "__main__":
-    # Run backtest by default
-    run_multi_investment_backtest()
+    # Define the lists of parameters you want to permute
+    test_investment_amounts = [1000000]  # Example: Test with 1M INR
+    test_portfolio_sizes = [3, 5, 7]  # Example: Test portfolio sizes 3, 5 and 7
+    test_rebalance_days = [
+        1,
+        5,
+        10,
+    ]  # Example: Test rebalancing on 1st, 5th, and 10th of month
+    test_exit_rank_buffers = [
+        1.5,
+        2.0,
+        2.5,
+    ]  # Example: Test exit rank buffers 1.5, 2.0, and 2.5
+
+    # Run the backtest with permutations
+    run_multi_investment_backtest(
+        investment_amounts=test_investment_amounts,
+        portfolio_sizes=test_portfolio_sizes,
+        rebalance_days=test_rebalance_days,
+        exit_rank_buffers=test_exit_rank_buffers,  # Pass the list of exit rank buffers
+        use_threshold_rebalancing=False,  # Set to True if you want to include threshold rebalancing
+    )

@@ -596,7 +596,7 @@ Examples:
                 use_threshold_rebalancing=getattr(args, "use_threshold", False),
                 profit_threshold_pct=getattr(args, "profit_threshold", 10.0),
                 loss_threshold_pct=getattr(args, "loss_threshold", -5.0),
-                portfolio_size=args.size,
+                portfolio_sizes=[args.size],
             )
 
     except KeyboardInterrupt:
