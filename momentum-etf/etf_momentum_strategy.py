@@ -67,7 +67,7 @@ class StrategyConfig:
     use_moving_average_filter: bool = True
     moving_average_period: int = 50
     use_volume_filter: bool = False  # Disabled by default for real-time use
-    min_avg_volume: int = 10000  # Minimum average daily volume for Indian ETFs
+    min_avg_volume: int = 100000  # Minimum average daily volume for Indian ETFs (1cr)
 
     # Risk Management
     max_position_size: float = 0.20  # Max 20% in any single ETF
@@ -957,6 +957,7 @@ def run_multi_investment_backtest(
     use_threshold_rebalancing: bool = False,
     profit_threshold_pct: float = 10.0,
     loss_threshold_pct: float = -5.0,
+    portfolio_size: int = 5,
 ) -> List[Dict]:
     """Run backtest with multiple initial investment amounts and rebalancing options."""
 
@@ -971,7 +972,7 @@ def run_multi_investment_backtest(
         print(f"{'='*60}")
         # Create configuration with specific initial capital and rebalancing options
         config = StrategyConfig(
-            portfolio_size=5,
+            portfolio_size=portfolio_size,
             long_term_period_days=252,
             short_term_period_days=60,
             initial_capital=initial_capital,

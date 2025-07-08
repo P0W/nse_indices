@@ -113,7 +113,7 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
         print(f"❌ Error: {e}")
 
 
-def show_rebalancing_needs():
+def show_rebalancing_needs(investment_amount=1000000, portfolio_size=5):
     """Show what rebalancing is needed for an existing portfolio."""
 
     print(f"🔄 PORTFOLIO REBALANCING ANALYSIS")
@@ -130,7 +130,7 @@ def show_rebalancing_needs():
 
     # For now, show what the optimal portfolio should be
     print(f"\n🎯 CURRENT OPTIMAL ALLOCATION:")
-    show_current_portfolio(1000000, 5)
+    show_current_portfolio(investment_amount, portfolio_size)
 
     print(f"\n⚠️  TO IMPLEMENT:")
     print(f"   • Add your current holdings in the code")
@@ -468,10 +468,11 @@ Examples:
   uv run cli.py portfolio                # Show current optimal portfolio with allocations
   uv run cli.py portfolio --amount 500000 --size 7  # Custom amount and portfolio size
   uv run cli.py rebalance               # Show rebalancing needed for existing portfolio
+  uv run cli.py rebalance --amount 2000000 --size 8  # Custom amount and portfolio size
   uv run cli.py historical --from-date 2024-01-01  # Portfolio changes from Jan 1 to today
-  uv run cli.py historical --from-date 2024-01-01 --to-date 2024-06-30  # Portfolio changes between dates
+  uv run cli.py historical --from-date 2024-01-01 --to-date 2024-06-30 --size 6  # Portfolio changes between dates with custom size
   uv run cli.py backtest                # Run historical backtest
-  uv run cli.py backtest --amounts 1000000 5000000  # Test specific amounts
+  uv run cli.py backtest --amounts 1000000 5000000 --size 7  # Test specific amounts with custom portfolio size
         """,
     )
 
@@ -497,6 +498,18 @@ Examples:
     # Rebalance command - Show rebalancing needs
     rebalance_parser = subparsers.add_parser(
         "rebalance", help="Show rebalancing needed for existing portfolio"
+    )
+    rebalance_parser.add_argument(
+        "--amount",
+        type=float,
+        default=1000000,
+        help="Investment amount in INR (default: 1000000)",
+    )
+    rebalance_parser.add_argument(
+        "--size",
+        type=int,
+        default=5,
+        help="Portfolio size (number of ETFs to hold, default: 5)",
     )
 
     # Historical command - Show portfolio between two dates
@@ -528,6 +541,12 @@ Examples:
         default=[1000000, 2000000, 5000000],
         help="Initial investment amounts to test",
     )
+    backtest_parser.add_argument(
+        "--size",
+        type=int,
+        default=5,
+        help="Portfolio size (number of ETFs to hold, default: 5)",
+    )
     # New: threshold-based rebalancing options
     backtest_parser.add_argument(
         "--use-threshold",
@@ -558,7 +577,7 @@ Examples:
             show_current_portfolio(args.amount, args.size)
 
         elif args.command == "rebalance":
-            show_rebalancing_needs()
+            show_rebalancing_needs(args.amount, args.size)
 
         elif args.command == "historical":
             show_historical_portfolio(
@@ -570,12 +589,14 @@ Examples:
 
         elif args.command == "backtest":
             print(f"📊 Running backtest with amounts: {args.amounts}")
-            # Pass threshold options to run_multi_investment_backtest
+            print(f"🎯 Portfolio size: {args.size} ETFs")
+            # Pass threshold options and portfolio size to run_multi_investment_backtest
             run_multi_investment_backtest(
                 args.amounts,
                 use_threshold_rebalancing=getattr(args, "use_threshold", False),
                 profit_threshold_pct=getattr(args, "profit_threshold", 10.0),
                 loss_threshold_pct=getattr(args, "loss_threshold", -5.0),
+                portfolio_size=args.size,
             )
 
     except KeyboardInterrupt:
