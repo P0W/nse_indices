@@ -305,7 +305,7 @@ uv sync
 
 **Step 2:** Get recommendations (30 seconds)
 ```bash
-uv run cli.py portfolio --amount 500000
+uv run portfolio --amount 500000
 ```
 
 **Step 3:** Execute trades (2 minutes)
@@ -315,14 +315,14 @@ uv run cli.py portfolio --amount 500000
 - Set calendar reminder for monthly review
 
 **Monthly Maintenance (5 minutes):**
-- Run portfolio command on 5th of each month
-- Compare with current holdings using rebalance command
+- Run `portfolio` command on 5th of each month
+- Compare with current holdings using `rebalance` command
 - Execute rebalancing trades if needed
 
 **For Existing Portfolio Holders:**
 ```bash
 # Create holdings.json with your current ETF positions
-uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01
+uv run rebalance --holdings-file holdings.json --from-date 2024-01-01
 ```
 
 **Holdings File Formats Supported:**
