@@ -21,13 +21,53 @@ warnings.filterwarnings("ignore")
 
 # Configure logging
 log_filename = f"momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter to add color to log messages based on log level."""
+
+    COLORS = {
+        "DEBUG": "\x1b[36m",  # Cyan
+        "INFO": "\x1b[32m",  # Green
+        "WARNING": "\x1b[33m",  # Yellow
+        "ERROR": "\x1b[31m",  # Red
+        "CRITICAL": "\x1b[31;1m",  # Red bold
+        "RESET": "\x1b[0m",  # Reset color
+    }
+
+    def format(self, record):
+        log_message = super().format(record)
+        return (
+            self.COLORS.get(record.levelname, self.COLORS["RESET"])
+            + log_message
+            + self.COLORS["RESET"]
+        )
+
+
+# Configure logging
+log_filename = f"momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+# Create a file handler
+file_handler = logging.FileHandler(log_filename, encoding="utf-8")
+file_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+    )
+)
+
+# Create a stream handler with the custom colored formatter
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(
+    ColoredFormatter(
+        "%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+    )
+)
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
-        logging.FileHandler(log_filename, encoding="utf-8"),
-        logging.StreamHandler(),  # Keep console output as well
+        file_handler,
+        stream_handler,
     ],
 )
 logger = logging.getLogger(__name__)

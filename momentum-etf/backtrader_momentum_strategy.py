@@ -133,7 +133,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
             if current_date >= rebalance_date:
                 # Validate market conditions before rebalancing
                 if self.is_market_suitable_for_rebalancing():
-                    logger.info(
+                    logger.debug(
                         f"🔄 Triggering rebalance on {current_date} (target was {rebalance_date})"
                     )
                     self.rebalance_portfolio()
@@ -184,7 +184,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
             return True, shares
         else:
             # Adjust to maximum allowable size
-            logger.info(
+            logger.debug(
                 f"Adjusting order size for {ticker}: {shares:.2f} -> {max_shares:.2f} shares"
             )
             return True, max_shares
@@ -194,7 +194,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
         current_datetime = self.datetime.datetime()
         current_date = current_datetime.date()
 
-        logger.info(f"Rebalancing portfolio on {current_date}")
+        logger.debug(f"Rebalancing portfolio on {current_date}")
 
         # Get current portfolio value
         current_portfolio_value = self.broker.getvalue()
@@ -252,7 +252,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
         # Record portfolio state
         self.record_portfolio_state(current_datetime, ranked_etfs[:10])
 
-        logger.info(
+        logger.debug(
             f"Rebalanced on {current_date}. Portfolio value: ₹{current_portfolio_value:,.2f}"
         )
 
@@ -443,7 +443,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
                 slippage,
             )
 
-            logger.info(
+            logger.debug(
                 f"{action.capitalize()} {adjusted_shares:.2f} shares of {ticker} at ₹{execution_price:.2f} "
                 f"(slippage: {slippage:.2%}, costs: ₹{cost_breakdown['total_cost']:.2f})"
             )
@@ -545,12 +545,12 @@ class MomentumPortfolioStrategy(bt.Strategy):
         threshold_triggered = False
         if period_return >= self.config.profit_threshold_pct:
             threshold_triggered = True
-            logger.info(
+            logger.debug(
                 f"Profit threshold reached: {period_return:.2f}% >= {self.config.profit_threshold_pct}%"
             )
         elif period_return <= self.config.loss_threshold_pct:
             threshold_triggered = True
-            logger.info(
+            logger.debug(
                 f"Loss threshold reached: {period_return:.2f}% <= {self.config.loss_threshold_pct}%"
             )
 
@@ -573,7 +573,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
         logger.info(f"  Total slippage costs: ₹{self.total_slippage_costs:,.2f}")
         logger.info(f"  Cost impact: {cost_impact:.2f}% of initial capital")
         logger.info(f"  Slippage impact: {slippage_impact:.2f}% of initial capital")
-        logger.info(f"  Total trades executed: {len(self.trade_log)}")
+        logger.debug(f"  Total trades executed: {len(self.trade_log)}")
         logger.info(
             f"  Average cost per trade: ₹{self.transaction_costs/len(self.trade_log) if self.trade_log else 0:,.2f}"
         )
@@ -1096,6 +1096,11 @@ def run_backtest(
     print(
         f"💸 Transaction Costs: ₹{results['performance_metrics']['transaction_costs']:,.2f}"
     )
+    recovery_days = results["performance_metrics"]["days_to_recovery"]
+    if isinstance(recovery_days, int):
+        print(f"🔄 Recovery Days: {recovery_days}")
+    else:
+        print(f"🔄 Recovery Days: {recovery_days}")
     print(f"{'='*50}")
 
     # Generate performance charts if requested
@@ -1238,6 +1243,9 @@ def run_backtrader_experiments(
                             "win_ratio_pct": result["performance_metrics"].get(
                                 "win_ratio_pct", 0.0
                             ),
+                            "days_to_recovery": result["performance_metrics"].get(
+                                "days_to_recovery", "Not Recovered"
+                            ),
                         }
                     )
             except Exception as e:
@@ -1263,6 +1271,7 @@ def run_backtrader_experiments(
         "Win Ratio %",
         "Total Trades",
         "Txn Costs",
+        "Recovery Days",
     ]
     for result in all_results:
         summary_table_data.append(
@@ -1279,6 +1288,11 @@ def run_backtrader_experiments(
                 f"{result['win_ratio_pct']:.1f}%",
                 result["total_trades"],
                 f"₹{result['transaction_costs']:,.0f}",
+                (
+                    result["days_to_recovery"]
+                    if isinstance(result["days_to_recovery"], int)
+                    else str(result["days_to_recovery"])
+                ),
             ]
         )
 
