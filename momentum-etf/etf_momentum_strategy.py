@@ -8,15 +8,20 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import warnings
 from tabulate import tabulate
-import itertools  # Import itertools for permutations
+import itertools
 
 warnings.filterwarnings("ignore")
 
 # Configure logging
+log_filename = f"momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler(log_filename, encoding='utf-8'),
+        logging.StreamHandler()  # Keep console output as well
+    ]
 )
 logger = logging.getLogger(__name__)
 
@@ -25,23 +30,22 @@ logger = logging.getLogger(__name__)
 class StrategyConfig:
     """Configuration class for ETF momentum strategy parameters."""
 
-    # List of Highly Liquid, High-Volume NSE ETF Symbols (Minimal Overlap, Trading >5 Years, No Debt)
+    # ETF Universe - Highly Liquid NSE ETFs
     etf_universe: List[str] = field(
         default_factory=lambda: [
             "NIFTYBEES.NS",  # Nifty 50 ETF
             "SETFNN50.NS",  # Nifty Next 50 ETF
-            #  "BANKBEES.NS",  # Bank Nifty ETF
-            "GOLDBEES.NS",  # Gold ETF,
-            "SILVERBEES.NS",  # Silver ETF,
+            "GOLDBEES.NS",  # Gold ETF
+            "SILVERBEES.NS",  # Silver ETF
             "CPSEETF.NS",  # CPSE ETF
             "PSUBNKBEES.NS",  # PSU Bank ETF
             "PHARMABEES.NS",  # Pharma ETF
             "ITBEES.NS",  # IT ETF
             "AUTOBEES.NS",  # Auto ETF
-            "INFRAIETF.NS",  # Infra ETF,
+            "INFRAIETF.NS",  # Infra ETF
             "SHARIABEES.NS",  # Shariah ETF
             "DIVOPPBEES.NS",  # Dividend Opportunities ETF
-            "CONSUMBEES.NS",  # Consumer Goods - Nifty India Consumption
+            "CONSUMBEES.NS",  # Consumer Goods ETF
         ]
     )
 
@@ -49,34 +53,33 @@ class StrategyConfig:
     portfolio_size: int = 7
     exit_rank_buffer_multiplier: float = 2.0
 
-    # Rebalancing
-    rebalance_frequency: str = "monthly"  # "monthly" or "weekly"
+    # Rebalancing Parameters
+    rebalance_frequency: str = "monthly"
     rebalance_day_of_month: int = 5
-    # Threshold-based rebalancing options
-    use_threshold_rebalancing: bool = False  # If True, use profit/loss thresholds
-    profit_threshold_pct: float = 10.0  # Rebalance if portfolio profit >= 10%
-    loss_threshold_pct: float = -5.0  # Rebalance if portfolio loss <= -5%
 
-    # Momentum Calculation (adjusted for real-time use)
-    long_term_period_days: int = 180  # ~6 months (reduced from 252)
-    short_term_period_days: int = 60  # ~3 months
-    momentum_weights: Tuple[float, float] = (0.6, 0.4)  # (long_term, short_term)
+    # Threshold-based rebalancing
+    use_threshold_rebalancing: bool = False
+    profit_threshold_pct: float = 10.0
+    loss_threshold_pct: float = -5.0
 
-    # Filters
+    # Momentum Calculation Parameters
+    long_term_period_days: int = 180
+    short_term_period_days: int = 60
+    momentum_weights: Tuple[float, float] = (0.6, 0.4)
+
+    # Risk Management and Filters
     use_retracement_filter: bool = True
     max_retracement_percentage: float = 0.50
     use_moving_average_filter: bool = True
     moving_average_period: int = 50
-    use_volume_filter: bool = False  # Disabled by default for real-time use
-    min_avg_volume: int = 100000  # Minimum average daily volume for Indian ETFs (1cr)
+    use_volume_filter: bool = False
+    min_avg_volume: int = 100000
+    max_position_size: float = 0.20
+    min_data_points: int = 200
 
-    # Risk Management
-    max_position_size: float = 0.20  # Max 20% in any single ETF
-    min_data_points: int = 200  # Minimum historical data required (reduced from 300)
-
-    # Performance (Indian Rupees)
-    initial_capital: float = 1000000.0  # 10 Lakh INR
-    commission_rate: float = 0.001  # 0.1% commission per trade
+    # Trading Parameters
+    initial_capital: float = 1000000.0
+    commission_rate: float = 0.001
 
 
 class DataProvider:
@@ -903,14 +906,13 @@ class ETFMomentumStrategy:
 
         # If start date is after rebalance day, move to next month
         if start_date.day > self.config.rebalance_day_of_month:
-            # Handle potential ValueError if day is out of range for the next month
             try:
                 if current.month == 12:
                     current = current.replace(year=current.year + 1, month=1)
                 else:
                     current = current.replace(month=current.month + 1)
             except ValueError:
-                # If day is out of range (e.g., 31st of Jan to Feb), set to last day of month
+                # Handle day out of range (e.g., 31st of Jan to Feb)
                 if current.month == 12:
                     current = current.replace(
                         year=current.year + 1,
@@ -927,14 +929,13 @@ class ETFMomentumStrategy:
 
         while current <= end_date:
             dates.append(current)
-            # Move to next month
             try:
                 if current.month == 12:
                     current = current.replace(year=current.year + 1, month=1)
                 else:
                     current = current.replace(month=current.month + 1)
             except ValueError:
-                # If day is out of range (e.g., 31st of Jan to Feb), set to last day of month
+                # Handle day out of range
                 if current.month == 12:
                     current = current.replace(
                         year=current.year + 1,
@@ -1251,7 +1252,7 @@ def run_multi_investment_backtest(
     headers = [
         "Port. Size",
         "Rebal. Day",
-        "Exit Buffer",  # Add Exit Buffer to headers
+        "Exit Buffer",
         "Initial Capital",
         "Final Value",
         "Total Return",
@@ -1266,7 +1267,7 @@ def run_multi_investment_backtest(
             [
                 result["portfolio_size"],
                 result["rebalance_day"],
-                result["exit_buffer"],  # Add Exit Buffer to data
+                result["exit_buffer"],
                 f"₹{result['initial_capital']/100000:.0f}L",
                 f"₹{result['final_value']/100000:.1f}L",
                 f"{result['total_return_pct']:.1f}%",
@@ -1278,7 +1279,7 @@ def run_multi_investment_backtest(
             ]
         )
 
-    # Sort results for better comparison in the table (e.g., by Annualized Return descending)
+    # Sort results by annualized return (descending)
     summary_table_data_sorted = sorted(
         summary_table_data, key=lambda x: float(x[6].replace("%", "")), reverse=True
     )
@@ -1289,25 +1290,17 @@ def run_multi_investment_backtest(
 
 
 if __name__ == "__main__":
-    # Define the lists of parameters you want to permute
-    test_investment_amounts = [1000000]  # Example: Test with 1M INR
-    test_portfolio_sizes = [3, 5, 7]  # Example: Test portfolio sizes 3, 5 and 7
-    test_rebalance_days = [
-        1,
-        5,
-        10,
-    ]  # Example: Test rebalancing on 1st, 5th, and 10th of month
-    test_exit_rank_buffers = [
-        1.5,
-        2.0,
-        2.5,
-    ]  # Example: Test exit rank buffers 1.5, 2.0, and 2.5
+    # Test parameters for strategy optimization
+    test_investment_amounts = [1000000]
+    test_portfolio_sizes = [3, 5, 7]
+    test_rebalance_days = [1, 5, 10]
+    test_exit_rank_buffers = [1.5, 2.0, 2.5]
 
     # Run the backtest with permutations
     run_multi_investment_backtest(
         investment_amounts=test_investment_amounts,
         portfolio_sizes=test_portfolio_sizes,
         rebalance_days=test_rebalance_days,
-        exit_rank_buffers=test_exit_rank_buffers,  # Pass the list of exit rank buffers
-        use_threshold_rebalancing=False,  # Set to True if you want to include threshold rebalancing
+        exit_rank_buffers=test_exit_rank_buffers,
+        use_threshold_rebalancing=False,
     )
