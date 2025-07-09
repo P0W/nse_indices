@@ -1,23 +1,5 @@
 # 🚀 ETF Momentum Strategy for Indian Markets
 
-> Transform your invest## 🎮 4 Super Simple Commands
-
-No complex analysis needed. Just run these commands and follow the clea### 4. 📈 **Performance Validation**
-
-```bash
-uv run cli.py backtest --amounts 1000000 2000000 --size 5
-```
-
-**What you get:** Full historical performance analysis with interactive charts and detailed metrics.uctions:
-
-### 1. 📊 **Discover Today's Winners**
-
-```bash
-uv run cli.py portfolio --amount 1000000 --size 5
-```
-
-**What you get:** Exact ETFs to buy with precise allocation for any investment amount.ch with a **data-driven, systematic ETF momentum strategy** that has delivered **142% returns** over 5.5 years with a **93.6% win rate**.
-
 ## 🇮🇳 Why Indian ETFs? The Trillion-Dollar Opportunity
 
 The Indian ETF market has **exploded from ₹1,000 crores in 2019 to over ₹7,50,000 crores in 2024** - a **75x growth**! With India's economy projected to become the world's 3rd largest by 2030, ETFs offer the perfect vehicle to capture this growth systematically.
