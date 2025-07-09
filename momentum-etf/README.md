@@ -131,7 +131,7 @@ No complex analysis needed. Just run these commands and follow the clear instruc
 ### 1. � **Discover Today's Winners**
 
 ```bash
-uv run cli.py portfolio
+uv run  portfolio
 ```
 
 **What you get:** Exact ETFs to buy with precise allocation for any amount.
@@ -165,7 +165,7 @@ uv run cli.py historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 50
 ### 3. 🔄 **Portfolio Health Check**
 
 ```bash
-uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01
+uv run  rebalance --holdings-file holdings.json --from-date 2024-01-01
 ```
 
 **What you get:** Complete rebalancing analysis comparing your current holdings with optimal allocation.
@@ -219,7 +219,7 @@ GOLDBEES.NS,200,-1
 ### 4. � **Performance Validation**
 
 ```bash
-uv run cli.py backtest
+uv run backtest --portfolio-sizes 5  --exit-rank-buffers 2   --long-term-periods 200  --short-term-periods 60 --initial-capitals 100000 --start-date 2020-01-01 --end-date 2025-07-09
 ```
 
 **What you get:** Full historical performance with charts and metrics.
@@ -296,25 +296,25 @@ uv run cli.py backtest
 
 ---
 
-## 🏃‍♂️ Get Started in 3 Minutes
+## 🏃‍♂️ Get Started
 
-**Step 1:** Install (30 seconds)
+**Step 1:** Install
 ```bash
 uv sync
 ```
 
-**Step 2:** Get recommendations (30 seconds)
+**Step 2:** Get recommendations
 ```bash
 uv run portfolio --amount 500000
 ```
 
-**Step 3:** Execute trades (2 minutes)
-- Open your broker app (Zerodha, Groww, etc.)
+**Step 3:** Execute trades
+- Open your broker app (Zerodha, Groww, Fyers, Shoonya, Upstock, etc.)
 - Search for recommended ETFs
 - Buy exact quantities shown
 - Set calendar reminder for monthly review
 
-**Monthly Maintenance (5 minutes):**
+**Monthly Maintenance:**
 - Run `portfolio` command on 5th of each month
 - Compare with current holdings using `rebalance` command
 - Execute rebalancing trades if needed
@@ -343,32 +343,6 @@ short_term_days = 60       # 3-month momentum period (60 trading days)
 exit_buffer = 2.0          # Exit when rank > portfolio_size * 2
 initial_capital = 100000   # Starting capital (₹1,00,000)
 ```
-
-## 📚 FAQs
-
-**Q: How much time does this require?**
-A: Just 5 minutes monthly. Run the command, execute trades, done.
-
-**Q: What's the minimum investment?**
-A: ₹50,000 recommended for proper diversification across 5 ETFs.
-
-**Q: Which broker should I use?**
-A: Any broker with ETF access works. Zerodha, Groww, HDFC Securities, etc.
-
-**Q: I already have an ETF portfolio. Can I use this system?**
-A: Yes! Create a holdings file (JSON/CSV) and use the rebalance command to see what adjustments are needed.
-
-**Q: What if I don't remember my purchase prices?**
-A: Set price to -1 in your holdings file and provide the purchase date. The system will fetch historical prices automatically.
-
-**Q: How often should I rebalance?**
-A: Monthly on the 5th. The system will show you exactly what needs to be changed, if anything.
-
-**Q: What about taxes?**
-A: ETFs are tax-efficient. Long-term gains (>1 year) taxed at 10% above ₹1 lakh.
-
-**Q: Can I modify the strategy?**
-A: Yes! It's open-source. Adjust parameters, add filters, or create variants.
 
 ## 🚨 Important Disclaimers
 
