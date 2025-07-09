@@ -46,13 +46,16 @@ Combined Score = (12-month return × 60%) + (3-month return × 40%)
 ## 🏆 Proven Performance
 
 **Backtested Results (2020-2025):**
-- 💰 **₹1,00,000 → ₹2,42,126** (142% total return)
-- 📈 **19.34% annualized return** (vs 12% Nifty average)
-- 🎯 **93.6% win ratio** (249 winning trades out of 265)
-- 📉 **12.09% max drawdown** (vs 23% Nifty drawdown in 2022)
-- ⚡ **1.32 Sharpe ratio** (excellent risk-adjusted returns)
+- 💰 **₹1,00,000 → ₹2,36,568** (136.6% total return)
+- 📈 **19.5% annualized return** (vs 12% Nifty average)
+- 🎯 **89.4% win ratio** (237 winning trades out of 265)
+- 📉 **16.1% max drawdown** (₹14,720)
+- ⚡ **1.29 Sharpe ratio** (excellent risk-adjusted returns)
 - 🔄 **265 trades** over 5.5 years (disciplined approach)
-- 💸 **₹2,005 total transaction costs** (2% of initial capital)
+- 💸 **₹2,067 total transaction costs** (2% of initial capital)
+- ⏳ **557 days to recover** from max drawdown
+- 🔥 **Max Winning Streak**: 52 trades
+- 🥶 **Max Losing Streak**: 8 trades
 
 ## 🛠️ Installation & Setup
 
@@ -289,15 +292,15 @@ The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, 
 
 **Key Performance Metrics:**
 - **Initial Capital**: ₹1,00,000
-- **Final Portfolio Value**: ₹2,42,126
-- **Total Return**: 142.13%
-- **Annualized Return**: 19.34%
-- **Volatility**: 11.74%
-- **Maximum Drawdown**: -12.09%
-- **Sharpe Ratio**: 1.32
-- **Win Ratio**: 93.6%
+- **Final Portfolio Value**: ₹2,36,568
+- **Total Return**: 136.6%
+- **Annualized Return**: 19.5%
+- **Volatility**: 11.7%
+- **Maximum Drawdown**: -16.1%
+- **Sharpe Ratio**: 1.29
+- **Win Ratio**: 89.4%
 - **Total Trades**: 265
-- **Transaction Costs**: ₹2,005
+- **Transaction Costs**: ₹2,067
 
 ### Strategy Performance Analysis
 
@@ -313,12 +316,14 @@ The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, 
 
 ### Key Insights from Backtesting
 
-1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 142.13% total return over 5.5 years
-2. **Strong Risk-Adjusted Returns**: Sharpe ratio of 1.32 indicates good risk-adjusted performance
-3. **Excellent Win Rate**: 93.6% win ratio demonstrates the effectiveness of the momentum selection process
-4. **Low Transaction Costs**: At ₹2,005 total costs, transaction expenses remain very manageable
-5. **Controlled Drawdowns**: Maximum drawdown of 12.09% shows reasonable risk management
-6. **Low Volatility**: 11.74% volatility indicates relatively stable returns
+1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 136.6% total return over 5.5 years.
+2. **Strong Risk-Adjusted Returns**: Sharpe ratio of 1.29 indicates good risk-adjusted performance.
+3. **Excellent Win Rate**: 89.4% win ratio demonstrates the effectiveness of the momentum selection process.
+4. **Low Transaction Costs**: At ₹2,067 total costs, transaction expenses remain very manageable.
+5. **Controlled Drawdowns**: Maximum drawdown of 16.1% (₹14,720) shows reasonable risk management.
+6. **Drawdown Recovery**: Recovered from max drawdown in 557 days.
+7. **Strong Streaks**: Achieved a maximum winning streak of 52 trades and a maximum losing streak of 8 trades.
+8. **Low Volatility**: 11.7% volatility indicates relatively stable returns.
 
 ### Backtest Methodology
 
