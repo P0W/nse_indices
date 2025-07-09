@@ -73,6 +73,62 @@ Combined Score = (12-month return × 60%) + (3-month return × 40%)
 - 🔥 **Max Winning Streak**: 52 trades
 - 🥶 **Max Losing Streak**: 8 trades
 
+## 📈 Backtesting Results (2020-2025)
+
+### Performance Summary
+
+The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, showing strong performance across the test period:
+
+**Key Performance Metrics:**
+- **Initial Capital**: ₹1,00,000
+- **Final Portfolio Value**: ₹2,36,568
+- **Total Return**: 136.6%
+- **Annualized Return**: 19.5%
+- **Volatility**: 11.7%
+- **Maximum Drawdown**: -16.1%
+- **Sharpe Ratio**: 1.29
+- **Win Ratio**: 89.4%
+- **Total Trades**: 265
+- **Transaction Costs**: ₹2,067
+
+### Strategy Performance Analysis
+
+![Backtrader Analysis](backtrader_analysis_20200101_20250709.png)
+
+*Performance analysis showing portfolio value progression, returns distribution, and key metrics over the backtesting period.*
+
+### Portfolio Dashboard
+
+![Backtrader Dashboard](backtrader_dashboard_20200101_20250709.png)
+
+*Comprehensive dashboard displaying cumulative returns, drawdowns, trade analysis, and risk metrics.*
+
+### Key Insights from Backtesting
+
+1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 136.6% total return over 5.5 years.
+2. **Strong Risk-Adjusted Returns**: Sharpe ratio of 1.29 indicates good risk-adjusted performance.
+3. **Excellent Win Rate**: 89.4% win ratio demonstrates the effectiveness of the momentum selection process.
+4. **Low Transaction Costs**: At ₹2,067 total costs, transaction expenses remain very manageable.
+5. **Controlled Drawdowns**: Maximum drawdown of 16.1% (₹14,720) shows reasonable risk management.
+6. **Drawdown Recovery**: Recovered from max drawdown in 557 days.
+7. **Strong Streaks**: Achieved a maximum winning streak of 52 trades and a maximum losing streak of 8 trades.
+8. **Low Volatility**: 11.7% volatility indicates relatively stable returns.
+
+### Backtest Methodology
+
+- **Period**: January 1, 2020 - July 9, 2025 (5.5 years)
+- **Initial Capital**: ₹1,00,000 (as per backtrader config)
+- **Rebalancing**: Monthly on the 5th of each month
+- **Universe**: 13 liquid Indian ETFs
+- **Portfolio Size**: Top 5 ETFs by momentum score
+- **Weighting**: Equal weight allocation (20% each)
+- **Long-term Momentum**: 252 trading days (~12 months)
+- **Short-term Momentum**: 60 trading days (~3 months)
+- **Exit Rule**: Sell when ETF rank falls below 10 (2x portfolio size)
+- **Transaction Costs**: Realistic brokerage simulation
+
+---
+
 ## 🛠️ Installation & Setup
 
 ```bash
@@ -252,6 +308,9 @@ uv run cli.py backtest
 - ❌ **Market Cap Weighting**: Overweight in expensive stocks
 - ❌ **Sector Rotation**: Timing risk
 - ✅ **Our Strategy**: Data-driven momentum with risk controls
+```
+
+---
 
 ## 🏃‍♂️ Get Started in 3 Minutes
 
@@ -364,61 +423,6 @@ uv run cli.py portfolio --amount 100000
 
 *Happy investing! 🚀*
 
----
-
-## 📈 Backtesting Results (2020-2025)
-
-### Performance Summary
-
-The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, showing strong performance across the test period:
-
-**Key Performance Metrics:**
-- **Initial Capital**: ₹1,00,000
-- **Final Portfolio Value**: ₹2,36,568
-- **Total Return**: 136.6%
-- **Annualized Return**: 19.5%
-- **Volatility**: 11.7%
-- **Maximum Drawdown**: -16.1%
-- **Sharpe Ratio**: 1.29
-- **Win Ratio**: 89.4%
-- **Total Trades**: 265
-- **Transaction Costs**: ₹2,067
-
-### Strategy Performance Analysis
-
-![Backtrader Analysis](backtrader_analysis_20200101_20250709.png)
-
-*Performance analysis showing portfolio value progression, returns distribution, and key metrics over the backtesting period.*
-
-### Portfolio Dashboard
-
-![Backtrader Dashboard](backtrader_dashboard_20200101_20250709.png)
-
-*Comprehensive dashboard displaying cumulative returns, drawdowns, trade analysis, and risk metrics.*
-
-### Key Insights from Backtesting
-
-1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 136.6% total return over 5.5 years.
-2. **Strong Risk-Adjusted Returns**: Sharpe ratio of 1.29 indicates good risk-adjusted performance.
-3. **Excellent Win Rate**: 89.4% win ratio demonstrates the effectiveness of the momentum selection process.
-4. **Low Transaction Costs**: At ₹2,067 total costs, transaction expenses remain very manageable.
-5. **Controlled Drawdowns**: Maximum drawdown of 16.1% (₹14,720) shows reasonable risk management.
-6. **Drawdown Recovery**: Recovered from max drawdown in 557 days.
-7. **Strong Streaks**: Achieved a maximum winning streak of 52 trades and a maximum losing streak of 8 trades.
-8. **Low Volatility**: 11.7% volatility indicates relatively stable returns.
-
-### Backtest Methodology
-
-- **Period**: January 1, 2020 - July 9, 2025 (5.5 years)
-- **Initial Capital**: ₹1,00,000 (as per backtrader config)
-- **Rebalancing**: Monthly on the 5th of each month
-- **Universe**: 13 liquid Indian ETFs
-- **Portfolio Size**: Top 5 ETFs by momentum score
-- **Weighting**: Equal weight allocation (20% each)
-- **Long-term Momentum**: 252 trading days (~12 months)
-- **Short-term Momentum**: 60 trading days (~3 months)
-- **Exit Rule**: Sell when ETF rank falls below 10 (2x portfolio size)
-- **Transaction Costs**: Realistic brokerage simulation
 - **Risk Filters**: Moving average and drawdown filters applied
 
 The backtesting results validate the effectiveness of the dual-timeframe momentum strategy in Indian ETF markets, demonstrating its ability to capture trends while managing downside risk effectively.
