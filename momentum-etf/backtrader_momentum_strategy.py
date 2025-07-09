@@ -5,129 +5,35 @@ Backtrader implementation of ETF Momentum Strategy.
 
 import sys
 import codecs
+import argparse
+import itertools
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import itertools
-
 import backtrader as bt
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tabulate import tabulate
 import backtrader.feeds as btfeeds
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import logging
-from tabulate import tabulate
 import warnings
 
-# Plotting imports
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import seaborn as sns
-
-# Import utilities from the original implementation
-from etf_momentum_strategy import (
+# Import utilities from the new core and visualizer modules
+from core import (
     StrategyConfig,
     DataProvider,
     MomentumCalculator,
+    TradingCostCalculator,
+    MarketImpactModel,
     logger,
 )
 
+from visualizer import create_performance_charts
+
 warnings.filterwarnings("ignore")
-
-
-class TradingCostCalculator:
-    """Calculate comprehensive trading costs for Indian equity markets."""
-
-    def __init__(self, config: StrategyConfig):
-        # Indian market cost structure
-        self.brokerage_rate = config.brokerage_rate
-        self.max_brokerage = config.max_brokerage
-        self.stt_sell_rate = config.stt_sell_rate
-        self.exchange_fee_rate = config.exchange_fee_rate
-        self.gst_rate = config.gst_rate
-        self.sebi_fee_rate = config.sebi_fee_rate
-        self.stamp_duty_rate = config.stamp_duty_rate
-
-    def calculate_costs(
-        self, ticker: str, shares: float, price: float, action: str
-    ) -> Dict[str, float]:
-        """Calculate all trading costs for a transaction."""
-        value = shares * price
-
-        # Brokerage
-        brokerage = min(value * self.brokerage_rate, self.max_brokerage)
-
-        # STT (Securities Transaction Tax) - only on sell side for delivery
-        stt = value * self.stt_sell_rate if action.upper() == "SELL" else 0
-
-        # Exchange charges
-        exchange_fee = value * self.exchange_fee_rate
-
-        # GST on brokerage and exchange fees
-        gst = (brokerage + exchange_fee) * self.gst_rate
-
-        # SEBI charges
-        sebi_fee = value * self.sebi_fee_rate
-
-        # Stamp duty (on buy side)
-        stamp_duty = value * self.stamp_duty_rate if action.upper() == "BUY" else 0
-
-        total_cost = brokerage + stt + exchange_fee + gst + sebi_fee + stamp_duty
-
-        return {
-            "brokerage": brokerage,
-            "stt": stt,
-            "exchange_fee": exchange_fee,
-            "gst": gst,
-            "sebi_fee": sebi_fee,
-            "stamp_duty": stamp_duty,
-            "total_cost": total_cost,
-        }
-
-
-class MarketImpactModel:
-    """Model market impact and slippage for order execution."""
-
-    def __init__(self, config: StrategyConfig):
-        # More realistic impact coefficients for Indian ETF market
-        self.linear_impact_coefficient = config.linear_impact_coefficient
-        self.sqrt_impact_coefficient = config.sqrt_impact_coefficient
-
-    def estimate_slippage(
-        self,
-        ticker: str,
-        order_size: float,
-        daily_volume: float,
-        volatility: float,
-        action: str,
-    ) -> float:
-        """Estimate slippage based on order size and market conditions."""
-        if daily_volume <= 0:
-            return 0.015  # 1.5% slippage for illiquid securities (reduced from 5%)
-
-        # Calculate order size as percentage of daily volume
-        volume_participation = order_size / daily_volume
-
-        # More realistic linear impact model
-        linear_impact = self.linear_impact_coefficient * volume_participation
-
-        # Square root law (for larger orders) - reduced impact
-        sqrt_impact = self.sqrt_impact_coefficient * np.sqrt(volume_participation)
-
-        # Reduced volatility adjustment for ETFs (they're generally more stable)
-        volatility_adjustment = volatility * 0.02  # 2% of volatility (reduced from 10%)
-
-        # Smaller direction adjustment for ETFs
-        direction_multiplier = 1.1 if action.upper() == "SELL" else 1.0
-
-        total_slippage = (
-            linear_impact + sqrt_impact + volatility_adjustment
-        ) * direction_multiplier
-
-        # Cap slippage at more reasonable levels for ETFs
-        return min(total_slippage, 0.03)  # Max 3% slippage (reduced from 10%)
 
 
 class MomentumPortfolioStrategy(bt.Strategy):
@@ -1202,547 +1108,367 @@ def run_backtest(
     return results
 
 
-def create_performance_charts(
-    results: Dict, config: StrategyConfig, start_date: datetime, end_date: datetime
-):
-    """Create and save performance visualization charts."""
-    portfolio_history = results["portfolio_history"]
-    trade_log = results["trade_log"]
+def run_backtrader_experiments(
+    portfolio_sizes: List[int] = None,
+    rebalance_days: List[int] = None,
+    exit_rank_buffers: List[float] = None,
+    long_term_periods: List[int] = None,
+    short_term_periods: List[int] = None,
+    initial_capitals: List[float] = None,
+    use_threshold_rebalancing_values: List[bool] = None,
+    profit_threshold_pct: float = 10.0,
+    loss_threshold_pct: float = -5.0,
+    start_date: datetime = None,
+    end_date: datetime = None,
+    max_workers: int = 4,  # For parallel execution
+) -> List[Dict]:
+    """
+    Run Backtrader backtest with multiple parameter permutations in parallel.
+    Generates a summary report of performance metrics for each permutation.
+    """
+    # Default values for experiments if not provided
+    portfolio_sizes = portfolio_sizes or [5]
+    rebalance_days = rebalance_days or [5]
+    exit_rank_buffers = exit_rank_buffers or [2.0]
+    long_term_periods = long_term_periods or [180]
+    short_term_periods = short_term_periods or [60]
+    initial_capitals = initial_capitals or [100000]
+    use_threshold_rebalancing_values = use_threshold_rebalancing_values or [False]
 
-    if not portfolio_history:
-        print("❌ No portfolio history data available for charting")
+    if start_date is None:
+        end_date_default = datetime.now()
+        start_date = datetime(end_date_default.year - 5, 1, 1)
+    if end_date is None:
+        end_date = datetime.now()
+
+    all_results = []
+
+    # Create all combinations of parameters
+    param_combinations = list(
+        itertools.product(
+            portfolio_sizes,
+            rebalance_days,
+            exit_rank_buffers,
+            long_term_periods,
+            short_term_periods,
+            initial_capitals,
+            use_threshold_rebalancing_values,
+        )
+    )
+
+    print(
+        f"\nRunning {len(param_combinations)} Backtrader backtest permutations in parallel..."
+    )
+    print(f"Period: {start_date.date()} to {end_date.date()}")
+    print(f"Max workers: {max_workers}")
+    print(f"{'='*120}")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_params = {}
+        for (
+            p_size,
+            r_day,
+            exit_buffer,
+            lt_period,
+            st_period,
+            init_capital,
+            use_threshold,
+        ) in param_combinations:
+            config = StrategyConfig(
+                portfolio_size=p_size,
+                rebalance_day_of_month=r_day,
+                exit_rank_buffer_multiplier=exit_buffer,
+                long_term_period_days=lt_period,
+                short_term_period_days=st_period,
+                initial_capital=init_capital,
+                use_threshold_rebalancing=use_threshold,
+                profit_threshold_pct=profit_threshold_pct,
+                loss_threshold_pct=loss_threshold_pct,
+            )
+            # Pass create_charts=False and show_trade_plot=False for experiments
+            future = executor.submit(
+                run_backtest,
+                config,
+                start_date,
+                end_date,
+                create_charts=False,
+                show_trade_plot=False,
+            )
+            future_to_params[future] = (
+                p_size,
+                r_day,
+                exit_buffer,
+                lt_period,
+                st_period,
+                init_capital,
+                use_threshold,
+            )
+
+        for future in as_completed(future_to_params):
+            params = future_to_params[future]
+            try:
+                result = future.result()
+                if result:
+                    all_results.append(
+                        {
+                            "portfolio_size": params[0],
+                            "rebalance_day": params[1],
+                            "exit_buffer": params[2],
+                            "long_term_period_days": params[3],
+                            "short_term_period_days": params[4],
+                            "initial_capital": params[5],
+                            "use_threshold_rebalancing": params[6],
+                            "final_value": result["final_value"],
+                            "total_return_pct": result["total_return"],
+                            "annualized_return_pct": result["performance_metrics"].get(
+                                "annualized_return_pct", 0.0
+                            ),
+                            "sharpe_ratio": result["performance_metrics"].get(
+                                "sharpe_ratio", 0.0
+                            ),
+                            "max_drawdown_pct": result["performance_metrics"].get(
+                                "max_drawdown_pct", 0.0
+                            ),
+                            "total_trades": result["performance_metrics"].get(
+                                "total_trades", 0
+                            ),
+                            "transaction_costs": result["performance_metrics"].get(
+                                "transaction_costs", 0.0
+                            ),
+                            "win_ratio_pct": result["performance_metrics"].get(
+                                "win_ratio_pct", 0.0
+                            ),
+                        }
+                    )
+            except Exception as e:
+                logger.error(f"Backtest failed for params {params}: {e}", exc_info=True)
+
+    # Print overall comparison summary for all permutations
+    print(f"\n{'='*120}")
+    print("BACKTRADER PERMUTATION COMPARISON SUMMARY")
+    print(f"{'='*120}")
+
+    # Prepare data for tabulate
+    summary_table_data = []
+    headers = [
+        "Port. Size",
+        "Rebal. Day",
+        "Exit Buffer",
+        "LT/ST Period",
+        "Init. Capital",
+        "Threshold Rebal",
+        "Ann. Return",
+        "Sharpe",
+        "Max DD",
+        "Win Ratio %",
+        "Total Trades",
+        "Txn Costs",
+    ]
+    for result in all_results:
+        summary_table_data.append(
+            [
+                result["portfolio_size"],
+                result["rebalance_day"],
+                result["exit_buffer"],
+                f"{result['long_term_period_days']}d/{result['short_term_period_days']}d",
+                f"₹{result['initial_capital']:,.0f}",
+                result["use_threshold_rebalancing"],
+                f"{result['annualized_return_pct']:.1f}%",
+                f"{result['sharpe_ratio']:.2f}",
+                f"{result['max_drawdown_pct']:.1f}%",
+                f"{result['win_ratio_pct']:.1f}%",
+                result["total_trades"],
+                f"₹{result['transaction_costs']:,.0f}",
+            ]
+        )
+
+    # Sort results by annualized return (descending)
+    summary_table_data_sorted = sorted(
+        summary_table_data, key=lambda x: float(x[6].replace("%", "")), reverse=True
+    )
+
+    print(tabulate(summary_table_data_sorted, headers=headers, tablefmt="grid"))
+
+    return all_results
+
+
+def unified_cli():
+    """
+    Smart CLI that automatically detects single vs multiple parameter experiments.
+    """
+    parser = argparse.ArgumentParser(
+        description="Run Backtrader ETF Momentum Strategy backtest - automatically detects single run vs experiments based on parameters provided."
+    )
+
+    # Strategy parameters - accept lists using nargs='*' (0 or more) or nargs='+' (1 or more)
+    parser.add_argument(
+        "--portfolio-sizes",
+        nargs="+",
+        type=int,
+        default=[5],
+        help="Portfolio size(s) to test. Single value = single run, multiple values = experiments (default: [5])",
+    )
+    parser.add_argument(
+        "--rebalance-days",
+        nargs="+",
+        type=int,
+        default=[5],
+        help="Rebalance day(s) to test (default: [5])",
+    )
+    parser.add_argument(
+        "--exit-rank-buffers",
+        nargs="+",
+        type=float,
+        default=[2.0],
+        help="Exit rank buffer(s) to test (default: [2.0])",
+    )
+    parser.add_argument(
+        "--long-term-periods",
+        nargs="+",
+        type=int,
+        default=[180],
+        help="Long-term momentum period(s) in days (default: [180])",
+    )
+    parser.add_argument(
+        "--short-term-periods",
+        nargs="+",
+        type=int,
+        default=[60],
+        help="Short-term momentum period(s) in days (default: [60])",
+    )
+    parser.add_argument(
+        "--initial-capitals",
+        nargs="+",
+        type=float,
+        default=[100000],
+        help="Initial capital(s) to test (default: [100000])",
+    )
+    parser.add_argument(
+        "--use-threshold-rebalancing-values",
+        nargs="+",
+        type=lambda x: x.lower() == "true",
+        default=[False],
+        help="Threshold rebalancing value(s) (True/False) (default: [False])",
+    )
+    parser.add_argument(
+        "--profit-threshold",
+        type=float,
+        default=10.0,
+        help="Profit threshold percent for rebalancing (default: 10.0)",
+    )
+    parser.add_argument(
+        "--loss-threshold",
+        type=float,
+        default=-5.0,
+        help="Loss threshold percent for rebalancing (default: -5.0)",
+    )
+    parser.add_argument(
+        "--start-date",
+        type=str,
+        default=(datetime.now().year - 5, 1, 1),
+        help="Backtest start date in YYYY-MM-DD format (default: 5 years ago)",
+    )
+    parser.add_argument(
+        "--end-date",
+        type=str,
+        default=datetime.now().strftime("%Y-%m-%d"),
+        help="Backtest end date in YYYY-MM-DD format (default: today)",
+    )
+    parser.add_argument(
+        "--no-charts",
+        action="store_true",
+        help="Do not generate performance charts",
+    )
+    parser.add_argument(
+        "--show-trade-plot",
+        action="store_true",
+        help="Show interactive trade plot (requires matplotlib backend)",
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum number of parallel workers for experiments (default: 4)",
+    )
+
+    args = parser.parse_args()
+
+    # Parse dates
+    try:
+        start_date = (
+            datetime.strptime(args.start_date, "%Y-%m-%d")
+            if isinstance(args.start_date, str)
+            else datetime(*args.start_date)
+        )
+        end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
+    except ValueError:
+        print("Error: Invalid date format. Please use YYYY-MM-DD.")
         return
 
-    # Set up the plotting style
-    plt.style.use("seaborn-v0_8")
-    sns.set_palette("husl")
-
-    # Sort portfolio history by date
-    portfolio_history = sorted(portfolio_history, key=lambda x: x["date"])
-
-    # Extract data for plotting
-    dates = [p["date"] for p in portfolio_history]
-    values = [p["total_value"] for p in portfolio_history]
-    cash = [p["cash"] for p in portfolio_history]
-
-    # Convert to pandas for easier manipulation
-    df = pd.DataFrame({"date": dates, "total_value": values, "cash": cash})
-    df["invested"] = df["total_value"] - df["cash"]
-    df["returns"] = df["total_value"].pct_change() * 100
-    df["cumulative_returns"] = ((df["total_value"] / config.initial_capital) - 1) * 100
-
-    # Calculate rolling drawdown
-    df["peak"] = df["total_value"].expanding().max()
-    df["drawdown"] = ((df["total_value"] / df["peak"]) - 1) * 100
-
-    # Calculate additional metrics
-    metrics = results["performance_metrics"]
-
-    # Create main performance dashboard
-    create_main_dashboard(df, config, results, start_date, end_date)
-
-    # Create detailed analysis charts
-    create_detailed_analysis(df, trade_log, config, results, start_date, end_date)
-
-
-def create_main_dashboard(df, config, results, start_date, end_date):
-    """Create the main performance dashboard with 6 key charts."""
-    # Create a figure with better spacing
-    fig = plt.figure(figsize=(20, 14))
-    fig.patch.set_facecolor("white")
-
-    # Add main title with proper spacing
-    fig.suptitle(
-        f"ETF Momentum Strategy - Performance Dashboard\n"
-        f'Period: {start_date.strftime("%b %Y")} to {end_date.strftime("%b %Y")} | '
-        f"Strategy: Backtrader Implementation\n"
-        f'🎯 Final Value: ₹{results["final_value"]:,.0f} | '
-        f'📈 Total Return: {results["total_return"]:.1f}% | '
-        f'🔥 Annualized: {results["performance_metrics"].get("annualized_return_pct", 0):.1f}%',
-        fontsize=16,
-        fontweight="bold",
-        y=0.98,
+    # Auto-detect if this is a single run or experiments
+    total_combinations = (
+        len(args.portfolio_sizes)
+        * len(args.rebalance_days)
+        * len(args.exit_rank_buffers)
+        * len(args.long_term_periods)
+        * len(args.short_term_periods)
+        * len(args.initial_capitals)
+        * len(args.use_threshold_rebalancing_values)
     )
 
-    # Create subplots with proper spacing - increased top margin to prevent overlap
-    gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.3, top=0.83, bottom=0.08)
-
-    # Subplot 1: Portfolio Value Over Time (spans 2 columns)
-    ax1 = fig.add_subplot(gs[0, :2])
-    ax1.plot(
-        df["date"],
-        df["total_value"],
-        linewidth=3,
-        color="#2E8B57",
-        label="Portfolio Value",
-        alpha=0.9,
-    )
-    ax1.axhline(
-        y=config.initial_capital,
-        color="#FF4444",
-        linestyle="--",
-        alpha=0.8,
-        linewidth=2,
-        label="Initial Capital",
-    )
-
-    # Add milestone markers
-    max_value = df["total_value"].max()
-    max_date = df.loc[df["total_value"].idxmax(), "date"]
-    ax1.scatter(
-        max_date,
-        max_value,
-        color="gold",
-        s=100,
-        zorder=5,
-        label=f"Peak: ₹{max_value:,.0f}",
-    )
-
-    ax1.set_title("📈 Portfolio Growth Journey", fontsize=16, fontweight="bold", pad=20)
-    ax1.set_ylabel("Portfolio Value (₹)", fontsize=12, fontweight="bold")
-    ax1.legend(loc="upper left", frameon=True, fancybox=True, shadow=True)
-    ax1.grid(True, alpha=0.3, linestyle="-")
-    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"₹{x/100000:.1f}L"))
-
-    # Format x-axis
-    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-    ax1.xaxis.set_major_locator(mdates.YearLocator())
-    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
-
-    # 2. Key Performance Metrics (right side)
-    ax2 = fig.add_subplot(gs[0, 2])
-    ax2.axis("off")
-
-    metrics_text = [
-        f"🎯 Total Return: {results['total_return']:.1f}%",
-        f"📊 Annualized Return: {results['performance_metrics'].get('annualized_return_pct', 0):.1f}%",
-        f"📈 Sharpe Ratio: {results['performance_metrics'].get('sharpe_ratio', 0):.2f}",
-        f"📉 Max Drawdown: {results['performance_metrics'].get('max_drawdown_pct', 0):.1f}%",
-        f"🎲 Volatility: {results['performance_metrics'].get('volatility_pct', 0):.1f}%",
-        f"🔄 Total Trades: {results['performance_metrics'].get('total_trades', 0)}",
-        f"🏆 Win Ratio: {results['performance_metrics'].get('win_ratio_pct', 0):.1f}%",
-        f"💰 Transaction Costs: ₹{results['performance_metrics'].get('transaction_costs', 0):,.0f}",
-    ]
-
-    # Create a nice metrics box
-    metrics_box = "\n".join(metrics_text)
-    ax2.text(
-        0.1,
-        0.95,
-        "📊 Key Metrics",
-        fontsize=16,
-        fontweight="bold",
-        transform=ax2.transAxes,
-        verticalalignment="top",
-    )
-    ax2.text(
-        0.1,
-        0.85,
-        metrics_box,
-        fontsize=12,
-        transform=ax2.transAxes,
-        verticalalignment="top",
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue", alpha=0.3),
-    )
-
-    # 3. Cumulative Returns
-    ax3 = fig.add_subplot(gs[1, 0])
-    ax3.fill_between(
-        df["date"],
-        df["cumulative_returns"],
-        alpha=0.6,
-        color="#4CAF50",
-        label="Cumulative Returns",
-    )
-    ax3.plot(df["date"], df["cumulative_returns"], linewidth=2, color="#2E8B57")
-    ax3.set_title("📈 Cumulative Returns", fontsize=14, fontweight="bold", pad=15)
-    ax3.set_ylabel("Returns (%)", fontsize=11, fontweight="bold")
-    ax3.grid(True, alpha=0.3)
-    ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    plt.setp(ax3.xaxis.get_majorticklabels(), rotation=45)
-
-    # 4. Drawdown
-    ax4 = fig.add_subplot(gs[1, 1])
-    ax4.fill_between(
-        df["date"], df["drawdown"], alpha=0.6, color="#FF6B6B", label="Drawdown"
-    )
-    ax4.plot(df["date"], df["drawdown"], linewidth=2, color="#D32F2F")
-    ax4.set_title("📉 Drawdown Analysis", fontsize=14, fontweight="bold", pad=15)
-    ax4.set_ylabel("Drawdown (%)", fontsize=11, fontweight="bold")
-    ax4.grid(True, alpha=0.3)
-    ax4.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    plt.setp(ax4.xaxis.get_majorticklabels(), rotation=45)
-
-    # 5. Rolling Volatility (30-day)
-    ax5 = fig.add_subplot(gs[1, 2])
-    rolling_vol = df["returns"].rolling(window=30).std() * np.sqrt(252)  # Annualized
-    ax5.plot(df["date"], rolling_vol, linewidth=2, color="#FF9800", alpha=0.8)
-    ax5.set_title("📊 Rolling Volatility (30D)", fontsize=14, fontweight="bold", pad=15)
-    ax5.set_ylabel("Volatility (%)", fontsize=11, fontweight="bold")
-    ax5.grid(True, alpha=0.3)
-    ax5.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    plt.setp(ax5.xaxis.get_majorticklabels(), rotation=45)
-
-    # 6. Monthly Returns Heatmap
-    ax6 = fig.add_subplot(gs[2, :2])
-    # Create monthly returns
-    df_monthly = df.set_index("date").resample("M")["returns"].sum()
-    df_monthly.index = pd.to_datetime(df_monthly.index)
-
-    # Create pivot table for heatmap
-    monthly_pivot = df_monthly.to_frame()
-    monthly_pivot["year"] = monthly_pivot.index.year
-    monthly_pivot["month"] = monthly_pivot.index.month
-    heatmap_data = monthly_pivot.pivot_table(
-        values="returns", index="year", columns="month", aggfunc="first"
-    )
-
-    # Create heatmap
-    sns.heatmap(
-        heatmap_data,
-        annot=True,
-        fmt=".1f",
-        cmap="RdYlGn",
-        center=0,
-        cbar_kws={"label": "Monthly Returns (%)"},
-        ax=ax6,
-    )
-    ax6.set_title("🔥 Monthly Returns Heatmap", fontsize=14, fontweight="bold", pad=15)
-    ax6.set_xlabel("Month", fontsize=11, fontweight="bold")
-    ax6.set_ylabel("Year", fontsize=11, fontweight="bold")
-
-    # 7. Performance Summary (bottom right)
-    ax7 = fig.add_subplot(gs[2, 2])
-    ax7.axis("off")
-
-    # Performance summary text
-    metrics = results["performance_metrics"]
-    summary_text = [
-        f"🏁 Strategy Performance Summary",
-        f"",
-        f"Initial Capital: ₹{config.initial_capital:,.0f}",
-        f"Final Value: ₹{results['final_value']:,.0f}",
-        f"Profit/Loss: ₹{results['final_value'] - config.initial_capital:,.0f}",
-        f"",
-        f"📊 Risk & Trade Metrics:",
-        f"• Max Drawdown: {metrics.get('max_drawdown_pct', 0):.1f}% (₹{metrics.get('max_drawdown_amount', 0):,.0f})",
-        f"  - Trough Value: ₹{metrics.get('trough_value_at_mdd', 0):,.0f} on {metrics.get('mdd_end_date', datetime.now()).strftime('%Y-%m-%d')}",
-        f"• Recovery Days: {metrics.get('days_to_recovery', 'N/A')}",
-        f"  - Recovery Date: {metrics.get('recovery_date', 'N/A').strftime('%Y-%m-%d') if isinstance(metrics.get('recovery_date'), datetime) else metrics.get('recovery_date', 'N/A')}",
-        f"• Best Month: {df_monthly.max():.1f}%",
-        f"• Worst Month: {df_monthly.min():.1f}%",
-        f"• Positive Months: {(df_monthly > 0).sum()}/{len(df_monthly)}",
-        f"• Max Win Streak: {metrics.get('max_win_streak', 0)} trades",
-        f"• Max Loss Streak: {metrics.get('max_loss_streak', 0)} trades",
-        f"",
-        f"⚙️ Strategy Config:",
-        f"• Portfolio Size: {config.portfolio_size}",
-        f"• Rebalance Day: {config.rebalance_day_of_month}",
-        f"• Long Period: {config.long_term_period_days}d",
-        f"• Short Period: {config.short_term_period_days}d",
-    ]
-
-    summary_box = "\n".join(summary_text)
-    ax7.text(
-        0.05,
-        0.95,
-        summary_box,
-        fontsize=11,
-        transform=ax7.transAxes,
-        verticalalignment="top",
-        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", alpha=0.7),
-    )
-
-    # Save the main dashboard
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"backtrader_dashboard_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.png"
-    plt.savefig(filename, dpi=300, bbox_inches="tight", facecolor="white")
-    plt.close()
-
-    print(f"📊 Main dashboard saved as: {filename}")
-
-
-def create_detailed_analysis(df, trade_log, config, results, start_date, end_date):
-    """Create detailed analysis charts with additional insights."""
-    fig = plt.figure(figsize=(18, 12))
-    fig.patch.set_facecolor("white")
-
-    # Add title with proper spacing
-    fig.suptitle(
-        f"ETF Momentum Strategy - Detailed Analysis\n"
-        f'Period: {start_date.strftime("%b %Y")} to {end_date.strftime("%b %Y")} | '
-        f"Advanced Risk & Performance Analytics",
-        fontsize=15,
-        fontweight="bold",
-        y=0.97,
-    )
-
-    # Create subplots with proper spacing - increased top margin to prevent overlap
-    gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.3, top=0.84, bottom=0.08)
-
-    # 1. Risk-Return Scatter (Rolling analysis)
-    ax1 = fig.add_subplot(gs[0, 0])
-
-    # Adjust rolling window size based on available data
-    data_length = len(df)
-    window_size = min(60, max(20, data_length // 3))  # Use smaller window if needed
-
-    rolling_returns = (
-        df["returns"].rolling(window=window_size, min_periods=10).mean() * 252
-    )  # Annualized
-    rolling_vol = df["returns"].rolling(
-        window=window_size, min_periods=10
-    ).std() * np.sqrt(
-        252
-    )  # Annualized
-
-    # Remove NaN values for plotting
-    valid_data = pd.DataFrame(
-        {"returns": rolling_returns, "volatility": rolling_vol}
-    ).dropna()
-
-    if len(valid_data) > 0:
-        # Create scatter plot with color based on time
-        scatter = ax1.scatter(
-            valid_data["volatility"],
-            valid_data["returns"],
-            c=range(len(valid_data)),
-            cmap="viridis",
-            alpha=0.7,
-            s=30,
+    if total_combinations == 1:
+        # Single backtest - extract single values
+        print("🎯 Detected single backtest configuration")
+        config = StrategyConfig(
+            portfolio_size=args.portfolio_sizes[0],
+            rebalance_day_of_month=args.rebalance_days[0],
+            exit_rank_buffer_multiplier=args.exit_rank_buffers[0],
+            long_term_period_days=args.long_term_periods[0],
+            short_term_period_days=args.short_term_periods[0],
+            initial_capital=args.initial_capitals[0],
+            use_threshold_rebalancing=args.use_threshold_rebalancing_values[0],
+            profit_threshold_pct=args.profit_threshold,
+            loss_threshold_pct=args.loss_threshold,
         )
 
-        # Add colorbar for time
-        cbar = plt.colorbar(scatter, ax=ax1)
-        cbar.set_label("Time Period", fontsize=10)
+        try:
+            run_backtest(
+                config=config,
+                start_date=start_date,
+                end_date=end_date,
+                create_charts=not args.no_charts,
+                show_trade_plot=args.show_trade_plot,
+            )
+            print("\n🎉 Backtest execution completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error running backtest: {str(e)}")
+            logger.error(f"Backtest execution failed: {str(e)}", exc_info=True)
 
-        # Set appropriate axis limits
-        ax1.set_xlim(
-            valid_data["volatility"].min() * 0.95, valid_data["volatility"].max() * 1.05
-        )
-        ax1.set_ylim(
-            valid_data["returns"].min() * 0.95, valid_data["returns"].max() * 1.05
-        )
     else:
-        # If no valid data, show a message
-        ax1.text(
-            0.5,
-            0.5,
-            f"Insufficient data for\n{window_size}-day rolling analysis\n({data_length} data points available)",
-            ha="center",
-            va="center",
-            transform=ax1.transAxes,
-            fontsize=12,
-            style="italic",
+        # Multiple combinations - run experiments
+        print(
+            f"🧪 Detected experiments configuration ({total_combinations} combinations)"
         )
-
-    ax1.set_xlabel("Volatility (%)", fontsize=11, fontweight="bold")
-    ax1.set_ylabel("Returns (%)", fontsize=11, fontweight="bold")
-    ax1.set_title(
-        f"🎯 Risk-Return Profile ({window_size}D Rolling)",
-        fontsize=14,
-        fontweight="bold",
-        pad=15,
-    )
-    ax1.grid(True, alpha=0.3)
-
-    # 2. Rolling Sharpe Ratio
-    ax2 = fig.add_subplot(gs[0, 1])
-    rolling_sharpe = rolling_returns / rolling_vol
-
-    # Remove NaN values for plotting
-    valid_sharpe_data = pd.DataFrame(
-        {"date": df["date"], "sharpe": rolling_sharpe}
-    ).dropna()
-
-    if len(valid_sharpe_data) > 0:
-        ax2.plot(
-            valid_sharpe_data["date"],
-            valid_sharpe_data["sharpe"],
-            linewidth=2,
-            color="#9C27B0",
-            alpha=0.8,
-        )
-        ax2.axhline(
-            y=1.0, color="#FF5722", linestyle="--", alpha=0.8, label="Good (1.0)"
-        )
-        ax2.axhline(
-            y=2.0, color="#4CAF50", linestyle="--", alpha=0.8, label="Excellent (2.0)"
-        )
-        ax2.legend(loc="upper right", frameon=True, fancybox=True, shadow=True)
-        ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45)
-    else:
-        ax2.text(
-            0.5,
-            0.5,
-            f"Insufficient data for\n{window_size}-day rolling analysis\n({data_length} data points available)",
-            ha="center",
-            va="center",
-            transform=ax2.transAxes,
-            fontsize=12,
-            style="italic",
-        )
-
-    ax2.set_title(
-        f"📈 Rolling Sharpe Ratio ({window_size}D)",
-        fontsize=14,
-        fontweight="bold",
-        pad=15,
-    )
-    ax2.set_ylabel("Sharpe Ratio", fontsize=11, fontweight="bold")
-    ax2.grid(True, alpha=0.3)
-
-    # 3. Trade Analysis
-    ax3 = fig.add_subplot(gs[0, 2])
-    if trade_log:
-        # Analyze trade sizes and timing
-        trade_df = pd.DataFrame(trade_log)
-        trade_df["date"] = pd.to_datetime(trade_df["date"])
-        trade_df["value"] = trade_df["shares"] * trade_df["price"]
-
-        # Group by month
-        monthly_trades = trade_df.groupby(trade_df["date"].dt.to_period("M"))[
-            "value"
-        ].sum()
-
-        # Create bar plot
-        bars = ax3.bar(
-            range(len(monthly_trades)),
-            monthly_trades.values,
-            color="#607D8B",
-            alpha=0.7,
-        )
-        ax3.set_title("💱 Monthly Trade Volume", fontsize=14, fontweight="bold", pad=15)
-        ax3.set_ylabel("Trade Value (₹)", fontsize=11, fontweight="bold")
-        ax3.set_xlabel("Month", fontsize=11, fontweight="bold")
-        ax3.grid(True, alpha=0.3, axis="y")
-
-        # Format y-axis
-        ax3.yaxis.set_major_formatter(
-            plt.FuncFormatter(lambda x, p: f"₹{x/100000:.1f}L")
-        )
-
-        # Set x-axis labels
-        ax3.set_xticks(range(0, len(monthly_trades), max(1, len(monthly_trades) // 6)))
-        ax3.set_xticklabels(
-            [
-                str(monthly_trades.index[i])
-                for i in range(0, len(monthly_trades), max(1, len(monthly_trades) // 6))
-            ],
-            rotation=45,
-        )
-    else:
-        ax3.text(
-            0.5,
-            0.5,
-            "No trade data available",
-            ha="center",
-            va="center",
-            transform=ax3.transAxes,
-        )
-        ax3.set_title("💱 Monthly Trade Volume", fontsize=14, fontweight="bold", pad=15)
-
-    # 4. Returns Distribution
-    ax4 = fig.add_subplot(gs[1, 0])
-    returns_clean = df["returns"].dropna()
-    ax4.hist(returns_clean, bins=30, alpha=0.7, color="#3F51B5", edgecolor="black")
-    ax4.axvline(
-        returns_clean.mean(),
-        color="red",
-        linestyle="--",
-        linewidth=2,
-        label=f"Mean: {returns_clean.mean():.2f}%",
-    )
-    ax4.axvline(
-        returns_clean.median(),
-        color="green",
-        linestyle="--",
-        linewidth=2,
-        label=f"Median: {returns_clean.median():.2f}%",
-    )
-    ax4.set_title(
-        "📊 Daily Returns Distribution", fontsize=14, fontweight="bold", pad=15
-    )
-    ax4.set_xlabel("Daily Returns (%)", fontsize=11, fontweight="bold")
-    ax4.set_ylabel("Frequency", fontsize=11, fontweight="bold")
-    ax4.legend(loc="upper right", frameon=True, fancybox=True, shadow=True)
-    ax4.grid(True, alpha=0.3)
-
-    # 5. Underwater Curve (Drawdown from Peak)
-    ax5 = fig.add_subplot(gs[1, 1])
-    ax5.fill_between(
-        df["date"],
-        df["drawdown"],
-        alpha=0.6,
-        color="#FF5722",
-        label="Drawdown from Peak",
-    )
-    ax5.plot(df["date"], df["drawdown"], linewidth=2, color="#D32F2F")
-    ax5.set_title("🌊 Underwater Curve", fontsize=14, fontweight="bold", pad=15)
-    ax5.set_ylabel("Drawdown (%)", fontsize=11, fontweight="bold")
-    ax5.grid(True, alpha=0.3)
-    ax5.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    plt.setp(ax5.xaxis.get_majorticklabels(), rotation=45)
-
-    # 6. Portfolio Allocation Over Time
-    ax6 = fig.add_subplot(gs[1, 2])
-    # Calculate allocation percentages
-    allocation_pct = (df["invested"] / df["total_value"]) * 100
-    cash_pct = (df["cash"] / df["total_value"]) * 100
-
-    ax6.fill_between(
-        df["date"], 0, allocation_pct, alpha=0.6, color="#4CAF50", label="Invested"
-    )
-    ax6.fill_between(
-        df["date"], allocation_pct, 100, alpha=0.6, color="#FFC107", label="Cash"
-    )
-    ax6.set_title("🥧 Portfolio Allocation", fontsize=14, fontweight="bold", pad=15)
-    ax6.set_ylabel("Allocation (%)", fontsize=11, fontweight="bold")
-    ax6.set_ylim(0, 100)
-    ax6.legend(loc="upper right", frameon=True, fancybox=True, shadow=True)
-    ax6.grid(True, alpha=0.3)
-    ax6.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    plt.setp(ax6.xaxis.get_majorticklabels(), rotation=45)
-
-    # Save the detailed analysis
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"backtrader_analysis_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.png"
-    plt.savefig(filename, dpi=300, bbox_inches="tight", facecolor="white")
-    plt.close()
-
-    print(f"📈 Detailed analysis saved as: {filename}")
+        try:
+            run_backtrader_experiments(
+                portfolio_sizes=args.portfolio_sizes,
+                rebalance_days=args.rebalance_days,
+                exit_rank_buffers=args.exit_rank_buffers,
+                long_term_periods=args.long_term_periods,
+                short_term_periods=args.short_term_periods,
+                initial_capitals=args.initial_capitals,
+                use_threshold_rebalancing_values=args.use_threshold_rebalancing_values,
+                profit_threshold_pct=args.profit_threshold,
+                loss_threshold_pct=args.loss_threshold,
+                start_date=start_date,
+                end_date=end_date,
+                max_workers=args.max_workers,
+            )
+            print("\n🎉 Backtrader experiments completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error running Backtrader experiments: {str(e)}")
+            logger.error(f"Backtrader experiments failed: {str(e)}", exc_info=True)
 
 
 if __name__ == "__main__":
-    """
-    Main execution block for running the ETF Momentum Strategy.
-
-    Example usage:
-        python backtrader_momentum_strategy.py
-    """
-    # Default configuration
-    config = StrategyConfig(
-        portfolio_size=5,
-        rebalance_day_of_month=5,
-        exit_rank_buffer_multiplier=2.0,
-        long_term_period_days=180,
-        short_term_period_days=60,
-        initial_capital=100000,
-        use_threshold_rebalancing=False,
-    )
-
-    # Default date range - last 5 years
-    end_date = datetime.now()
-    start_date = datetime(end_date.year - 5, 1, 1)
-
-    # Run the backtest
-    try:
-        results = run_backtest(
-            config, start_date, end_date, create_charts=True, show_trade_plot=False
-        )
-        print("\n🎉 Strategy execution completed successfully!")
-
-    except Exception as e:
-        print(f"\n❌ Error running strategy: {str(e)}")
-        logger.error(f"Strategy execution failed: {str(e)}", exc_info=True)
+    unified_cli()

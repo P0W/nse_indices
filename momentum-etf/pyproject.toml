@@ -17,3 +17,20 @@ dependencies = [
     "backtrader>=1.9.78.123",
 ]
 
+[project.scripts]
+portfolio = "cli:portfolio_cli"
+rebalance = "cli:rebalance_cli"
+backtest = "backtrader_momentum_strategy:unified_cli"
+
+[tool.setuptools]
+py-modules = [
+    "analyzer",
+    "backtrader_momentum_strategy", 
+    "cli",
+    "core",
+    "etf_momentum_strategy",
+    "visualizer"
+]
+
+[tool.uv]
+package = true

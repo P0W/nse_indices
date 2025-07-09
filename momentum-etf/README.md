@@ -1,6 +1,22 @@
 # 🚀 ETF Momentum Strategy for Indian Markets
 
-> Transform your investment approach with a **data-driven, systematic ETF momentum strategy** that has delivered **142% returns** over 5.5 years with a **93.6% win rate**.
+> Transform your invest## 🎮 4 Super Simple Commands
+
+No complex analysis needed. Just run these commands and follow the clea### 4. 📈 **Performance Validation**
+
+```bash
+uv run cli.py backtest --amounts 1000000 2000000 --size 5
+```
+
+**What you get:** Full historical performance analysis with interactive charts and detailed metrics.uctions:
+
+### 1. 📊 **Discover Today's Winners**
+
+```bash
+uv run cli.py portfolio --amount 1000000 --size 5
+```
+
+**What you get:** Exact ETFs to buy with precise allocation for any investment amount.ch with a **data-driven, systematic ETF momentum strategy** that has delivered **142% returns** over 5.5 years with a **93.6% win rate**.
 
 ## 🇮🇳 Why Indian ETFs? The Trillion-Dollar Opportunity
 
@@ -101,18 +117,64 @@ uv run cli.py portfolio
 ### 2. 🕐 **Time Travel Analysis**
 
 ```bash
-uv run cli.py historical --from-date 2025-01-01
+uv run cli.py historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 500000 --size 7
 ```
 
-**What you get:** See how the strategy evolved and what changes were needed.
+**What you get:** See how the strategy evolved between any two dates and what portfolio changes were needed.
 
 ### 3. 🔄 **Portfolio Health Check**
 
 ```bash
-uv run cli.py rebalance
+uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01
 ```
 
-**What you get:** Compare your current holdings with optimal allocation.
+**What you get:** Complete rebalancing analysis comparing your current holdings with optimal allocation.
+
+**Example Holdings File (JSON):**
+```json
+[
+  {"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50},
+  {"symbol": "GOLDBEES.NS", "units": 200, "price": -1}
+]
+```
+
+**Example Holdings File (CSV):**
+```csv
+symbol,units,price
+NIFTYBEES.NS,350,120.50
+GOLDBEES.NS,200,-1
+```
+
+**Real Output:**
+```
+🔄 PORTFOLIO REBALANCING ANALYSIS
+📅 Purchase Date: 2024-01-01
+📅 Current Date: 2025-07-09
+🎯 Target Portfolio Size: 5 ETFs
+
+💼 CURRENT PORTFOLIO ANALYSIS:
+┌─────────────┬───────┬───────────┬──────────────┬────────────┬──────────────┬────────────┬──────────┐
+│ ETF         │ Units │ Buy Price │ Current Price│ Invested   │ Current Value│ Gain/Loss  │ Return % │
+├─────────────┼───────┼───────────┼──────────────┼────────────┼──────────────┼────────────┼──────────┤
+│ NIFTYBEES   │ 350   │ ₹120.50   │ ₹286.07      │ ₹42,175    │ ₹100,125     │ +₹57,950   │ +137.4%  │
+│ GOLDBEES    │ 200   │ ₹65.20    │ ₹80.53       │ ₹13,040    │ ₹16,106      │ +₹3,066    │ +23.5%   │
+└─────────────┴───────┴───────────┴──────────────┴────────────┴──────────────┴────────────┴──────────┘
+
+💰 PORTFOLIO SUMMARY:
+   Total Invested:    ₹55,215
+   Current Value:     ₹116,231
+   Total Gain/Loss:   +₹61,016
+   Total Return:      +110.5%
+   Annualized Return: +25.8%
+
+🔄 REBALANCING RECOMMENDATIONS:
+❌ SELL (no longer in optimal portfolio):
+   • NIFTYBEES.NS: SELL ALL 350 units → ₹100,125
+
+✅ BUY (new entries to optimal portfolio):
+   • SILVERBEES.NS: BUY 224 units → ₹23,246
+   • PSUBNKBEES.NS: BUY 293 units → ₹23,292
+```
 
 ### 4. � **Performance Validation**
 
@@ -211,8 +273,19 @@ uv run cli.py portfolio --amount 500000
 
 **Monthly Maintenance (5 minutes):**
 - Run portfolio command on 5th of each month
-- Compare with current holdings
+- Compare with current holdings using rebalance command
 - Execute rebalancing trades if needed
+
+**For Existing Portfolio Holders:**
+```bash
+# Create holdings.json with your current ETF positions
+uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01
+```
+
+**Holdings File Formats Supported:**
+- **JSON**: `[{"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50}, ...]`
+- **CSV**: Simple format with `symbol,units,price` columns
+- **Price = -1**: System will fetch historical price from your purchase date
 
 ## 🔧 Advanced Configuration
 
@@ -238,6 +311,15 @@ A: ₹50,000 recommended for proper diversification across 5 ETFs.
 
 **Q: Which broker should I use?**
 A: Any broker with ETF access works. Zerodha, Groww, HDFC Securities, etc.
+
+**Q: I already have an ETF portfolio. Can I use this system?**
+A: Yes! Create a holdings file (JSON/CSV) and use the rebalance command to see what adjustments are needed.
+
+**Q: What if I don't remember my purchase prices?**
+A: Set price to -1 in your holdings file and provide the purchase date. The system will fetch historical prices automatically.
+
+**Q: How often should I rebalance?**
+A: Monthly on the 5th. The system will show you exactly what needs to be changed, if anything.
 
 **Q: What about taxes?**
 A: ETFs are tax-efficient. Long-term gains (>1 year) taxed at 10% above ₹1 lakh.
