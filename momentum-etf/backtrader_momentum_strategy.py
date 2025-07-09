@@ -591,7 +591,12 @@ class BacktraderMomentumStrategy:
         self.momentum_calculator = MomentumCalculator(config)
 
     def run_backtest(
-        self, start_date: datetime, end_date: datetime, show_trade_plot: bool = False
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        show_trade_plot: bool = False,
+        pre_fetched_prices_df: pd.DataFrame = None,
+        pre_fetched_volume_df: pd.DataFrame = None,
     ) -> Dict:
         """
         Run backtest using backtrader with same logic as original implementation.
@@ -606,21 +611,30 @@ class BacktraderMomentumStrategy:
         # Generate rebalancing dates (same as original)
         rebalance_dates = self._generate_rebalance_dates(start_date, end_date)
 
-        # Fetch all historical data (same as original)
-        max_lookback = max(
-            self.config.long_term_period_days, self.config.moving_average_period
-        )
-        data_fetch_start = start_date - timedelta(days=max_lookback + 50)
+        # Use pre-fetched data if available, otherwise fetch all historical data
+        if pre_fetched_prices_df is not None and pre_fetched_volume_df is not None:
+            logger.info("Using pre-fetched data for backtest")
+            prices_df_full = pre_fetched_prices_df.copy()
+            volume_df_full = pre_fetched_volume_df.copy()
+        else:
+            logger.info("Fetching fresh data from data provider")
+            # Fetch all historical data (same as original)
+            max_lookback = max(
+                self.config.long_term_period_days, self.config.moving_average_period
+            )
+            data_fetch_start = start_date - timedelta(days=max_lookback + 50)
 
-        all_data = self.data_provider.fetch_etf_data(
-            self.config.etf_universe, data_fetch_start, end_date
-        )
+            all_data = self.data_provider.fetch_etf_data(
+                self.config.etf_universe, data_fetch_start, end_date
+            )
 
-        prices_df_full = self.data_provider.get_prices(all_data)
+            prices_df_full = self.data_provider.get_prices(all_data)
+            volume_df_full = self.data_provider.get_volumes(all_data)
+
+        # Ensure timezone-naive data
         if prices_df_full.index.tz is not None:
             prices_df_full.index = prices_df_full.index.tz_localize(None)
 
-        volume_df_full = self.data_provider.get_volumes(all_data)
         if volume_df_full is not None and volume_df_full.index.tz is not None:
             volume_df_full.index = volume_df_full.index.tz_localize(None)
 
@@ -1035,6 +1049,8 @@ def run_backtest(
     end_date: datetime = None,
     create_charts: bool = True,
     show_trade_plot: bool = False,
+    pre_fetched_prices_df: pd.DataFrame = None,
+    pre_fetched_volume_df: pd.DataFrame = None,
 ) -> Dict:
     """
     Run the ETF Momentum Strategy backtest using Backtrader.
@@ -1077,7 +1093,11 @@ def run_backtest(
     # Run backtrader strategy
     strategy = BacktraderMomentumStrategy(config)
     results = strategy.run_backtest(
-        start_date, end_date, show_trade_plot=show_trade_plot
+        start_date,
+        end_date,
+        show_trade_plot=show_trade_plot,
+        pre_fetched_prices_df=pre_fetched_prices_df,
+        pre_fetched_volume_df=pre_fetched_volume_df,
     )
 
     # Display results
@@ -1126,6 +1146,7 @@ def run_backtrader_experiments(
     start_date: datetime = None,
     end_date: datetime = None,
     max_workers: int = 4,  # For parallel execution
+    output_csv: str = None,  # New parameter
 ) -> List[Dict]:
     """
     Run Backtrader backtest with multiple parameter permutations in parallel.
@@ -1168,6 +1189,57 @@ def run_backtrader_experiments(
     print(f"Max workers: {max_workers}")
     print(f"{'='*120}")
 
+    # Pre-fetch data once for all experiments to avoid repeated yfinance calls
+    print(f"📡 Pre-fetching ETF data for all experiments...")
+
+    # Use a temporary config to get the ETF universe and data provider
+    temp_config = StrategyConfig(
+        portfolio_size=max(portfolio_sizes),  # Use max to ensure we get all needed data
+        long_term_period_days=max(long_term_periods),
+        short_term_period_days=min(short_term_periods),
+        initial_capital=max(initial_capitals),
+    )
+
+    data_provider = DataProvider(temp_config)
+
+    # Calculate lookback period based on max long term period
+    max_lookback = max(long_term_periods) + 50  # Add buffer
+    data_fetch_start = start_date - timedelta(days=max_lookback)
+
+    try:
+        all_data = data_provider.fetch_etf_data(
+            temp_config.etf_universe, data_fetch_start, end_date
+        )
+
+        prices_df_full_pre_fetched = data_provider.get_prices(all_data)
+        if prices_df_full_pre_fetched.index.tz is not None:
+            prices_df_full_pre_fetched.index = (
+                prices_df_full_pre_fetched.index.tz_localize(None)
+            )
+
+        volume_df_full_pre_fetched = data_provider.get_volumes(all_data)
+        if (
+            volume_df_full_pre_fetched is not None
+            and volume_df_full_pre_fetched.index.tz is not None
+        ):
+            volume_df_full_pre_fetched.index = (
+                volume_df_full_pre_fetched.index.tz_localize(None)
+            )
+
+        print(
+            f"✅ Successfully pre-fetched data for {len(temp_config.etf_universe)} ETFs"
+        )
+        print(
+            f"📊 Data range: {prices_df_full_pre_fetched.index[0].date()} to {prices_df_full_pre_fetched.index[-1].date()}"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to pre-fetch data: {e}")
+        print(f"❌ Failed to pre-fetch data: {e}")
+        print("⚠️  Falling back to individual data fetching per experiment (slower)")
+        prices_df_full_pre_fetched = None
+        volume_df_full_pre_fetched = None
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_params = {}
         for (
@@ -1198,6 +1270,8 @@ def run_backtrader_experiments(
                 end_date,
                 create_charts=False,
                 show_trade_plot=False,
+                pre_fetched_prices_df=prices_df_full_pre_fetched,
+                pre_fetched_volume_df=volume_df_full_pre_fetched,
             )
             future_to_params[future] = (
                 p_size,
@@ -1303,6 +1377,15 @@ def run_backtrader_experiments(
 
     print(tabulate(summary_table_data_sorted, headers=headers, tablefmt="grid"))
 
+    if output_csv:
+        try:
+            results_df = pd.DataFrame(all_results)
+            results_df.to_csv(output_csv, index=False)
+            print(f"\n✅ Experiment results saved to {output_csv}")
+        except Exception as e:
+            print(f"\n❌ Error saving results to CSV: {e}")
+            logger.error(f"Error saving results to CSV: {e}", exc_info=True)
+
     return all_results
 
 
@@ -1404,6 +1487,11 @@ def unified_cli():
         default=4,
         help="Maximum number of parallel workers for experiments (default: 4)",
     )
+    parser.add_argument(
+        "--output-csv",
+        type=str,
+        help="Optional: Path to CSV file to save experiment results.",
+    )
 
     args = parser.parse_args()
 
@@ -1477,6 +1565,7 @@ def unified_cli():
                 start_date=start_date,
                 end_date=end_date,
                 max_workers=args.max_workers,
+                output_csv=args.output_csv,
             )
             print("\n🎉 Backtrader experiments completed successfully!")
         except Exception as e:

@@ -103,6 +103,8 @@ The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, 
 
 *Comprehensive dashboard displaying cumulative returns, drawdowns, trade analysis, and risk metrics.*
 
+**Note:** The images reflect the backtest results as of July 9, 2025.
+
 ### Key Insights from Backtesting
 
 1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 136.6% total return over 5.5 years.
