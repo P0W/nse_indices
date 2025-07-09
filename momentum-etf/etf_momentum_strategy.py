@@ -19,9 +19,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
-        logging.FileHandler(log_filename, encoding='utf-8'),
-        logging.StreamHandler()  # Keep console output as well
-    ]
+        logging.FileHandler(log_filename, encoding="utf-8"),
+        logging.StreamHandler(),  # Keep console output as well
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,19 @@ class StrategyConfig:
     # Trading Parameters
     initial_capital: float = 1000000.0
     commission_rate: float = 0.001
+
+    # Trading Cost Parameters
+    brokerage_rate: float = 0.0003
+    max_brokerage: float = 20.0
+    stt_sell_rate: float = 0.00025
+    exchange_fee_rate: float = 0.0000325
+    gst_rate: float = 0.18
+    sebi_fee_rate: float = 0.0000001
+    stamp_duty_rate: float = 0.00003
+
+    # Market Impact Parameters
+    linear_impact_coefficient: float = 0.002
+    sqrt_impact_coefficient: float = 0.0005
 
 
 class DataProvider:
@@ -1102,150 +1115,74 @@ class ETFMomentumStrategy:
         }
 
 
-# Modified function to run backtest with multiple initial investment amounts
-# and permute portfolio_size and rebalance_day_of_month
-def run_multi_investment_backtest(
+def run_parameter_experiments(
     investment_amounts: List[float] = None,
-    portfolio_sizes: List[int] = None,  # New parameter: list of portfolio sizes
-    rebalance_days: List[int] = None,  # New parameter: list of rebalance days
-    exit_rank_buffers: List[
-        float
-    ] = None,  # New parameter: list of exit rank buffer multipliers
-    use_threshold_rebalancing: bool = False,
+    portfolio_sizes: List[int] = None,
+    rebalance_days: List[int] = None,
+    exit_rank_buffers: List[float] = None,
+    lookback_periods: List[Tuple[int, int]] = None,
+    use_threshold_rebalancing_values: List[bool] = None,
     profit_threshold_pct: float = 10.0,
     loss_threshold_pct: float = -5.0,
 ) -> List[Dict]:
     """
-    Run backtest with multiple initial investment amounts and permute
-    portfolio_size, rebalance_day_of_month, and exit_rank_buffer_multiplier.
+    Run backtest with multiple parameter permutations in parallel.
     """
 
-    investment_amounts = investment_amounts or [
-        1000000
-    ]  # Default to 1M if not provided
-    portfolio_sizes = portfolio_sizes or [5, 7]  # Default portfolio sizes
-    rebalance_days = rebalance_days or [1, 5, 10, 15]  # Default rebalance days
-    exit_rank_buffers = exit_rank_buffers or [
-        1.5,
-        2.0,
-        2.5,
-    ]  # Default exit rank buffers
+    # Default values for experiments
+    investment_amounts = investment_amounts or [100000]
+    portfolio_sizes = portfolio_sizes or [3, 5, 7, 10]
+    rebalance_days = rebalance_days or [5]
+    exit_rank_buffers = exit_rank_buffers or [1.0, 1.5, 2.0, 2.5]
+    lookback_periods = lookback_periods or [(180, 60), (252, 60), (252, 90)]
+    use_threshold_rebalancing_values = use_threshold_rebalancing_values or [True, False]
 
     all_results = []
 
-    # Iterate through all combinations of portfolio_size, rebalance_day_of_month, and exit_rank_buffer_multiplier
-    for p_size, r_day, exit_buffer in itertools.product(
-        portfolio_sizes, rebalance_days, exit_rank_buffers
-    ):
-        print(f"\n{'='*80}")
-        print(
-            f"RUNNING PERMUTATION: Portfolio Size = {p_size}, Rebalance Day = {r_day}, Exit Buffer = {exit_buffer}"
+    # Create all combinations of parameters
+    param_combinations = list(
+        itertools.product(
+            portfolio_sizes,
+            rebalance_days,
+            exit_rank_buffers,
+            lookback_periods,
+            use_threshold_rebalancing_values,
+            investment_amounts,
         )
-        print(f"{'='*80}")
+    )
 
-        results_for_permutation = []
+    print(f"Running {len(param_combinations)} backtest permutations in parallel...")
 
-        for initial_capital in investment_amounts:
-            print(f"\n{'='*60}")
-            print(f"TESTING WITH INITIAL CAPITAL: ₹{initial_capital:,.2f}")
-            print(f"{'='*60}")
-            # Create configuration with specific initial capital and rebalancing options
-            config = StrategyConfig(
-                portfolio_size=p_size,  # Use permuted portfolio size
-                rebalance_day_of_month=r_day,  # Use permuted rebalance day
-                exit_rank_buffer_multiplier=exit_buffer,  # Use permuted exit buffer
-                long_term_period_days=252,
-                short_term_period_days=60,
-                initial_capital=initial_capital,
-                use_threshold_rebalancing=use_threshold_rebalancing,
-                profit_threshold_pct=profit_threshold_pct,
-                loss_threshold_pct=loss_threshold_pct,
-            )
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_params = {
+            executor.submit(
+                run_single_backtest,
+                p_size,
+                r_day,
+                exit_buffer,
+                lookback[0],
+                lookback[1],
+                use_threshold,
+                initial_capital,
+                profit_threshold_pct,
+                loss_threshold_pct,
+            ): (p_size, r_day, exit_buffer, lookback, use_threshold, initial_capital)
+            for p_size, r_day, exit_buffer, lookback, use_threshold, initial_capital in param_combinations
+        }
 
-            # Initialize strategy
-            strategy = ETFMomentumStrategy(config)
-
-            # Run backtest
-            start_date = datetime(2020, 1, 1)
-            end_date = datetime(2024, 12, 31)
-
+        for future in as_completed(future_to_params):
+            params = future_to_params[future]
             try:
-                results = strategy.run_backtest(start_date, end_date)
-
-                print(f"\n=== Backtest Results for this Configuration ===")
-                print(f"Initial Capital: ₹{config.initial_capital:,.2f}")
-                print(f"Final Value: ₹{results['final_value']:,.2f}")
-                print(
-                    f"Absolute Gain: ₹{results['final_value'] - config.initial_capital:,.2f}"
-                )
-                print(f"Total Return: {results['total_return']:.2f}%")
-                print(
-                    f"Annualized Return: {results['performance_metrics']['annualized_return_pct']:.2f}%"
-                )
-                print(
-                    f"Max Drawdown: {results['performance_metrics']['max_drawdown_pct']:.2f}%"
-                )
-                print(
-                    f"Sharpe Ratio: {results['performance_metrics']['sharpe_ratio']:.2f}"
-                )
-                print(f"Total Trades: {results['performance_metrics']['total_trades']}")
-                print(
-                    f"Transaction Costs: ₹{results['performance_metrics']['transaction_costs']:,.2f}"
-                )
-                print(
-                    f"Transaction Costs %: {(results['performance_metrics']['transaction_costs']/results['final_value']*100):.2f}%"
-                )
-                print(
-                    f"Win Ratio: {results['performance_metrics'].get('win_ratio_pct', 0):.2f}%"
-                )
-
-                # Store results for comparison, including permutation parameters
-                results_for_permutation.append(
-                    {
-                        "portfolio_size": p_size,
-                        "rebalance_day": r_day,
-                        "exit_buffer": exit_buffer,  # Include exit buffer in results
-                        "initial_capital": initial_capital,
-                        "final_value": results["final_value"],
-                        "total_return_pct": results["total_return"],
-                        "annualized_return_pct": results["performance_metrics"][
-                            "annualized_return_pct"
-                        ],
-                        "sharpe_ratio": results["performance_metrics"]["sharpe_ratio"],
-                        "max_drawdown_pct": results["performance_metrics"][
-                            "max_drawdown_pct"
-                        ],
-                        "total_trades": results["performance_metrics"]["total_trades"],
-                        "transaction_costs": results["performance_metrics"][
-                            "transaction_costs"
-                        ],
-                        "transaction_costs_pct": (
-                            (
-                                results["performance_metrics"]["transaction_costs"]
-                                / results["final_value"]
-                                * 100
-                            )
-                            if results["final_value"] > 0
-                            else 0.0
-                        ),  # Handle division by zero
-                        "win_ratio_pct": results["performance_metrics"].get(
-                            "win_ratio_pct", 0
-                        ),
-                    }
-                )
-
+                result = future.result()
+                if result:
+                    all_results.append(result)
             except Exception as e:
-                logger.error(
-                    f"Backtest failed for Portfolio Size {p_size}, Rebalance Day {r_day}, Exit Buffer {exit_buffer}, Capital ₹{initial_capital:,.2f}: {e}"
-                )
-                continue
-
-        all_results.extend(results_for_permutation)
+                logger.error(f"Backtest failed for params {params}: {e}")
 
     # Print overall comparison summary for all permutations
-    print(f"\n{'='*100}")
+    print(f"\n{'='*120}")
     print("OVERALL PERMUTATION COMPARISON SUMMARY")
-    print(f"{'='*100}")
+    print(f"{'='*120}")
 
     # Prepare data for tabulate
     summary_table_data = []
@@ -1253,13 +1190,11 @@ def run_multi_investment_backtest(
         "Port. Size",
         "Rebal. Day",
         "Exit Buffer",
-        "Initial Capital",
-        "Final Value",
-        "Total Return",
+        "Lookback",
+        "Threshold Rebal",
         "Ann. Return",
         "Sharpe",
         "Max DD",
-        "Tx Costs %",
         "Win Ratio %",
     ]
     for result in all_results:
@@ -1268,20 +1203,18 @@ def run_multi_investment_backtest(
                 result["portfolio_size"],
                 result["rebalance_day"],
                 result["exit_buffer"],
-                f"₹{result['initial_capital']/100000:.0f}L",
-                f"₹{result['final_value']/100000:.1f}L",
-                f"{result['total_return_pct']:.1f}%",
+                f"{result['long_term_period_days']}d/{result['short_term_period_days']}d",
+                result["use_threshold_rebalancing"],
                 f"{result['annualized_return_pct']:.1f}%",
                 f"{result['sharpe_ratio']:.2f}",
                 f"{result['max_drawdown_pct']:.1f}%",
-                f"{result['transaction_costs_pct']:.2f}%",
                 f"{result['win_ratio_pct']:.2f}%",
             ]
         )
 
     # Sort results by annualized return (descending)
     summary_table_data_sorted = sorted(
-        summary_table_data, key=lambda x: float(x[6].replace("%", "")), reverse=True
+        summary_table_data, key=lambda x: float(x[5].replace("%", "")), reverse=True
     )
 
     print(tabulate(summary_table_data_sorted, headers=headers, tablefmt="grid"))
@@ -1289,18 +1222,76 @@ def run_multi_investment_backtest(
     return all_results
 
 
-if __name__ == "__main__":
-    # Test parameters for strategy optimization
-    test_investment_amounts = [1000000]
-    test_portfolio_sizes = [3, 5, 7]
-    test_rebalance_days = [1, 5, 10]
-    test_exit_rank_buffers = [1.5, 2.0, 2.5]
+def run_single_backtest(
+    p_size,
+    r_day,
+    exit_buffer,
+    long_term_period,
+    short_term_period,
+    use_threshold,
+    initial_capital,
+    profit_threshold_pct,
+    loss_threshold_pct,
+):
+    """Helper function to run a single backtest instance."""
+    config = StrategyConfig(
+        portfolio_size=p_size,
+        rebalance_day_of_month=r_day,
+        exit_rank_buffer_multiplier=exit_buffer,
+        long_term_period_days=long_term_period,
+        short_term_period_days=short_term_period,
+        initial_capital=initial_capital,
+        use_threshold_rebalancing=use_threshold,
+        profit_threshold_pct=profit_threshold_pct,
+        loss_threshold_pct=loss_threshold_pct,
+    )
 
-    # Run the backtest with permutations
-    run_multi_investment_backtest(
-        investment_amounts=test_investment_amounts,
+    strategy = ETFMomentumStrategy(config)
+    start_date = datetime(2020, 1, 1)
+    end_date = datetime(2024, 12, 31)
+    results = strategy.run_backtest(start_date, end_date)
+
+    return {
+        "portfolio_size": p_size,
+        "rebalance_day": r_day,
+        "exit_buffer": exit_buffer,
+        "long_term_period_days": long_term_period,
+        "short_term_period_days": short_term_period,
+        "use_threshold_rebalancing": use_threshold,
+        "initial_capital": initial_capital,
+        "final_value": results["final_value"],
+        "total_return_pct": results["total_return"],
+        "annualized_return_pct": results["performance_metrics"][
+            "annualized_return_pct"
+        ],
+        "sharpe_ratio": results["performance_metrics"]["sharpe_ratio"],
+        "max_drawdown_pct": results["performance_metrics"]["max_drawdown_pct"],
+        "total_trades": results["performance_metrics"]["total_trades"],
+        "transaction_costs": results["performance_metrics"]["transaction_costs"],
+        "transaction_costs_pct": (
+            (
+                results["performance_metrics"]["transaction_costs"]
+                / results["final_value"]
+                * 100
+            )
+            if results["final_value"] > 0
+            else 0.0
+        ),
+        "win_ratio_pct": results["performance_metrics"].get("win_ratio_pct", 0),
+    }
+
+
+if __name__ == "__main__":
+    # Define the parameter grid for experiments
+    test_portfolio_sizes = [3, 5, 7, 10]
+    test_exit_rank_buffers = [1.0, 1.5, 2.0, 2.5]
+    test_lookback_periods = [(180, 60), (252, 60), (252, 90)]
+    test_use_threshold_rebalancing_values = [True, False]
+
+    # Run the experiments
+    run_parameter_experiments(
         portfolio_sizes=test_portfolio_sizes,
-        rebalance_days=test_rebalance_days,
         exit_rank_buffers=test_exit_rank_buffers,
-        use_threshold_rebalancing=False,
+        lookback_periods=test_lookback_periods,
+        use_threshold_rebalancing_values=test_use_threshold_rebalancing_values,
     )

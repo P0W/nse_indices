@@ -3,6 +3,14 @@ Backtrader implementation of ETF Momentum Strategy.
 
 """
 
+import sys
+import codecs
+
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import itertools
+
 import backtrader as bt
 import backtrader.feeds as btfeeds
 import pandas as pd
@@ -32,15 +40,15 @@ warnings.filterwarnings("ignore")
 class TradingCostCalculator:
     """Calculate comprehensive trading costs for Indian equity markets."""
 
-    def __init__(self):
+    def __init__(self, config: StrategyConfig):
         # Indian market cost structure
-        self.brokerage_rate = 0.0003  # 0.03% or ₹20 per trade, whichever is lower
-        self.max_brokerage = 20.0  # Maximum brokerage per trade
-        self.stt_sell_rate = 0.00025  # 0.025% on sell side for delivery
-        self.exchange_fee_rate = 0.0000325  # 0.00325% of turnover
-        self.gst_rate = 0.18  # 18% GST on brokerage and exchange fees
-        self.sebi_fee_rate = 0.0000001  # ₹0.01 per lakh
-        self.stamp_duty_rate = 0.00003  # 0.003% on buy side
+        self.brokerage_rate = config.brokerage_rate
+        self.max_brokerage = config.max_brokerage
+        self.stt_sell_rate = config.stt_sell_rate
+        self.exchange_fee_rate = config.exchange_fee_rate
+        self.gst_rate = config.gst_rate
+        self.sebi_fee_rate = config.sebi_fee_rate
+        self.stamp_duty_rate = config.stamp_duty_rate
 
     def calculate_costs(
         self, ticker: str, shares: float, price: float, action: str
@@ -82,10 +90,10 @@ class TradingCostCalculator:
 class MarketImpactModel:
     """Model market impact and slippage for order execution."""
 
-    def __init__(self):
+    def __init__(self, config: StrategyConfig):
         # More realistic impact coefficients for Indian ETF market
-        self.linear_impact_coefficient = 0.002  # 0.2% impact per 1% of daily volume
-        self.sqrt_impact_coefficient = 0.0005  # Lower square root coefficient
+        self.linear_impact_coefficient = config.linear_impact_coefficient
+        self.sqrt_impact_coefficient = config.sqrt_impact_coefficient
 
     def estimate_slippage(
         self,
@@ -147,8 +155,8 @@ class MomentumPortfolioStrategy(bt.Strategy):
         self.momentum_calculator = MomentumCalculator(self.config)
 
         # Initialize real-world trading components
-        self.cost_calculator = TradingCostCalculator()
-        self.market_impact_model = MarketImpactModel()
+        self.cost_calculator = TradingCostCalculator(self.config)
+        self.market_impact_model = MarketImpactModel(self.config)
 
         # Track portfolio state
         self.portfolio_history = []
@@ -187,6 +195,13 @@ class MomentumPortfolioStrategy(bt.Strategy):
         logger.info(
             "Real-world constraints enabled: market impact, liquidity limits, comprehensive costs"
         )
+
+        # Add EMA indicator for plotting
+        self.emas = {}
+        for ticker, data_feed in self.data_feeds.items():
+            self.emas[ticker] = bt.indicators.ExponentialMovingAverage(
+                data_feed.close, period=self.config.moving_average_period
+            )
 
     def start(self):
         """Called before the strategy starts."""
@@ -227,7 +242,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
                     )
 
         # Always record daily portfolio state for tracking
-        self.record_daily_portfolio_state(current_datetime)
+        self.record_portfolio_state(current_datetime, [])
 
     def is_market_suitable_for_rebalancing(self) -> bool:
         """Check if market conditions are suitable for rebalancing."""
@@ -454,7 +469,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
                                 rebalance_date,
                             )
 
-    def execute_realistic_buy(
+    def _execute_realistic_trade(
         self,
         ticker: str,
         shares: float,
@@ -462,14 +477,17 @@ class MomentumPortfolioStrategy(bt.Strategy):
         volumes: pd.Series,
         volatilities: Dict[str, float],
         date: datetime,
+        action: str,
     ):
-        """Execute a buy order with realistic market constraints."""
+        """Executes a trade with realistic market constraints."""
         current_price = prices.get(ticker, 0)
         daily_volume = volumes.get(ticker, 0)
         if len(volumes) == 0:
-            daily_volume = 1000000  # Default to 1M if no volume data
-            logger.warning(f"No volume data available for {ticker} for Buy")
-        
+            daily_volume = 100000  # Default to 100k if no volume data
+            logger.warning(
+                f"No volume data available for {ticker}. Using default volume."
+            )
+
         volatility = volatilities.get(ticker, 0.2)  # Default 20% volatility
 
         if current_price <= 0:
@@ -486,27 +504,33 @@ class MomentumPortfolioStrategy(bt.Strategy):
 
         # Estimate slippage and market impact
         slippage = self.market_impact_model.estimate_slippage(
-            ticker, adjusted_shares, daily_volume, volatility, "BUY"
+            ticker, adjusted_shares, daily_volume, volatility, action.upper()
         )
 
         # Calculate execution price with slippage
-        execution_price = current_price * (1 + slippage)
+        if action.upper() == "BUY":
+            execution_price = current_price * (1 + slippage)
+        else:
+            execution_price = current_price * (1 - slippage)
 
         # Calculate comprehensive trading costs
         cost_breakdown = self.cost_calculator.calculate_costs(
-            ticker, adjusted_shares, execution_price, "BUY"
+            ticker, adjusted_shares, execution_price, action.upper()
         )
 
         # Execute in backtrader
         if ticker in self.data_feeds:
             data_feed = self.data_feeds[ticker]
-            self.buy(data=data_feed, size=adjusted_shares)
+            if action.upper() == "BUY":
+                self.buy(data=data_feed, size=adjusted_shares)
+            else:
+                self.sell(data=data_feed, size=adjusted_shares)
 
             # Record trade with comprehensive details
             self.record_realistic_trade(
                 date,
                 ticker,
-                "buy",
+                action,
                 adjusted_shares,
                 execution_price,
                 cost_breakdown["total_cost"],
@@ -514,9 +538,23 @@ class MomentumPortfolioStrategy(bt.Strategy):
             )
 
             logger.info(
-                f"Bought {adjusted_shares:.2f} shares of {ticker} at ₹{execution_price:.2f} "
+                f"{action.capitalize()} {adjusted_shares:.2f} shares of {ticker} at ₹{execution_price:.2f} "
                 f"(slippage: {slippage:.2%}, costs: ₹{cost_breakdown['total_cost']:.2f})"
             )
+
+    def execute_realistic_buy(
+        self,
+        ticker: str,
+        shares: float,
+        prices: pd.Series,
+        volumes: pd.Series,
+        volatilities: Dict[str, float],
+        date: datetime,
+    ):
+        """Execute a buy order with realistic market constraints."""
+        self._execute_realistic_trade(
+            ticker, shares, prices, volumes, volatilities, date, "buy"
+        )
 
     def execute_realistic_sell(
         self,
@@ -528,60 +566,9 @@ class MomentumPortfolioStrategy(bt.Strategy):
         date: datetime,
     ):
         """Execute a sell order with realistic market constraints."""
-        current_price = prices.get(ticker, 0)
-        daily_volume = volumes.get(ticker, 0)
-        
-        if len(volumes) == 0:
-            daily_volume = 1000000
-            logger.warning(f"No volume data available for {ticker} for Sell")
-
-        volatility = volatilities.get(ticker, 0.2)
-
-        if current_price <= 0:
-            logger.warning(f"Invalid price for {ticker}: {current_price}")
-            return
-
-        # Validate liquidity and adjust order size
-        is_valid, adjusted_shares = self.validate_liquidity(
-            ticker, shares, daily_volume
+        self._execute_realistic_trade(
+            ticker, shares, prices, volumes, volatilities, date, "sell"
         )
-        if not is_valid:
-            logger.warning(f"Order rejected for {ticker}: insufficient liquidity")
-            return
-
-        # Estimate slippage and market impact
-        slippage = self.market_impact_model.estimate_slippage(
-            ticker, adjusted_shares, daily_volume, volatility, "SELL"
-        )
-
-        # Calculate execution price with slippage (negative for sells)
-        execution_price = current_price * (1 - slippage)
-
-        # Calculate comprehensive trading costs
-        cost_breakdown = self.cost_calculator.calculate_costs(
-            ticker, adjusted_shares, execution_price, "SELL"
-        )
-
-        # Execute in backtrader
-        if ticker in self.data_feeds:
-            data_feed = self.data_feeds[ticker]
-            self.sell(data=data_feed, size=adjusted_shares)
-
-            # Record trade with comprehensive details
-            self.record_realistic_trade(
-                date,
-                ticker,
-                "sell",
-                adjusted_shares,
-                execution_price,
-                cost_breakdown["total_cost"],
-                slippage,
-            )
-
-            logger.info(
-                f"Sold {adjusted_shares:.2f} shares of {ticker} at ₹{execution_price:.2f} "
-                f"(slippage: {slippage:.2%}, costs: ₹{cost_breakdown['total_cost']:.2f})"
-            )
 
     def record_realistic_trade(
         self,
@@ -613,29 +600,6 @@ class MomentumPortfolioStrategy(bt.Strategy):
                 "total_costs": total_costs,
                 "slippage_pct": slippage,
                 "slippage_cost": slippage_cost,
-                "cost" if action == "buy" else "proceeds": cost_or_proceeds,
-            }
-        )
-
-    def record_trade(
-        self, date: datetime, ticker: str, action: str, shares: float, price: float
-    ):
-        """Record trade in trade log (legacy method for compatibility)."""
-        cost_or_proceeds = shares * price
-        commission = cost_or_proceeds * self.config.commission_rate
-        self.transaction_costs += commission
-
-        self.trade_log.append(
-            {
-                "date": date,
-                "ticker": ticker,
-                "action": action,
-                "shares": shares,
-                "price": price,
-                "value": cost_or_proceeds,
-                "total_costs": commission,
-                "slippage_pct": 0.0,  # Legacy trades have no slippage
-                "slippage_cost": 0.0,
                 "cost" if action == "buy" else "proceeds": cost_or_proceeds,
             }
         )
@@ -708,16 +672,6 @@ class MomentumPortfolioStrategy(bt.Strategy):
             f"  Average cost per trade: ₹{self.transaction_costs/len(self.trade_log) if self.trade_log else 0:,.2f}"
         )
 
-    def record_daily_portfolio_state(self, date: datetime):
-        """Record daily portfolio state (optional, for detailed tracking)."""
-        # Only record on rebalancing dates to match original implementation
-        pass
-
-    def prenext(self):
-        """Called before we have enough data for all indicators."""
-        # This is called for each bar before we have enough data
-        pass
-
 
 class BacktraderMomentumStrategy:
     """
@@ -730,7 +684,9 @@ class BacktraderMomentumStrategy:
         self.data_provider = DataProvider(config)
         self.momentum_calculator = MomentumCalculator(config)
 
-    def run_backtest(self, start_date: datetime, end_date: datetime) -> Dict:
+    def run_backtest(
+        self, start_date: datetime, end_date: datetime, show_trade_plot: bool = False
+    ) -> Dict:
         """
         Run backtest using backtrader with same logic as original implementation.
 
@@ -844,6 +800,12 @@ class BacktraderMomentumStrategy:
         # Run backtest
         logger.info("Running backtrader backtest...")
         results = cerebro.run()
+
+        # Generate trade plot if requested
+        if show_trade_plot:
+            print(f"\n📊 Generating trade plot...")
+            cerebro.plot(style="candlestick", barup="green", bardown="red")
+            print(f"📁 Trade plot generated.")
 
         # Extract results
         strategy_result = results[0]
@@ -1023,7 +985,23 @@ class BacktraderMomentumStrategy:
         else:
             volatility = 0.0
 
-        max_drawdown = ((value_series / value_series.expanding().max()) - 1).min() * 100
+        # Max Drawdown Amount and Recovery
+        drawdown_series = (value_series / value_series.expanding().max()) - 1
+        max_drawdown_pct = drawdown_series.min() * 100
+        mdd_end_date = drawdown_series.idxmin()
+        peak_value_before_mdd = value_series.loc[:mdd_end_date].max()
+        peak_date_before_mdd = value_series.loc[:mdd_end_date].idxmax()
+        trough_value_at_mdd = value_series[mdd_end_date]
+        max_drawdown_amount = peak_value_before_mdd - trough_value_at_mdd
+
+        # Recovery
+        recovery_series = value_series.loc[mdd_end_date:]
+        recovery_date_series = recovery_series[recovery_series >= peak_value_before_mdd]
+        if not recovery_date_series.empty:
+            recovery_date = recovery_date_series.index[0]
+            days_to_recovery = (recovery_date - peak_date_before_mdd).days
+        else:
+            days_to_recovery = "Not Recovered"
 
         # Sharpe ratio
         risk_free_rate = 0.03
@@ -1051,10 +1029,11 @@ class BacktraderMomentumStrategy:
         else:
             sharpe_ratio = 0.0
 
-        # Win ratio calculation (same as original)
+        # Win ratio and streak calculation
         buy_prices = {}
         win_trades = 0
         total_trades = 0
+        trade_outcomes = []
 
         for trade in trade_log:
             if trade["action"] == "buy":
@@ -1100,19 +1079,47 @@ class BacktraderMomentumStrategy:
                         avg_buy_price /= total_shares_matched
                         if sell_price > avg_buy_price:
                             win_trades += 1
+                            trade_outcomes.append(1)
+                        else:
+                            trade_outcomes.append(-1)
                         total_trades += 1
 
         win_ratio = (win_trades / total_trades * 100) if total_trades > 0 else 0
+
+        # Calculate streaks
+        max_win_streak = 0
+        max_loss_streak = 0
+        if trade_outcomes:
+            current_win_streak = 0
+            current_loss_streak = 0
+            for outcome in trade_outcomes:
+                if outcome == 1:
+                    current_win_streak += 1
+                    current_loss_streak = 0
+                else:  # outcome == -1
+                    current_loss_streak += 1
+                    current_win_streak = 0
+                max_win_streak = max(max_win_streak, current_win_streak)
+                max_loss_streak = max(max_loss_streak, current_loss_streak)
 
         return {
             "total_return_pct": total_return,
             "annualized_return_pct": annualized_return,
             "volatility_pct": volatility,
-            "max_drawdown_pct": max_drawdown,
+            "max_drawdown_pct": max_drawdown_pct,
             "sharpe_ratio": sharpe_ratio,
             "total_trades": len(trade_log),
             "transaction_costs": strategy_result.transaction_costs,
             "win_ratio_pct": win_ratio,
+            "max_drawdown_amount": max_drawdown_amount,
+            "days_to_recovery": days_to_recovery,
+            "max_win_streak": max_win_streak,
+            "max_loss_streak": max_loss_streak,
+            "mdd_end_date": mdd_end_date,
+            "trough_value_at_mdd": trough_value_at_mdd,
+            "recovery_date": (
+                recovery_date if isinstance(days_to_recovery, int) else "Not Recovered"
+            ),
         }
 
 
@@ -1121,6 +1128,7 @@ def run_backtest(
     start_date: datetime = None,
     end_date: datetime = None,
     create_charts: bool = True,
+    show_trade_plot: bool = False,
 ) -> Dict:
     """
     Run the ETF Momentum Strategy backtest using Backtrader.
@@ -1162,7 +1170,9 @@ def run_backtest(
 
     # Run backtrader strategy
     strategy = BacktraderMomentumStrategy(config)
-    results = strategy.run_backtest(start_date, end_date)
+    results = strategy.run_backtest(
+        start_date, end_date, show_trade_plot=show_trade_plot
+    )
 
     # Display results
     print(f"\n🎯 BACKTEST RESULTS:")
@@ -1406,6 +1416,7 @@ def create_main_dashboard(df, config, results, start_date, end_date):
     ax7.axis("off")
 
     # Performance summary text
+    metrics = results["performance_metrics"]
     summary_text = [
         f"🏁 Strategy Performance Summary",
         f"",
@@ -1413,10 +1424,16 @@ def create_main_dashboard(df, config, results, start_date, end_date):
         f"Final Value: ₹{results['final_value']:,.0f}",
         f"Profit/Loss: ₹{results['final_value'] - config.initial_capital:,.0f}",
         f"",
-        f"📊 Risk Metrics:",
+        f"📊 Risk & Trade Metrics:",
+        f"• Max Drawdown: {metrics.get('max_drawdown_pct', 0):.1f}% (₹{metrics.get('max_drawdown_amount', 0):,.0f})",
+        f"  - Trough Value: ₹{metrics.get('trough_value_at_mdd', 0):,.0f} on {metrics.get('mdd_end_date', datetime.now()).strftime('%Y-%m-%d')}",
+        f"• Recovery Days: {metrics.get('days_to_recovery', 'N/A')}",
+        f"  - Recovery Date: {metrics.get('recovery_date', 'N/A').strftime('%Y-%m-%d') if isinstance(metrics.get('recovery_date'), datetime) else metrics.get('recovery_date', 'N/A')}",
         f"• Best Month: {df_monthly.max():.1f}%",
         f"• Worst Month: {df_monthly.min():.1f}%",
         f"• Positive Months: {(df_monthly > 0).sum()}/{len(df_monthly)}",
+        f"• Max Win Streak: {metrics.get('max_win_streak', 0)} trades",
+        f"• Max Loss Streak: {metrics.get('max_loss_streak', 0)} trades",
         f"",
         f"⚙️ Strategy Config:",
         f"• Portfolio Size: {config.portfolio_size}",
@@ -1709,7 +1726,7 @@ if __name__ == "__main__":
         portfolio_size=5,
         rebalance_day_of_month=5,
         exit_rank_buffer_multiplier=2.0,
-        long_term_period_days=252,
+        long_term_period_days=180,
         short_term_period_days=60,
         initial_capital=100000,
         use_threshold_rebalancing=False,
@@ -1721,7 +1738,9 @@ if __name__ == "__main__":
 
     # Run the backtest
     try:
-        results = run_backtest(config, start_date, end_date, create_charts=True)
+        results = run_backtest(
+            config, start_date, end_date, create_charts=True, show_trade_plot=False
+        )
         print("\n🎉 Strategy execution completed successfully!")
 
     except Exception as e:
