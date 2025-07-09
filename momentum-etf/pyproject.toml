@@ -24,7 +24,6 @@ backtest = "backtrader_momentum_strategy:unified_cli"
 
 [tool.setuptools]
 py-modules = [
-    "analyzer",
     "backtrader_momentum_strategy", 
     "cli",
     "core",
