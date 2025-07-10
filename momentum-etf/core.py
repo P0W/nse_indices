@@ -14,6 +14,7 @@ from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
 import pandas as pd
 import numpy as np
@@ -21,8 +22,11 @@ import yfinance as yf
 
 warnings.filterwarnings("ignore")
 
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+
 # Configure logging
-log_filename = f"momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+log_filename = f"logs/momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
 
 class ColoredFormatter(logging.Formatter):
@@ -47,7 +51,7 @@ class ColoredFormatter(logging.Formatter):
 
 
 # Configure logging
-log_filename = f"momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+log_filename = f"logs/momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
 # Create a file handler
 file_handler = logging.FileHandler(log_filename, encoding="utf-8")
