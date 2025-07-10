@@ -157,7 +157,7 @@ uv run  portfolio
 ### 2. 🕐 **Time Travel Analysis**
 
 ```bash
-uv run cli.py historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 500000 --size 7
+uv run historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 500000 --size 7
 ```
 
 **What you get:** See how the strategy evolved between any two dates and what portfolio changes were needed.
