@@ -376,7 +376,7 @@ Start with a small amount, test the system, and gradually scale up as you gain c
 
 ```bash
 # Take the first step
-uv run cli.py portfolio --amount 100000
+uv run portfolio --amount 100000
 ```
 
 *Happy investing! 🚀*
