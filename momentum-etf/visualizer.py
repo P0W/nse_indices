@@ -1,7 +1,7 @@
 # Performance Visualization Module for ETF Momentum Strategy.
-
 # This module provides functions to generate comprehensive performance charts
 # and dashboards for analyzing backtest results.
+# Author: Prashant Srivastava
 
 from datetime import datetime
 from typing import Dict

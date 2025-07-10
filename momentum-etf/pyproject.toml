@@ -20,6 +20,8 @@ dependencies = [
 [project.scripts]
 portfolio = "cli:portfolio_cli"
 rebalance = "cli:rebalance_cli"
+historical = "cli:history_cli"
+quick-backtest = "cli:backtest_cli"
 backtest = "backtrader_momentum_strategy:unified_cli"
 
 [tool.setuptools]

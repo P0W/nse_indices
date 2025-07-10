@@ -1,3 +1,8 @@
+"""
+Main strategy logic for ETF momentum strategy.
+Author : Prashant Srivastava
+"""
+
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta

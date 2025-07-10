@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 """
-ETF Portfolio CLI - Simple 4-command interface for ETF momentum portfolio management
-
-Usage with uv:
-    uv run cli.py portfolio               # Show current optimal portfolio with allocations
-    uv run cli.py rebalance               # Show rebalancing needed for existing portfolio
-    uv run cli.py historical              # Show portfolio changes between dates
-    uv run cli.py backtest                # Run historical backtest
+ETF Portfolio CLI Functions - Individual entry points for ETF momentum portfolio management
+Author : Prashant Srivastava
 """
 
 import argparse
@@ -20,9 +15,11 @@ from etf_momentum_strategy import (
 from core import StrategyConfig
 
 
-def portfolio_cli():
-    """Entry point for portfolio command with CLI arguments."""
-    parser = argparse.ArgumentParser(description="Show current optimal ETF portfolio")
+# Shared parser factories to eliminate duplication
+
+
+def _create_portfolio_parser(parser):
+    """Add portfolio command arguments to a parser."""
     parser.add_argument(
         "--amount",
         type=float,
@@ -32,7 +29,91 @@ def portfolio_cli():
     parser.add_argument(
         "--size", type=int, default=5, help="Portfolio size (default: 5)"
     )
+    return parser
 
+
+def _create_rebalance_parser(parser):
+    """Add rebalance command arguments to a parser."""
+    parser.add_argument(
+        "--holdings-file",
+        type=str,
+        required=True,
+        help="Path to JSON, CSV, or Smallcase export file containing current holdings",
+    )
+    parser.add_argument(
+        "--from-date",
+        type=str,
+        required=False,
+        help="Purchase date in YYYY-MM-DD format (used for price lookup when price is -1, not needed for Smallcase exports)",
+    )
+    parser.add_argument(
+        "--size", type=int, default=5, help="Portfolio size (default: 5)"
+    )
+    return parser
+
+
+def _create_historical_parser(parser):
+    """Add historical command arguments to a parser."""
+    parser.add_argument(
+        "--from-date", required=True, help="Start date in YYYY-MM-DD format"
+    )
+    parser.add_argument(
+        "--to-date", help="End date in YYYY-MM-DD format (default: today)"
+    )
+    parser.add_argument(
+        "--amount",
+        type=float,
+        default=1000000,
+        help="Investment amount in INR (default: 1000000)",
+    )
+    parser.add_argument(
+        "--size", type=int, default=5, help="Portfolio size (default: 5)"
+    )
+    return parser
+
+
+def _create_backtest_parser(parser):
+    """Add backtest command arguments to a parser."""
+    parser.add_argument(
+        "--amounts",
+        nargs="+",
+        type=float,
+        default=[1000000],
+        help="Initial investment amounts to test (default: 1000000)",
+    )
+    parser.add_argument(
+        "--size",
+        type=int,
+        default=5,
+        help="Portfolio size (number of ETFs to hold, default: 5)",
+    )
+    parser.add_argument(
+        "--use-threshold",
+        action="store_true",
+        help="Enable profit/loss threshold-based rebalancing",
+    )
+    parser.add_argument(
+        "--profit-threshold",
+        type=float,
+        default=10.0,
+        help="Profit threshold percent for rebalancing (default: 10.0)",
+    )
+    parser.add_argument(
+        "--loss-threshold",
+        type=float,
+        default=-5.0,
+        help="Loss threshold percent for rebalancing (default: -5.0)",
+    )
+    return parser
+
+
+# Individual CLI entry points using shared parsers
+
+
+def portfolio_cli():
+    """Entry point for portfolio command with CLI arguments."""
+    parser = argparse.ArgumentParser(description="Show current optimal ETF portfolio")
+    parser = _create_portfolio_parser(parser)
     args = parser.parse_args()
     show_current_portfolio(investment_amount=args.amount, portfolio_size=args.size)
 
@@ -40,27 +121,49 @@ def portfolio_cli():
 def rebalance_cli():
     """Entry point for rebalance command with CLI arguments."""
     parser = argparse.ArgumentParser(description="Show portfolio rebalancing analysis")
-    parser.add_argument(
-        "--holdings-file",
-        type=str,
-        required=True,
-        help="Path to JSON or CSV file containing current holdings",
-    )
-    parser.add_argument(
-        "--from-date",
-        type=str,
-        required=True,
-        help="Purchase date in YYYY-MM-DD format (used for price lookup when price is -1)",
-    )
-    parser.add_argument(
-        "--size", type=int, default=5, help="Portfolio size (default: 5)"
-    )
-
+    parser = _create_rebalance_parser(parser)
     args = parser.parse_args()
     show_rebalancing_needs(
         holdings_file=args.holdings_file,
         from_date=args.from_date,
         portfolio_size=args.size,
+    )
+
+
+def history_cli():
+    """Entry point for historical command with CLI arguments."""
+    parser = argparse.ArgumentParser(
+        description="Show portfolio changes between two dates"
+    )
+    parser = _create_historical_parser(parser)
+    args = parser.parse_args()
+    show_historical_portfolio(
+        from_date_str=args.from_date,
+        to_date_str=args.to_date,
+        investment_amount=args.amount,
+        portfolio_size=args.size,
+    )
+
+
+def backtest_cli():
+    """Entry point for backtest command with CLI arguments."""
+    parser = argparse.ArgumentParser(description="Quick ETF Momentum Strategy Backtest")
+    parser = _create_backtest_parser(parser)
+    args = parser.parse_args()
+
+    print(f"🚀 Quick Backtest - Portfolio Size: {args.size}, Amounts: {args.amounts}")
+    if args.use_threshold:
+        print(
+            f"📊 Threshold Rebalancing: Profit {args.profit_threshold}%, Loss {args.loss_threshold}%"
+        )
+
+    # Run the backtest
+    run_parameter_experiments(
+        investment_amounts=args.amounts,
+        portfolio_sizes=[args.size],
+        use_threshold_rebalancing_values=[args.use_threshold],
+        profit_threshold_pct=args.profit_threshold,
+        loss_threshold_pct=args.loss_threshold,
     )
 
 
@@ -167,15 +270,18 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
     print(f"🔄 PORTFOLIO REBALANCING ANALYSIS")
     print("=" * 70)
 
-    # Parse from_date
-    try:
-        purchase_date = datetime.strptime(from_date, "%Y-%m-%d")
-    except ValueError:
-        print(f"❌ Error: Invalid from-date format. Use YYYY-MM-DD format.")
-        return
+    # Parse from_date (optional for Smallcase exports)
+    purchase_date = None
+    if from_date:
+        try:
+            purchase_date = datetime.strptime(from_date, "%Y-%m-%d")
+        except ValueError:
+            print(f"❌ Error: Invalid from-date format. Use YYYY-MM-DD format.")
+            return
 
     current_date = datetime.now()
-    print(f"📅 Purchase Date: {purchase_date.strftime('%Y-%m-%d')}")
+    if purchase_date:
+        print(f"📅 Purchase Date: {purchase_date.strftime('%Y-%m-%d')}")
     print(f"📅 Current Date: {current_date.strftime('%Y-%m-%d')}")
     print(f"🎯 Target Portfolio Size: {portfolio_size} ETFs")
 
@@ -224,23 +330,109 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
 
         elif holdings_path.suffix.lower() == ".csv":
             # Load from CSV
-            df = pd.read_csv(holdings_path)
-            required_columns = ["symbol", "units"]
+            # First, try to detect if this is a Smallcase export by checking for the data structure
+            try:
+                # Read the first few lines to detect format
+                with open(holdings_path, "r") as f:
+                    lines = f.readlines()
 
-            if not all(col in df.columns for col in required_columns):
-                print(f"❌ Error: CSV must contain columns: {required_columns}")
-                print(
-                    f"   Optional column: 'price' (use -1 to fetch from purchase date)"
-                )
+                # Look for the header line with Ticker, Shares, etc.
+                header_line_idx = None
+                for i, line in enumerate(lines):
+                    if (
+                        "Ticker" in line
+                        and "Shares" in line
+                        and "Avg Buy Price" in line
+                    ):
+                        header_line_idx = i
+                        break
+
+                if header_line_idx is not None:
+                    # This is a Smallcase export - read from the header line
+                    df = pd.read_csv(holdings_path, skiprows=header_line_idx)
+                    print(
+                        f"📊 Detected Smallcase export format (skipped {header_line_idx} header rows)"
+                    )
+
+                    # Check if this is a Smallcase export format
+                    if (
+                        "Ticker" in df.columns
+                        and "Shares" in df.columns
+                        and "Avg Buy Price (Rs.)" in df.columns
+                    ):
+                        # Smallcase export format: Ticker, Shares, Avg Buy Price (Rs.)
+                        for _, row in df.iterrows():
+                            ticker = str(row["Ticker"]).strip()
+                            shares = row["Shares"]
+                            avg_buy_price = row["Avg Buy Price (Rs.)"]
+
+                            if ticker and shares > 0:
+                                # Add .NS suffix if not present for Yahoo Finance compatibility
+                                if not ticker.endswith(".NS") and not ticker.endswith(
+                                    ".BO"
+                                ):
+                                    ticker = ticker + ".NS"
+
+                                current_holdings[ticker] = {
+                                    "units": shares,
+                                    "purchase_price": avg_buy_price,
+                                }
+                    else:
+                        raise ValueError(
+                            "Smallcase format detected but required columns not found"
+                        )
+                else:
+                    # Not a Smallcase export - try standard CSV format
+                    df = pd.read_csv(holdings_path)
+
+                    # Standard CSV format - check required columns
+                    required_columns = ["symbol", "units"]
+
+                    if not all(col in df.columns for col in required_columns):
+                        print(f"❌ Error: CSV must contain columns: {required_columns}")
+                        print(
+                            f"   Optional column: 'price' (use -1 to fetch from purchase date)"
+                        )
+                        print(
+                            f"   OR use Smallcase export format with columns: Ticker, Shares, Avg Buy Price (Rs.)"
+                        )
+                        return
+
+                    for _, row in df.iterrows():
+                        symbol = str(row["symbol"]).strip()
+                        units = row["units"]
+                        price = row.get("price", -1)
+
+                        if symbol and units > 0:
+                            current_holdings[symbol] = {
+                                "units": units,
+                                "purchase_price": price,
+                            }
+
+                    # Check if any holdings have price = -1 and from_date is not provided
+                    has_missing_prices = any(
+                        holding["purchase_price"] == -1
+                        for holding in current_holdings.values()
+                    )
+
+                    if has_missing_prices and not from_date:
+                        print(
+                            f"❌ Error: --from-date is required when using standard CSV format with price = -1"
+                        )
+                        print(
+                            f"   Found holdings with missing prices that need historical lookup"
+                        )
+                        print(
+                            f"   Use --from-date YYYY-MM-DD to specify purchase date for price lookup"
+                        )
+                        print(
+                            f"   OR use Smallcase export format which includes average buy prices"
+                        )
+                        return
+
+            except Exception as csv_error:
+                print(f"❌ Error reading CSV file: {csv_error}")
                 return
-
-            for _, row in df.iterrows():
-                symbol = str(row["symbol"]).strip()
-                units = row["units"]
-                price = row.get("price", -1)
-
-                if symbol and units > 0:
-                    current_holdings[symbol] = {"units": units, "purchase_price": price}
 
         else:
             print(f"❌ Error: Unsupported file format. Use .json or .csv")
@@ -252,6 +444,18 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
 
         print(f"\n📊 CURRENT HOLDINGS LOADED:")
         print(f"   Found {len(current_holdings)} ETFs in portfolio")
+
+        # Show summary of holdings format and validation
+        holdings_with_prices = sum(
+            1 for h in current_holdings.values() if h["purchase_price"] != -1
+        )
+        holdings_without_prices = len(current_holdings) - holdings_with_prices
+
+        if holdings_without_prices > 0:
+            print(f"   Holdings with prices: {holdings_with_prices}")
+            print(f"   Holdings needing historical lookup: {holdings_without_prices}")
+        else:
+            print(f"   All holdings have purchase prices ✅")
 
     except Exception as e:
         print(f"❌ Error loading holdings file: {e}")
@@ -276,31 +480,51 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
 
         print(f"📅 Market Data Date: {status['market_data_date']}")
 
-        # Get historical prices for purchase date (for holdings with price = -1)
-        print(f"\n📡 Fetching historical prices for purchase date...")
-
-        # Fetch historical data
-        data_start = purchase_date - timedelta(days=30)  # Buffer for weekends/holidays
-        data_end = purchase_date + timedelta(days=5)
-
-        all_tickers = list(current_holdings.keys())
-        historical_data = strategy.data_provider.fetch_etf_data(
-            all_tickers, data_start, data_end
+        # Check if we need historical prices (any holdings with price = -1)
+        need_historical_prices = any(
+            holding["purchase_price"] == -1 for holding in current_holdings.values()
         )
-        historical_prices = strategy.data_provider.get_prices(historical_data)
 
-        # Convert timezone-aware index to timezone-naive if needed
-        if historical_prices.index.tz is not None:
-            historical_prices.index = historical_prices.index.tz_localize(None)
+        purchase_prices = {}
+        if need_historical_prices:
+            if not purchase_date:
+                print(
+                    f"❌ Error: --from-date is required when holdings have price = -1"
+                )
+                print(
+                    f"   This should have been caught earlier - please report this as a bug"
+                )
+                return
 
-        # Find closest available date to purchase_date
-        available_dates = historical_prices.index
-        closest_date = min(available_dates, key=lambda x: abs(x - purchase_date))
-        purchase_prices = historical_prices.loc[closest_date]
+            # Get historical prices for purchase date (for holdings with price = -1)
+            print(f"\n📡 Fetching historical prices for purchase date...")
 
-        print(
-            f"   Using prices from: {closest_date.strftime('%Y-%m-%d')} (closest to purchase date)"
-        )
+            # Fetch historical data
+            data_start = purchase_date - timedelta(
+                days=30
+            )  # Buffer for weekends/holidays
+            data_end = purchase_date + timedelta(days=5)
+
+            all_tickers = list(current_holdings.keys())
+            historical_data = strategy.data_provider.fetch_etf_data(
+                all_tickers, data_start, data_end
+            )
+            historical_prices = strategy.data_provider.get_prices(historical_data)
+
+            # Convert timezone-aware index to timezone-naive if needed
+            if historical_prices.index.tz is not None:
+                historical_prices.index = historical_prices.index.tz_localize(None)
+
+            # Find closest available date to purchase_date
+            available_dates = historical_prices.index
+            closest_date = min(available_dates, key=lambda x: abs(x - purchase_date))
+            purchase_prices = historical_prices.loc[closest_date]
+
+            print(
+                f"   Using prices from: {closest_date.strftime('%Y-%m-%d')} (closest to purchase date)"
+            )
+        else:
+            print(f"\n✅ All holdings have purchase prices - no historical data needed")
 
         # Calculate current portfolio value and performance
         print(f"\n💼 CURRENT PORTFOLIO ANALYSIS:")
@@ -316,7 +540,7 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
 
             # Use historical price if purchase_price is -1
             if purchase_price == -1:
-                if symbol in purchase_prices.index:
+                if symbol in purchase_prices and len(purchase_prices) > 0:
                     purchase_price = purchase_prices[symbol]
                 else:
                     print(
@@ -377,13 +601,19 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
         print(f"   Total Return:      {total_return_pct:+.1f}%")
 
         # Calculate days and annualized return
-        days_held = (current_date - purchase_date).days
-        if days_held >= 30:
-            annualized_return = (
-                (total_current_value / total_invested) ** (365 / days_held) - 1
-            ) * 100
-            print(f"   Days Held:         {days_held} days")
-            print(f"   Annualized Return: {annualized_return:+.1f}%")
+        if purchase_date:
+            days_held = (current_date - purchase_date).days
+            if days_held >= 30:
+                annualized_return = (
+                    (total_current_value / total_invested) ** (365 / days_held) - 1
+                ) * 100
+                print(f"   Days Held:         {days_held} days")
+                print(f"   Annualized Return: {annualized_return:+.1f}%")
+        else:
+            # For Smallcase exports, we don't have exact purchase dates
+            # but we can show that returns are based on average buy prices
+            print(f"   Days Held:         N/A (based on average buy prices)")
+            print(f"   Annualized Return: N/A (requires specific purchase date)")
 
         # Show optimal portfolio for comparison
         print(f"\n🎯 CURRENT OPTIMAL PORTFOLIO:")
@@ -838,20 +1068,18 @@ def show_historical_portfolio(
         print(f"❌ Error: {e}")
 
 
-def main():
+def unified_cli():
+    """Unified CLI that combines all individual command CLIs."""
     parser = argparse.ArgumentParser(
-        description="ETF Momentum Portfolio Management - Simple 4-Command Interface",
+        description="ETF Momentum Portfolio Management - Unified CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  uv run cli.py portfolio                # Show current optimal portfolio with allocations
+  uv run cli.py portfolio                # Show current optimal portfolio
   uv run cli.py portfolio --amount 500000 --size 7  # Custom amount and portfolio size
-  uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01  # Rebalance with JSON holdings
-  uv run cli.py rebalance --holdings-file holdings.csv --from-date 2024-01-01 --size 8  # Rebalance with CSV holdings
-  uv run cli.py historical --from-date 2024-01-01  # Portfolio changes from Jan 1 to today
-  uv run cli.py historical --from-date 2024-01-01 --to-date 2024-06-30 --size 6  # Portfolio changes between dates with custom size
-  uv run cli.py backtest                # Run historical backtest
-  uv run cli.py backtest --amounts 1000000 5000000 --size 7  # Test specific amounts with custom portfolio size
+  uv run cli.py rebalance --holdings-file holdings.json --from-date 2024-01-01  # Rebalance analysis
+  uv run cli.py historical --from-date 2024-01-01  # Historical portfolio changes
+  uv run cli.py backtest --amounts 1000000 --size 5  # Quick backtest
 
 Holdings File Formats:
   JSON: [{"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50}, ...]
@@ -860,104 +1088,35 @@ Holdings File Formats:
   CSV:  symbol,units,price
         NIFTYBEES.NS,350,120.50
         BANKBEES.NS,171,-1    (price -1 means fetch from from-date)
+  Smallcase Export: Direct export from Smallcase with columns: Ticker, Shares, Avg Buy Price (Rs.)
         """,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Portfolio command - Show current optimal portfolio
+    # Portfolio command - use shared parser factory
     portfolio_parser = subparsers.add_parser(
-        "portfolio", help="Show current optimal portfolio with allocations"
+        "portfolio", help="Show current optimal portfolio"
     )
-    portfolio_parser.add_argument(
-        "--amount",
-        type=float,
-        default=1000000,
-        help="Investment amount in INR (default: 1000000)",
-    )
-    portfolio_parser.add_argument(
-        "--size",
-        type=int,
-        default=5,
-        help="Portfolio size (number of ETFs to hold, default: 5)",
-    )
+    _create_portfolio_parser(portfolio_parser)
 
-    # Rebalance command - Show rebalancing needs
+    # Rebalance command - use shared parser factory
     rebalance_parser = subparsers.add_parser(
-        "rebalance", help="Show rebalancing needed for existing portfolio"
+        "rebalance", help="Show portfolio rebalancing analysis"
     )
-    rebalance_parser.add_argument(
-        "--holdings-file",
-        type=str,
-        required=True,
-        help="Path to JSON or CSV file containing current holdings",
-    )
-    rebalance_parser.add_argument(
-        "--from-date",
-        type=str,
-        required=True,
-        help="Purchase date in YYYY-MM-DD format (used for price lookup when price is -1)",
-    )
-    rebalance_parser.add_argument(
-        "--size",
-        type=int,
-        default=5,
-        help="Portfolio size (number of ETFs to hold, default: 5)",
-    )
+    _create_rebalance_parser(rebalance_parser)
 
-    # Historical command - Show portfolio between two dates
+    # Historical command - use shared parser factory
     historical_parser = subparsers.add_parser(
-        "historical", help="Show portfolio changes between two dates"
+        "historical", help="Show portfolio changes between dates"
     )
-    historical_parser.add_argument(
-        "--from-date", required=True, help="Start date in YYYY-MM-DD format"
-    )
-    historical_parser.add_argument(
-        "--to-date", help="End date in YYYY-MM-DD format (default: today)"
-    )
-    historical_parser.add_argument(
-        "--amount",
-        type=float,
-        default=1000000,
-        help="Investment amount in INR (default: 1000000)",
-    )
-    historical_parser.add_argument(
-        "--size", type=int, default=5, help="Portfolio size (default: 5)"
-    )
+    _create_historical_parser(historical_parser)
 
-    # Backtest command
-    backtest_parser = subparsers.add_parser("backtest", help="Run historical backtest")
-    backtest_parser.add_argument(
-        "--amounts",
-        nargs="+",
-        type=float,
-        default=[1000000, 2000000, 5000000],
-        help="Initial investment amounts to test",
+    # Backtest command - use shared parser factory
+    backtest_parser = subparsers.add_parser(
+        "backtest", help="Quick ETF momentum strategy backtest"
     )
-    backtest_parser.add_argument(
-        "--size",
-        type=int,
-        default=5,
-        help="Portfolio size (number of ETFs to hold, default: 5)",
-    )
-    # New: threshold-based rebalancing options
-    backtest_parser.add_argument(
-        "--use-threshold",
-        action="store_true",
-        help="Enable profit/loss threshold-based rebalancing",
-    )
-    backtest_parser.add_argument(
-        "--profit-threshold",
-        type=float,
-        default=10.0,
-        help="Profit threshold percent for rebalancing (default: 10.0)",
-    )
-    backtest_parser.add_argument(
-        "--loss-threshold",
-        type=float,
-        default=-5.0,
-        help="Loss threshold percent for rebalancing (default: -5.0)",
-    )
+    _create_backtest_parser(backtest_parser)
 
     args = parser.parse_args()
 
@@ -967,31 +1126,40 @@ Holdings File Formats:
 
     try:
         if args.command == "portfolio":
-            show_current_portfolio(args.amount, args.size)
+            show_current_portfolio(
+                investment_amount=args.amount, portfolio_size=args.size
+            )
 
         elif args.command == "rebalance":
             show_rebalancing_needs(
-                args.holdings_file, getattr(args, "from_date"), args.size
+                holdings_file=args.holdings_file,
+                from_date=args.from_date,
+                portfolio_size=args.size,
             )
 
         elif args.command == "historical":
             show_historical_portfolio(
-                getattr(args, "from_date"),
-                getattr(args, "to_date"),
-                args.amount,
-                args.size,
+                from_date_str=args.from_date,
+                to_date_str=args.to_date,
+                investment_amount=args.amount,
+                portfolio_size=args.size,
             )
 
         elif args.command == "backtest":
-            print(f"📊 Running backtest with amounts: {args.amounts}")
-            print(f"🎯 Portfolio size: {args.size} ETFs")
-            # Pass threshold options and portfolio size to run_multi_investment_backtest
+            print(
+                f"🚀 Quick Backtest - Portfolio Size: {args.size}, Amounts: {args.amounts}"
+            )
+            if args.use_threshold:
+                print(
+                    f"📊 Threshold Rebalancing: Profit {args.profit_threshold}%, Loss {args.loss_threshold}%"
+                )
+
             run_parameter_experiments(
                 investment_amounts=args.amounts,
-                use_threshold_rebalancing=getattr(args, "use_threshold", False),
-                profit_threshold_pct=getattr(args, "profit_threshold", 10.0),
-                loss_threshold_pct=getattr(args, "loss_threshold", -5.0),
                 portfolio_sizes=[args.size],
+                use_threshold_rebalancing_values=[args.use_threshold],
+                profit_threshold_pct=args.profit_threshold,
+                loss_threshold_pct=args.loss_threshold,
             )
 
     except KeyboardInterrupt:
@@ -1000,9 +1168,9 @@ Holdings File Formats:
     except Exception as e:
         print(f"❌ Error: {e}")
         print("💡 Make sure you have internet connection for data fetching.")
-        print("💡 Run with: uv run cli.py <command>")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    # If run directly, use the unified CLI
+    unified_cli()

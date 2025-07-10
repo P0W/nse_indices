@@ -1,6 +1,6 @@
 """
 Backtrader implementation of ETF Momentum Strategy.
-
+Author : Prashant Srivastava
 """
 
 import sys

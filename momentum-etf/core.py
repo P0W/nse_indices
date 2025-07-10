@@ -4,6 +4,8 @@ Core components for the ETF Momentum Strategy.
 This module contains the core logic for data handling, momentum calculation,
 and strategy configuration, designed to be shared across different backtesting
 and execution environments.
+
+Author : Prashant Srivastava
 """
 
 import logging
