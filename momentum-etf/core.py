@@ -1,3 +1,6 @@
+# Updated core.py with realistic_execution added to StrategyConfig
+# Also added to address criticisms: Momentum Weighting Bias (made weights configurable and adaptive option), Metric Gaps (not here, but in metrics calculation in etf_momentum_strategy.py)
+
 """
 Core components for the ETF Momentum Strategy.
 
@@ -133,6 +136,9 @@ class StrategyConfig:
     long_term_period_days: int = 180
     short_term_period_days: int = 60
     momentum_weights: Tuple[float, float] = (0.6, 0.4)
+    adaptive_weights: bool = (
+        False  # New: Option for adaptive weights based on market volatility
+    )
 
     # Risk Management and Filters
     use_retracement_filter: bool = True
@@ -160,6 +166,9 @@ class StrategyConfig:
     # Market Impact Parameters
     linear_impact_coefficient: float = 0.002
     sqrt_impact_coefficient: float = 0.0005
+
+    # New: Toggle for realistic execution
+    realistic_execution: bool = False
 
 
 class DataProvider:
@@ -267,6 +276,16 @@ class MomentumCalculator:
         """
         scores = {}
         long_weight, short_weight = self.config.momentum_weights
+
+        if self.config.adaptive_weights:
+            # Adaptive weights based on market volatility (example: higher short weight in high vol)
+            volatility_window = min(30, len(prices_df))
+            market_vol = prices_df.mean(axis=1).pct_change().tail(
+                volatility_window
+            ).std() * np.sqrt(252)
+            # If vol > 20%, increase short weight to 0.5, else keep default
+            if market_vol > 0.2:
+                long_weight, short_weight = 0.5, 0.5
 
         for ticker in prices_df.columns:
             prices = prices_df[ticker].dropna()

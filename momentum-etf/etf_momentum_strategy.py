@@ -11,7 +11,14 @@ import itertools
 from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from core import StrategyConfig, DataProvider, MomentumCalculator, logger
+from core import (
+    StrategyConfig,
+    DataProvider,
+    MomentumCalculator,
+    logger,
+    TradingCostCalculator,
+    MarketImpactModel,
+)
 
 
 class Portfolio:
@@ -24,12 +31,21 @@ class Portfolio:
         self.total_value = config.initial_capital
         self.transaction_costs = 0.0
         self.trade_log = []
+        # For realistic execution if enabled
+        self.cost_calculator = (
+            TradingCostCalculator(config) if config.realistic_execution else None
+        )
+        self.market_impact_model = (
+            MarketImpactModel(config) if config.realistic_execution else None
+        )
 
     def rebalance(
         self,
         ranked_etfs: List[Tuple[str, float]],
         current_prices: pd.Series,
         rebalance_date: datetime,
+        current_volumes: pd.Series = None,  # Added for realism
+        volatilities: Dict[str, float] = None,  # Added for realism
     ) -> None:
         """
         Rebalance portfolio based on new rankings.
@@ -38,6 +54,8 @@ class Portfolio:
             ranked_etfs: List of (ticker, momentum_score) tuples, sorted by score
             current_prices: Current prices for all ETFs
             rebalance_date: Date of rebalancing
+            current_volumes: Current volumes for liquidity checks (if realistic)
+            volatilities: Volatilities for market impact (if realistic)
         """
         # Update portfolio value
         self._update_portfolio_value(current_prices)
@@ -66,7 +84,16 @@ class Portfolio:
             # Ensure the ticker is still in current_prices before attempting to sell
             if ticker in current_prices.index:
                 self._sell_position(
-                    ticker, current_prices[ticker], rebalance_date, "rank_exit"
+                    ticker,
+                    current_prices[ticker],
+                    rebalance_date,
+                    "rank_exit",
+                    (
+                        current_volumes.get(ticker, 100000)
+                        if current_volumes is not None
+                        else 100000
+                    ),
+                    volatilities.get(ticker, 0.2) if volatilities else 0.2,
                 )
             else:
                 logger.warning(
@@ -104,7 +131,16 @@ class Portfolio:
                     # Ensure price data is available for buying
                     if ticker in current_prices.index:
                         self._buy_shares(
-                            ticker, shares_diff, current_prices[ticker], rebalance_date
+                            ticker,
+                            shares_diff,
+                            current_prices[ticker],
+                            rebalance_date,
+                            (
+                                current_volumes.get(ticker, 100000)
+                                if current_volumes is not None
+                                else 100000
+                            ),
+                            volatilities.get(ticker, 0.2) if volatilities else 0.2,
                         )
                     else:
                         logger.warning(
@@ -119,6 +155,12 @@ class Portfolio:
                             abs(shares_diff),
                             current_prices[ticker],
                             rebalance_date,
+                            (
+                                current_volumes.get(ticker, 100000)
+                                if current_volumes is not None
+                                else 100000
+                            ),
+                            volatilities.get(ticker, 0.2) if volatilities else 0.2,
                         )
                     else:
                         logger.warning(
@@ -135,17 +177,39 @@ class Portfolio:
         self.total_value = holdings_value + self.cash
 
     def _buy_shares(
-        self, ticker: str, shares: float, price: float, date: datetime
+        self,
+        ticker: str,
+        shares: float,
+        price: float,
+        date: datetime,
+        daily_volume: float,
+        volatility: float,
     ) -> None:
-        """Buy shares of an ETF."""
-        cost = shares * price
-        commission = cost * self.config.commission_rate
-        total_cost = cost + commission
+        """Buy shares of an ETF with optional realism."""
+        if self.config.realistic_execution:
+            # Realistic execution
+            slippage = self.market_impact_model.estimate_slippage(
+                ticker, shares, daily_volume, volatility, "buy"
+            )
+            execution_price = price * (1 + slippage)
+            cost_breakdown = self.cost_calculator.calculate_costs(
+                ticker, shares, execution_price, "buy"
+            )
+            total_cost = shares * execution_price + cost_breakdown["total_cost"]
+        else:
+            # Simple execution
+            cost = shares * price
+            commission = cost * self.config.commission_rate
+            total_cost = cost + commission
 
         if total_cost <= self.cash:
             self.holdings[ticker] = self.holdings.get(ticker, 0) + shares
             self.cash -= total_cost
-            self.transaction_costs += commission
+            self.transaction_costs += (
+                cost_breakdown["total_cost"]
+                if self.config.realistic_execution
+                else commission
+            )
 
             self.trade_log.append(
                 {
@@ -153,26 +217,51 @@ class Portfolio:
                     "ticker": ticker,
                     "action": "buy",
                     "shares": shares,
-                    "price": price,
+                    "price": (
+                        execution_price if self.config.realistic_execution else price
+                    ),
                     "cost": total_cost,
                 }
             )
 
     def _sell_shares(
-        self, ticker: str, shares: float, price: float, date: datetime
+        self,
+        ticker: str,
+        shares: float,
+        price: float,
+        date: datetime,
+        daily_volume: float,
+        volatility: float,
     ) -> None:
-        """Sell shares of an ETF."""
+        """Sell shares of an ETF with optional realism."""
         if ticker in self.holdings and self.holdings[ticker] >= shares:
-            proceeds = shares * price
-            commission = proceeds * self.config.commission_rate
-            net_proceeds = proceeds - commission
+            if self.config.realistic_execution:
+                # Realistic execution
+                slippage = self.market_impact_model.estimate_slippage(
+                    ticker, shares, daily_volume, volatility, "sell"
+                )
+                execution_price = price * (1 - slippage)
+                cost_breakdown = self.cost_calculator.calculate_costs(
+                    ticker, shares, execution_price, "sell"
+                )
+                proceeds = shares * execution_price
+                net_proceeds = proceeds - cost_breakdown["total_cost"]
+            else:
+                # Simple execution
+                proceeds = shares * price
+                commission = proceeds * self.config.commission_rate
+                net_proceeds = proceeds - commission
 
             self.holdings[ticker] -= shares
             if self.holdings[ticker] < 0.01:  # Remove very small positions
                 del self.holdings[ticker]
 
             self.cash += net_proceeds
-            self.transaction_costs += commission
+            self.transaction_costs += (
+                cost_breakdown["total_cost"]
+                if self.config.realistic_execution
+                else commission
+            )
 
             self.trade_log.append(
                 {
@@ -180,18 +269,26 @@ class Portfolio:
                     "ticker": ticker,
                     "action": "sell",
                     "shares": shares,
-                    "price": price,
+                    "price": (
+                        execution_price if self.config.realistic_execution else price
+                    ),
                     "proceeds": net_proceeds,
                 }
             )
 
     def _sell_position(
-        self, ticker: str, price: float, date: datetime, reason: str
+        self,
+        ticker: str,
+        price: float,
+        date: datetime,
+        reason: str,
+        daily_volume: float,
+        volatility: float,
     ) -> None:
         """Sell entire position in an ETF."""
         if ticker in self.holdings:
             shares = self.holdings[ticker]
-            self._sell_shares(ticker, shares, price, date)
+            self._sell_shares(ticker, shares, price, date, daily_volume, volatility)
             logger.info(
                 f"Sold {ticker} position ({shares:.2f} shares) - Reason: {reason}"
             )
@@ -233,6 +330,9 @@ class ETFMomentumStrategy:
             # Convert timezone-aware index to timezone-naive
             if prices_df.index.tz is not None:
                 prices_df.index = prices_df.index.tz_localize(None)
+
+            # Forward-fill prices to handle gaps
+            prices_df = prices_df.fillna(method="ffill")
 
             volume_df = self.data_provider.get_volumes(all_data)
             if volume_df is not None and volume_df.index.tz is not None:
@@ -414,9 +514,12 @@ class ETFMomentumStrategy:
         )
 
         prices_df_full = self.data_provider.get_prices(all_data)
-        # Convert timezone-aware index to timezone-naive to avoid comparison issues
+        # Convert timezone-aware index to timezone-naive
         if prices_df_full.index.tz is not None:
             prices_df_full.index = prices_df_full.index.tz_localize(None)
+
+        # Forward-fill prices to handle gaps
+        prices_df_full = prices_df_full.fillna(method="ffill")
 
         volume_df_full = self.data_provider.get_volumes(all_data)
         # Convert timezone-aware index to timezone-naive for volume data too
@@ -524,9 +627,30 @@ class ETFMomentumStrategy:
             # Get current prices for rebalancing (using the latest available price on or before current_date)
             current_prices_for_rebalance = current_data_prices.iloc[-1]
 
+            # For realism, get volumes and volatilities if enabled
+            current_volumes = (
+                current_data_volume.iloc[-1]
+                if current_data_volume is not None
+                else pd.Series(index=eligible_tickers, data=100000)
+            )
+            volatilities = {}
+            if self.config.realistic_execution:
+                volatility_window = min(30, len(current_data_prices))
+                for ticker in eligible_tickers:
+                    returns = (
+                        current_data_prices[ticker].pct_change().tail(volatility_window)
+                    )
+                    volatilities[ticker] = (
+                        returns.std() * np.sqrt(252) if not returns.empty else 0.2
+                    )
+
             # Rebalance portfolio
             self.portfolio.rebalance(
-                ranked_etfs, current_prices_for_rebalance, current_date
+                ranked_etfs,
+                current_prices_for_rebalance,
+                current_date,
+                current_volumes,
+                volatilities,
             )
 
             # Record portfolio state AFTER rebalancing
@@ -721,7 +845,24 @@ class ETFMomentumStrategy:
         else:
             volatility = 0.0  # Not enough data points to calculate volatility
 
-        max_drawdown = ((value_series / value_series.expanding().max()) - 1).min() * 100
+        # Max Drawdown Amount and Recovery
+        drawdown_series = (value_series / value_series.expanding().max()) - 1
+        max_drawdown_pct = drawdown_series.min() * 100
+        mdd_end_date = drawdown_series.idxmin()
+        peak_value_before_mdd = value_series.loc[:mdd_end_date].max()
+        peak_date_before_mdd = value_series.loc[:mdd_end_date].idxmax()
+        trough_value_at_mdd = value_series[mdd_end_date]
+        max_drawdown_amount = peak_value_before_mdd - trough_value_at_mdd
+
+        # Recovery
+        recovery_series = value_series.loc[mdd_end_date:]
+        recovery_date_series = recovery_series[recovery_series >= peak_value_before_mdd]
+        if not recovery_date_series.empty:
+            recovery_date = recovery_date_series.index[0]
+            days_to_recovery = (recovery_date - peak_date_before_mdd).days
+        else:
+            days_to_recovery = "Not Recovered"
+            recovery_date = "N/A"
 
         # Sharpe ratio (assuming risk-free rate of 3%)
         risk_free_rate = 0.03
@@ -752,6 +893,11 @@ class ETFMomentumStrategy:
         buy_prices = {}
         win_trades = 0
         total_trades = 0
+        gross_profit = 0.0
+        gross_loss = 0.0
+        wins = []
+        losses = []
+        trade_outcomes = []
 
         # First pass: collect buy prices
         for trade in trade_log:
@@ -807,31 +953,74 @@ class ETFMomentumStrategy:
 
                     if total_shares_matched > 0:
                         avg_buy_price /= total_shares_matched
+                        profit_loss = (
+                            sell_price - avg_buy_price
+                        ) * total_shares_matched
                         # Determine if this was a winning trade
                         if sell_price > avg_buy_price:
                             win_trades += 1
+                            trade_outcomes.append(1)
+                            gross_profit += profit_loss
+                            wins.append(profit_loss / total_shares_matched)
+                        else:
+                            trade_outcomes.append(-1)
+                            gross_loss += abs(profit_loss)
+                            losses.append(abs(profit_loss) / total_shares_matched)
                         total_trades += 1
 
         win_ratio = (win_trades / total_trades * 100) if total_trades > 0 else 0
+        avg_win = np.mean(wins) if wins else 0
+        avg_loss = np.mean(losses) if losses else 0
+        expectancy = (avg_win / avg_loss) if avg_loss != 0 else 0
+        profit_factor = (gross_profit / gross_loss) if gross_loss != 0 else 0
+
+        # Calculate streaks
+        max_win_streak = 0
+        max_loss_streak = 0
+        if trade_outcomes:
+            current_win_streak = 0
+            current_loss_streak = 0
+            for outcome in trade_outcomes:
+                if outcome == 1:
+                    current_win_streak += 1
+                    current_loss_streak = 0
+                else:  # outcome == -1
+                    current_loss_streak += 1
+                    current_win_streak = 0
+                max_win_streak = max(max_win_streak, current_win_streak)
+                max_loss_streak = max(max_loss_streak, current_loss_streak)
+
+        # Ulcer Index
+        drawdowns_squared = drawdown_series**2
+        ulcer_index = np.sqrt(drawdowns_squared.mean()) * 100  # As percentage
 
         return {
             "total_return_pct": total_return,
             "annualized_return_pct": annualized_return,
             "volatility_pct": volatility,
-            "max_drawdown_pct": max_drawdown,
+            "max_drawdown_pct": max_drawdown_pct,
             "sharpe_ratio": sharpe_ratio,
-            "total_trades": len(self.portfolio.trade_log),
+            "total_trades": total_trades,
             "transaction_costs": self.portfolio.transaction_costs,
             "win_ratio_pct": win_ratio,
+            "max_drawdown_amount": max_drawdown_amount,
+            "days_to_recovery": days_to_recovery,
+            "max_win_streak": max_win_streak,
+            "max_loss_streak": max_loss_streak,
+            "mdd_end_date": mdd_end_date,
+            "trough_value_at_mdd": trough_value_at_mdd,
+            "recovery_date": (
+                recovery_date if isinstance(days_to_recovery, int) else "Not Recovered"
+            ),
+            "expectancy": expectancy,
+            "profit_factor": profit_factor,
+            "ulcer_index": ulcer_index,
         }
 
 
 def run_parameter_experiments(
     investment_amounts: List[float] = None,
     portfolio_sizes: List[int] = None,
-    rebalance_days: List[int] = None,
-    exit_rank_buffers: List[float] = None,
-    lookback_periods: List[Tuple[int, int]] = None,
     use_threshold_rebalancing_values: List[bool] = None,
     profit_threshold_pct: float = 10.0,
     loss_threshold_pct: float = -5.0,
@@ -841,12 +1030,9 @@ def run_parameter_experiments(
     """
 
     # Default values for experiments
-    investment_amounts = investment_amounts or [100000]
-    portfolio_sizes = portfolio_sizes or [3, 5, 7, 10]
-    rebalance_days = rebalance_days or [5]
-    exit_rank_buffers = exit_rank_buffers or [1.0, 1.5, 2.0, 2.5]
-    lookback_periods = lookback_periods or [(180, 60), (252, 60), (252, 90)]
-    use_threshold_rebalancing_values = use_threshold_rebalancing_values or [True, False]
+    investment_amounts = investment_amounts or [1000000]
+    portfolio_sizes = portfolio_sizes or [5]
+    use_threshold_rebalancing_values = use_threshold_rebalancing_values or [False]
 
     all_results = []
 
@@ -854,9 +1040,6 @@ def run_parameter_experiments(
     param_combinations = list(
         itertools.product(
             portfolio_sizes,
-            rebalance_days,
-            exit_rank_buffers,
-            lookback_periods,
             use_threshold_rebalancing_values,
             investment_amounts,
         )
@@ -869,16 +1052,12 @@ def run_parameter_experiments(
             executor.submit(
                 run_single_backtest,
                 p_size,
-                r_day,
-                exit_buffer,
-                lookback[0],
-                lookback[1],
                 use_threshold,
                 initial_capital,
                 profit_threshold_pct,
                 loss_threshold_pct,
-            ): (p_size, r_day, exit_buffer, lookback, use_threshold, initial_capital)
-            for p_size, r_day, exit_buffer, lookback, use_threshold, initial_capital in param_combinations
+            ): (p_size, use_threshold, initial_capital)
+            for p_size, use_threshold, initial_capital in param_combinations
         }
 
         for future in as_completed(future_to_params):
@@ -899,33 +1078,31 @@ def run_parameter_experiments(
     summary_table_data = []
     headers = [
         "Port. Size",
-        "Rebal. Day",
-        "Exit Buffer",
-        "Lookback",
         "Threshold Rebal",
         "Ann. Return",
         "Sharpe",
         "Max DD",
         "Win Ratio %",
+        "Trans. Costs %",
+        "Expectancy",
     ]
     for result in all_results:
         summary_table_data.append(
             [
                 result["portfolio_size"],
-                result["rebalance_day"],
-                result["exit_buffer"],
-                f"{result['long_term_period_days']}d/{result['short_term_period_days']}d",
                 result["use_threshold_rebalancing"],
                 f"{result['annualized_return_pct']:.1f}%",
                 f"{result['sharpe_ratio']:.2f}",
                 f"{result['max_drawdown_pct']:.1f}%",
                 f"{result['win_ratio_pct']:.2f}%",
+                f"{result['transaction_costs_pct']:.2f}%",
+                f"{result['expectancy']:.2f}",
             ]
         )
 
     # Sort results by annualized return (descending)
     summary_table_data_sorted = sorted(
-        summary_table_data, key=lambda x: float(x[5].replace("%", "")), reverse=True
+        summary_table_data, key=lambda x: float(x[2].replace("%", "")), reverse=True
     )
 
     print(tabulate(summary_table_data_sorted, headers=headers, tablefmt="grid"))
@@ -935,10 +1112,6 @@ def run_parameter_experiments(
 
 def run_single_backtest(
     p_size,
-    r_day,
-    exit_buffer,
-    long_term_period,
-    short_term_period,
     use_threshold,
     initial_capital,
     profit_threshold_pct,
@@ -947,14 +1120,11 @@ def run_single_backtest(
     """Helper function to run a single backtest instance."""
     config = StrategyConfig(
         portfolio_size=p_size,
-        rebalance_day_of_month=r_day,
-        exit_rank_buffer_multiplier=exit_buffer,
-        long_term_period_days=long_term_period,
-        short_term_period_days=short_term_period,
         initial_capital=initial_capital,
         use_threshold_rebalancing=use_threshold,
         profit_threshold_pct=profit_threshold_pct,
         loss_threshold_pct=loss_threshold_pct,
+        realistic_execution=False,  # Default off for consistency, can toggle
     )
 
     strategy = ETFMomentumStrategy(config)
@@ -964,10 +1134,6 @@ def run_single_backtest(
 
     return {
         "portfolio_size": p_size,
-        "rebalance_day": r_day,
-        "exit_buffer": exit_buffer,
-        "long_term_period_days": long_term_period,
-        "short_term_period_days": short_term_period,
         "use_threshold_rebalancing": use_threshold,
         "initial_capital": initial_capital,
         "final_value": results["final_value"],
@@ -976,6 +1142,7 @@ def run_single_backtest(
             "annualized_return_pct"
         ],
         "sharpe_ratio": results["performance_metrics"]["sharpe_ratio"],
+        "expectancy": results["performance_metrics"]["expectancy"],
         "max_drawdown_pct": results["performance_metrics"]["max_drawdown_pct"],
         "total_trades": results["performance_metrics"]["total_trades"],
         "transaction_costs": results["performance_metrics"]["transaction_costs"],
@@ -993,16 +1160,5 @@ def run_single_backtest(
 
 
 if __name__ == "__main__":
-    # Define the parameter grid for experiments
-    test_portfolio_sizes = [3, 5, 7, 10]
-    test_exit_rank_buffers = [1.0, 1.5, 2.0, 2.5]
-    test_lookback_periods = [(180, 60), (252, 60), (252, 90)]
-    test_use_threshold_rebalancing_values = [True, False]
-
-    # Run the experiments
-    run_parameter_experiments(
-        portfolio_sizes=test_portfolio_sizes,
-        exit_rank_buffers=test_exit_rank_buffers,
-        lookback_periods=test_lookback_periods,
-        use_threshold_rebalancing_values=test_use_threshold_rebalancing_values,
-    )
+    # If run directly, use the unified CLI
+    unified_cli()

@@ -82,9 +82,10 @@ def _create_backtest_parser(parser):
         help="Initial investment amounts to test (default: 1000000)",
     )
     parser.add_argument(
-        "--size",
+        "--sizes",
+        nargs="+",
         type=int,
-        default=5,
+        default=[5],
         help="Portfolio size (number of ETFs to hold, default: 5)",
     )
     parser.add_argument(
@@ -151,7 +152,7 @@ def backtest_cli():
     parser = _create_backtest_parser(parser)
     args = parser.parse_args()
 
-    print(f"🚀 Quick Backtest - Portfolio Size: {args.size}, Amounts: {args.amounts}")
+    print(f"🚀 Quick Backtest - Portfolio Size: {args.sizes}, Amounts: {args.amounts}")
     if args.use_threshold:
         print(
             f"📊 Threshold Rebalancing: Profit {args.profit_threshold}%, Loss {args.loss_threshold}%"
@@ -160,7 +161,7 @@ def backtest_cli():
     # Run the backtest
     run_parameter_experiments(
         investment_amounts=args.amounts,
-        portfolio_sizes=[args.size],
+        portfolio_sizes=args.sizes,
         use_threshold_rebalancing_values=[args.use_threshold],
         profit_threshold_pct=args.profit_threshold,
         loss_threshold_pct=args.loss_threshold,
@@ -1156,7 +1157,7 @@ Holdings File Formats:
 
             run_parameter_experiments(
                 investment_amounts=args.amounts,
-                portfolio_sizes=[args.size],
+                portfolio_sizes=args.sizes,
                 use_threshold_rebalancing_values=[args.use_threshold],
                 profit_threshold_pct=args.profit_threshold,
                 loss_threshold_pct=args.loss_threshold,
