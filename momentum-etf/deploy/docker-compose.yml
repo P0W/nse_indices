@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  momentum-etf:
+    build: 
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DISABLE_FILE_LOGGING=1  # Prevent log files in container
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    # Optional: Remove logs volume since we disabled file logging
+    # volumes:
+    #   - ./logs:/app/logs

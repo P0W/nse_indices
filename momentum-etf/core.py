@@ -22,11 +22,25 @@ import yfinance as yf
 
 warnings.filterwarnings("ignore")
 
-# Ensure logs directory exists
-os.makedirs("logs", exist_ok=True)
+# Ensure logs directory exists with proper error handling
+# Check if file logging is disabled (e.g., when running as web server)
+disable_file_logging = os.environ.get("DISABLE_FILE_LOGGING", "0") == "1"
 
-# Configure logging
-log_filename = f"logs/momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+if not disable_file_logging:
+    try:
+        os.makedirs("logs", exist_ok=True)
+        log_dir = "logs"
+    except PermissionError:
+        # Fallback to temp directory if we can't create logs directory
+        import tempfile
+
+        log_dir = tempfile.gettempdir()
+        print(f"Warning: Unable to create logs directory, using {log_dir}")
+
+    # Configure logging
+    log_filename = (
+        f"{log_dir}/momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    )
 
 
 class ColoredFormatter(logging.Formatter):
@@ -50,31 +64,31 @@ class ColoredFormatter(logging.Formatter):
         )
 
 
-# Configure logging
-log_filename = f"logs/momentum_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+# Configure logging handlers based on environment
+handlers = []
 
-# Create a file handler
-file_handler = logging.FileHandler(log_filename, encoding="utf-8")
-file_handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+if not disable_file_logging:
+    # Create a file handler only if file logging is enabled
+    file_handler = logging.FileHandler(log_filename, encoding="utf-8")
+    file_handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+        )
     )
-)
+    handlers.append(file_handler)
 
-# Create a stream handler with the custom colored formatter
+# Always create a stream handler with the custom colored formatter
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(
     ColoredFormatter(
         "%(asctime)s [%(levelname)s] %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
     )
 )
+handlers.append(stream_handler)
 
 logging.basicConfig(
     level=logging.INFO,
-    handlers=[
-        file_handler,
-        stream_handler,
-    ],
+    handlers=handlers,
 )
 logger = logging.getLogger(__name__)
 
