@@ -1,24 +1,35 @@
 {
-  "timestamp": "2025-07-15T01:35:11.293930",
+  "timestamp": "2025-07-15T01:46:59.077116",
   "description": "Optimal from latest experiments",
   "parameters": {
-    "sma_fast": 60,
-    "sma_slow": 100,
-    "atr_period": 14,
+    "sma_fast": 20,
+    "sma_slow": 150,
+    "atr_period": 20,
     "atr_multiplier": 2.5,
     "momentum_period": 25,
-    "top_n_stocks": 5,
-    "rebalance_days": 10,
-    "timestamp": "2025-07-15T01:15:10.788099",
+    "top_n_stocks": 3,
+    "rebalance_days": 30,
+    "timestamp": "2025-07-15T01:35:11.293930",
     "description": "Optimal from latest experiments",
     "parameters": {
-      "sma_fast": 30,
+      "sma_fast": 60,
       "sma_slow": 100,
-      "atr_period": 20,
-      "atr_multiplier": 3.0,
-      "momentum_period": 15,
-      "top_n_stocks": 3,
-      "rebalance_days": 10
+      "atr_period": 14,
+      "atr_multiplier": 2.5,
+      "momentum_period": 25,
+      "top_n_stocks": 5,
+      "rebalance_days": 10,
+      "timestamp": "2025-07-15T01:15:10.788099",
+      "description": "Optimal from latest experiments",
+      "parameters": {
+        "sma_fast": 30,
+        "sma_slow": 100,
+        "atr_period": 20,
+        "atr_multiplier": 3.0,
+        "momentum_period": 15,
+        "top_n_stocks": 3,
+        "rebalance_days": 10
+      }
     }
   }
 }
