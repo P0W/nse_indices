@@ -7,8 +7,8 @@ It defines the interface for strategy configuration and ensures consistency acro
 
 import backtrader as bt
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Dict, Any, List
+from dataclasses import dataclass, field
+from typing import Dict, Any, List, Optional
 
 
 @dataclass
@@ -29,6 +29,22 @@ class ExperimentResult:
     win_rate: float = 0.0
     profit_factor: float = 0.0
     composite_score: float = 0.0
+    portfolio_values: Optional[List[float]] = field(default=None)
+    dates: Optional[List[Any]] = field(default=None)
+
+    # Enhanced trade statistics
+    max_winning_streak: int = 0
+    max_losing_streak: int = 0
+    avg_win: float = 0.0
+    avg_loss: float = 0.0
+    max_win: float = 0.0
+    max_loss: float = 0.0
+    gross_profit: float = 0.0
+    gross_loss: float = 0.0
+    consecutive_wins: int = 0
+    consecutive_losses: int = 0
+    even_trades: int = 0
+    avg_trade_length: float = 0.0
 
 
 class StrategyConfig(ABC):

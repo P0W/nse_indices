@@ -49,8 +49,8 @@ STRATEGY_REGISTRY = {
         "requires_multiple_stocks": True,
     },
     "statistical_trend": {
-        "name": "Statistical Trend Following Strategy",
-        "description": "Multi-indicator trend following strategy",
+        "name": "Pure-equity Stat-Trend Hybrid Strategy",
+        "description": "Z-score mean reversion with EMA and ADX momentum filters",
         "config_class": StatisticalTrendConfig,
         "requires_multiple_stocks": True,
     },
@@ -171,6 +171,13 @@ def run_strategy_backtest(
         print(f"⚖️ Sharpe Ratio: {result.sharpe_ratio:.3f}")
         print(f"📉 Max Drawdown: {result.max_drawdown:.2f}%")
         print(f"💰 Final Value: ₹{result.final_value:,.2f}")
+
+        # Generate comprehensive visualization dashboard
+        try:
+            framework.create_portfolio_dashboard(result, symbols, start_date, end_date)
+            print(f"📊 Portfolio performance dashboard generated successfully!")
+        except Exception as e:
+            print(f"⚠️ Could not generate portfolio dashboard: {e}")
     else:
         print("❌ Backtest failed")
 
@@ -242,7 +249,19 @@ def run_strategy_optimization(
             print(
                 f"   📈 Return: {result.total_return:.2f}% | ⚖️ Sharpe: {result.sharpe_ratio:.3f} | 📉 Drawdown: {result.max_drawdown:.2f}%"
             )
-            print(f"   Parameters: {result.params}")
+            params_str = ", ".join([f"{k}={v}" for k, v in result.params.items()])
+            print(f"   🎛️ Parameters: {params_str}")
+
+        # Generate comprehensive portfolio dashboard for best result
+        try:
+            best_result = results[0]
+            # Create detailed portfolio dashboard for best result
+            framework.create_portfolio_dashboard(
+                best_result, symbols, start_date, end_date
+            )
+            print(f"📊 Best result portfolio dashboard generated!")
+        except Exception as e:
+            print(f"⚠️ Could not generate portfolio dashboard: {e}")
     else:
         print("❌ Optimization failed")
 
@@ -346,9 +365,7 @@ if __name__ == "__main__":
             "   python unified_runner.py --strategy momentum --optimize --max-experiments 20"
         )
         print("   python unified_runner.py --strategy momentum --initial-cash 500000")
-        print(
-            "   python unified_runner.py --strategy pairs --initial-cash 2000000 --optimize"
-        )
+        print("   python unified_runner.py --strategy pairs --initial-cash 2000000")
 
         # Simple interactive mode
         strategy_key = (

@@ -25,6 +25,7 @@ from typing import Dict, Any, List, Optional, Union, Type
 import backtrader as bt
 from utils import MarketDataLoader, IndianBrokerageCommission
 from strategies.base_strategy import StrategyConfig, ExperimentResult
+from streak_analyzer import StreakAnalyzer, DetailedTradeAnalyzer
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
@@ -158,6 +159,7 @@ class UnifiedExperimentFramework:
         start_date: datetime,
         end_date: datetime,
         initial_cash: float = 1000000,
+        preloaded_data_feeds: List[bt.feeds.PandasData] = None,
     ) -> Optional[ExperimentResult]:
         """
         Run a single experiment with given parameters
@@ -168,6 +170,7 @@ class UnifiedExperimentFramework:
             start_date: Start date for backtest
             end_date: End date for backtest
             initial_cash: Initial cash for backtest
+            preloaded_data_feeds: Pre-loaded data feeds to avoid re-loading
 
         Returns:
             ExperimentResult or None if experiment failed
@@ -188,8 +191,11 @@ class UnifiedExperimentFramework:
             commission_scheme = IndianBrokerageCommission()
             cerebro.broker.addcommissioninfo(commission_scheme)
 
-            # Prepare data feeds
-            data_feeds = self.prepare_data_feeds(symbols, start_date, end_date)
+            # Use pre-loaded data feeds if available, otherwise load fresh
+            if preloaded_data_feeds:
+                data_feeds = preloaded_data_feeds
+            else:
+                data_feeds = self.prepare_data_feeds(symbols, start_date, end_date)
 
             if not data_feeds:
                 sys.stdout = old_stdout
@@ -215,9 +221,15 @@ class UnifiedExperimentFramework:
             cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name="sharpe")
             cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
             cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
+            cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="trades")
+
+            # Add custom streak analyzer
+            cerebro.addanalyzer(StreakAnalyzer, _name="streaks")
+            cerebro.addanalyzer(DetailedTradeAnalyzer, _name="detailed_trades")
 
             # Run backtest
-            result = cerebro.run()[0]
+            results = cerebro.run()
+            result = results[0]
 
             # Restore stdout
             sys.stdout = old_stdout
@@ -228,9 +240,39 @@ class UnifiedExperimentFramework:
 
             sharpe_analysis = result.analyzers.sharpe.get_analysis()
             drawdown_analysis = result.analyzers.drawdown.get_analysis()
+            trades_analysis = result.analyzers.trades.get_analysis()
 
             sharpe_ratio = sharpe_analysis.get("sharperatio", 0) or 0
             max_drawdown = drawdown_analysis.get("max", {}).get("drawdown", 0) or 0
+
+            # Trade statistics
+            total_trades = trades_analysis.get("total", {}).get("total", 0)
+            won_trades = trades_analysis.get("won", {}).get("total", 0)
+            win_rate = (won_trades / total_trades * 100) if total_trades > 0 else 0
+
+            # Profit factor
+            gross_profit = trades_analysis.get("won", {}).get("pnl", {}).get("total", 0)
+            gross_loss = abs(
+                trades_analysis.get("lost", {}).get("pnl", {}).get("total", 0)
+            )
+            profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
+
+            # Extract enhanced metrics from custom analyzers
+            streak_analysis = result.analyzers.streaks.get_analysis()
+            detailed_analysis = result.analyzers.detailed_trades.get_analysis()
+
+            max_winning_streak = streak_analysis.get("max_winning_streak", 0)
+            max_losing_streak = streak_analysis.get("max_losing_streak", 0)
+            avg_win = streak_analysis.get("avg_win", 0.0)
+            avg_loss = streak_analysis.get("avg_loss", 0.0)
+            max_win = streak_analysis.get("max_win", 0.0)
+            max_loss = streak_analysis.get("max_loss", 0.0)
+            consecutive_wins = streak_analysis.get("consecutive_wins", 0)
+            consecutive_losses = streak_analysis.get("consecutive_losses", 0)
+            even_trades = streak_analysis.get("even_trades", 0)
+
+            # Trade length from detailed analyzer
+            avg_trade_length = detailed_analysis.get("len", {}).get("avg", 0.0)
 
             # Calculate metrics dict for composite score
             metrics = {
@@ -244,7 +286,7 @@ class UnifiedExperimentFramework:
 
             experiment_duration = time.time() - experiment_start_time
 
-            return ExperimentResult(
+            experiment_result = ExperimentResult(
                 params=params.copy(),
                 final_value=final_value,
                 total_return=total_return,
@@ -254,7 +296,29 @@ class UnifiedExperimentFramework:
                 num_data_feeds=len(data_feeds),
                 strategy_name=self.strategy_name,
                 experiment_duration=experiment_duration,
+                trades_count=total_trades,
+                win_rate=win_rate,
+                profit_factor=profit_factor,
+                max_winning_streak=max_winning_streak,
+                max_losing_streak=max_losing_streak,
+                avg_win=avg_win,
+                avg_loss=avg_loss,
+                max_win=max_win,
+                max_loss=max_loss,
+                gross_profit=gross_profit,
+                gross_loss=gross_loss,
+                consecutive_wins=consecutive_wins,
+                consecutive_losses=consecutive_losses,
+                even_trades=even_trades,
+                avg_trade_length=avg_trade_length,
             )
+
+            # Store portfolio values for single experiment visualization
+            if hasattr(result, "portfolio_values") and hasattr(result, "dates"):
+                experiment_result.portfolio_values = result.portfolio_values
+                experiment_result.dates = result.dates
+
+            return experiment_result
 
         except Exception as e:
             # Restore stdout in case of error
@@ -301,6 +365,14 @@ class UnifiedExperimentFramework:
         # Generate parameter combinations
         param_combinations = self.generate_parameter_combinations(max_combinations)
 
+        # 🚀 PRE-LOAD DATA ONCE to avoid repeated loading
+        print("📊 Pre-loading market data for experiments...")
+        data_feeds = self.prepare_data_feeds(symbols, start_date, end_date)
+        if not data_feeds:
+            print("❌ Failed to load market data. Aborting experiments.")
+            return
+        print(f"✅ Data loaded successfully for {len(data_feeds)} instruments")
+
         # Run experiments
         self.results = []
 
@@ -317,6 +389,7 @@ class UnifiedExperimentFramework:
                         start_date,
                         end_date,
                         initial_cash,
+                        data_feeds,  # Pass pre-loaded data
                     ): params
                     for params in param_combinations
                 }
@@ -340,7 +413,7 @@ class UnifiedExperimentFramework:
             print(f"🔄 Running {len(param_combinations)} experiments sequentially...")
             for params in tqdm(param_combinations, desc="🧪 Running experiments"):
                 result = self.run_single_experiment(
-                    params, symbols, start_date, end_date, initial_cash
+                    params, symbols, start_date, end_date, initial_cash, data_feeds
                 )
                 if result:
                     self.results.append(result)
@@ -354,6 +427,10 @@ class UnifiedExperimentFramework:
 
         # Save results
         self.save_results()
+
+        # Generate visualizations automatically
+        if self.results:
+            self.create_visualizations()
 
         # Display summary
         self.display_results_summary()
@@ -381,6 +458,21 @@ class UnifiedExperimentFramework:
                 "num_data_feeds": result.num_data_feeds,
                 "strategy_name": result.strategy_name,
                 "experiment_duration": result.experiment_duration,
+                "trades_count": result.trades_count,
+                "win_rate": result.win_rate,
+                "profit_factor": result.profit_factor,
+                "max_winning_streak": result.max_winning_streak,
+                "max_losing_streak": result.max_losing_streak,
+                "avg_win": result.avg_win,
+                "avg_loss": result.avg_loss,
+                "max_win": result.max_win,
+                "max_loss": result.max_loss,
+                "gross_profit": result.gross_profit,
+                "gross_loss": result.gross_loss,
+                "consecutive_wins": result.consecutive_wins,
+                "consecutive_losses": result.consecutive_losses,
+                "even_trades": result.even_trades,
+                "avg_trade_length": result.avg_trade_length,
             }
             results_data.append(result_dict)
 
@@ -412,6 +504,21 @@ class UnifiedExperimentFramework:
                     "num_data_feeds": result.num_data_feeds,
                     "strategy_name": result.strategy_name,
                     "experiment_duration": result.experiment_duration,
+                    "trades_count": result.trades_count,
+                    "win_rate": result.win_rate,
+                    "profit_factor": result.profit_factor,
+                    "max_winning_streak": result.max_winning_streak,
+                    "max_losing_streak": result.max_losing_streak,
+                    "avg_win": result.avg_win,
+                    "avg_loss": result.avg_loss,
+                    "max_win": result.max_win,
+                    "max_loss": result.max_loss,
+                    "gross_profit": result.gross_profit,
+                    "gross_loss": result.gross_loss,
+                    "consecutive_wins": result.consecutive_wins,
+                    "consecutive_losses": result.consecutive_losses,
+                    "even_trades": result.even_trades,
+                    "avg_trade_length": result.avg_trade_length,
                 }
             )
             flat_results.append(flat_result)
@@ -437,25 +544,32 @@ class UnifiedExperimentFramework:
                 best_data.append([param.replace("_", " ").title(), value])
             print(tabulate(best_data, headers="firstrow", tablefmt="grid"))
 
-        # Top 10 results
+        # Top 10 results with enhanced metrics
         top_10 = df.nlargest(10, "composite_score")
         print(f"\n📈 TOP 10 RESULTS")
         display_cols = [
             "total_return",
             "sharpe_ratio",
             "max_drawdown",
+            "trades_count",
+            "win_rate",
+            "profit_factor",
+            "max_winning_streak",
+            "max_losing_streak",
+            "avg_win",
+            "avg_loss",
             "composite_score",
         ]
         print(
             tabulate(
                 top_10[display_cols].round(2),
-                headers=display_cols,
+                headers=[col.replace("_", " ").title() for col in display_cols],
                 tablefmt="grid",
                 showindex=False,
             )
         )
 
-        # Statistics
+        # Statistics with enhanced metrics
         print(f"\n📊 PERFORMANCE STATISTICS")
         stats_data = [
             ["Metric", "Mean", "Std", "Min", "Max"],
@@ -479,6 +593,34 @@ class UnifiedExperimentFramework:
                 f"{df['max_drawdown'].std():.2f}",
                 f"{df['max_drawdown'].min():.2f}",
                 f"{df['max_drawdown'].max():.2f}",
+            ],
+            [
+                "Total Trades",
+                f"{df['trades_count'].mean():.1f}",
+                f"{df['trades_count'].std():.1f}",
+                f"{df['trades_count'].min():.0f}",
+                f"{df['trades_count'].max():.0f}",
+            ],
+            [
+                "Win Rate (%)",
+                f"{df['win_rate'].mean():.1f}",
+                f"{df['win_rate'].std():.1f}",
+                f"{df['win_rate'].min():.1f}",
+                f"{df['win_rate'].max():.1f}",
+            ],
+            [
+                "Max Win Streak",
+                f"{df['max_winning_streak'].mean():.1f}",
+                f"{df['max_winning_streak'].std():.1f}",
+                f"{df['max_winning_streak'].min():.0f}",
+                f"{df['max_winning_streak'].max():.0f}",
+            ],
+            [
+                "Max Loss Streak",
+                f"{df['max_losing_streak'].mean():.1f}",
+                f"{df['max_losing_streak'].std():.1f}",
+                f"{df['max_losing_streak'].min():.0f}",
+                f"{df['max_losing_streak'].max():.0f}",
             ],
         ]
         print(tabulate(stats_data, headers="firstrow", tablefmt="grid"))
@@ -606,6 +748,912 @@ class UnifiedExperimentFramework:
         print(f"📊 Visualizations saved to {filename}")
 
         plt.show()
+
+    def create_single_backtest_visualization(
+        self,
+        result: ExperimentResult,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+    ):
+        """Create visualization for a single backtest result"""
+        print(f"📊 Creating visualization for {self.strategy_name} backtest...")
+
+        # Set up the plotting style
+        plt.style.use(
+            "default"
+        )  # Use default style as seaborn-v0_8 might not be available everywhere
+        fig = plt.figure(figsize=(16, 12))
+        fig.suptitle(
+            f"{self.strategy_name} Strategy - Single Backtest Results",
+            fontsize=16,
+            fontweight="bold",
+        )
+
+        # 1. Portfolio Value Over Time
+        ax1 = plt.subplot(2, 3, 1)
+        if (
+            hasattr(result, "portfolio_values")
+            and hasattr(result, "dates")
+            and result.portfolio_values
+        ):
+            ax1.plot(result.dates, result.portfolio_values, linewidth=2, color="blue")
+            ax1.set_title("Portfolio Value Over Time")
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel("Portfolio Value (₹)")
+            ax1.grid(True, alpha=0.3)
+            # Format y-axis to show values in lakhs/crores
+            ax1.yaxis.set_major_formatter(
+                plt.FuncFormatter(
+                    lambda x, p: (
+                        f"₹{x/100000:.1f}L" if x < 10000000 else f"₹{x/10000000:.1f}Cr"
+                    )
+                )
+            )
+        else:
+            ax1.text(
+                0.5,
+                0.5,
+                "Portfolio tracking\nnot available",
+                ha="center",
+                va="center",
+                transform=ax1.transAxes,
+            )
+            ax1.set_title("Portfolio Value Over Time")
+
+        # 2. Key Metrics Bar Chart
+        ax2 = plt.subplot(2, 3, 2)
+        metrics_names = ["Total Return (%)", "Sharpe Ratio", "Max Drawdown (%)"]
+        metrics_values = [
+            result.total_return,
+            result.sharpe_ratio,
+            abs(result.max_drawdown),
+        ]
+        colors = [
+            "green" if result.total_return > 0 else "red",
+            (
+                "green"
+                if result.sharpe_ratio > 1
+                else "orange" if result.sharpe_ratio > 0 else "red"
+            ),
+            "red" if abs(result.max_drawdown) > 10 else "orange",
+        ]
+
+        bars = ax2.bar(metrics_names, metrics_values, color=colors, alpha=0.7)
+        ax2.set_title("Key Performance Metrics")
+        ax2.set_ylabel("Value")
+
+        # Add value labels on bars
+        for bar, value in zip(bars, metrics_values):
+            height = bar.get_height()
+            ax2.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                height + max(metrics_values) * 0.01,
+                f"{value:.2f}",
+                ha="center",
+                va="bottom",
+            )
+
+        plt.xticks(rotation=45)
+
+        # 3. Strategy Parameters
+        ax3 = plt.subplot(2, 3, 3)
+        param_text = "Strategy Parameters:\n\n"
+        for param, value in result.params.items():
+            if isinstance(value, float):
+                param_text += f"{param.replace('_', ' ').title()}: {value:.3f}\n"
+            else:
+                param_text += f"{param.replace('_', ' ').title()}: {value}\n"
+
+        ax3.text(
+            0.05,
+            0.95,
+            param_text,
+            transform=ax3.transAxes,
+            fontsize=10,
+            verticalalignment="top",
+            fontfamily="monospace",
+            bbox=dict(boxstyle="round", facecolor="lightgray", alpha=0.5),
+        )
+        ax3.set_xlim(0, 1)
+        ax3.set_ylim(0, 1)
+        ax3.axis("off")
+        ax3.set_title("Strategy Configuration")
+
+        # 4. Risk-Return Analysis
+        ax4 = plt.subplot(2, 3, 4)
+        # Create a simple risk-return plot with benchmarks
+        benchmark_returns = [8, 12, 15]  # Simple benchmarks
+        benchmark_risks = [5, 10, 15]  # Associated risks
+        benchmark_labels = ["Conservative", "Moderate", "Aggressive"]
+
+        ax4.scatter(
+            benchmark_risks,
+            benchmark_returns,
+            c=["green", "orange", "red"],
+            s=100,
+            alpha=0.6,
+            label="Benchmarks",
+        )
+        ax4.scatter(
+            [abs(result.max_drawdown)],
+            [result.total_return],
+            c="blue",
+            s=200,
+            marker="^",
+            label="Strategy",
+        )
+
+        for i, label in enumerate(benchmark_labels):
+            ax4.annotate(
+                label,
+                (benchmark_risks[i], benchmark_returns[i]),
+                xytext=(5, 5),
+                textcoords="offset points",
+            )
+
+        ax4.annotate(
+            "Our Strategy",
+            (abs(result.max_drawdown), result.total_return),
+            xytext=(5, 5),
+            textcoords="offset points",
+            fontweight="bold",
+        )
+
+        ax4.set_xlabel("Risk (Max Drawdown %)")
+        ax4.set_ylabel("Return (%)")
+        ax4.set_title("Risk-Return Profile")
+        ax4.grid(True, alpha=0.3)
+        ax4.legend()
+
+        # 5. Trade Statistics (if available)
+        ax5 = plt.subplot(2, 3, 5)
+        if hasattr(result, "trades_count") and result.trades_count > 0:
+            trade_metrics = ["Total Trades", "Win Rate (%)", "Profit Factor"]
+            trade_values = [
+                result.trades_count,
+                getattr(result, "win_rate", 0),
+                getattr(result, "profit_factor", 0),
+            ]
+
+            bars = ax5.bar(
+                trade_metrics,
+                trade_values,
+                color=["blue", "green", "purple"],
+                alpha=0.7,
+            )
+            ax5.set_title("Trading Statistics")
+            ax5.set_ylabel("Value")
+
+            # Add value labels
+            for bar, value in zip(bars, trade_values):
+                height = bar.get_height()
+                ax5.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + max(trade_values) * 0.01,
+                    f"{value:.1f}",
+                    ha="center",
+                    va="bottom",
+                )
+
+            plt.xticks(rotation=45)
+        else:
+            ax5.text(
+                0.5,
+                0.5,
+                "No trades executed\nor trade data\nnot available",
+                ha="center",
+                va="center",
+                transform=ax5.transAxes,
+            )
+            ax5.set_title("Trading Statistics")
+
+        # 6. Summary Information
+        ax6 = plt.subplot(2, 3, 6)
+        summary_text = f"""Backtest Summary:
+
+Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
+Symbols: {len(symbols)} stocks
+Initial Cash: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
+Final Value: ₹{result.final_value:,.0f}
+
+Strategy: {self.strategy_name}
+Composite Score: {result.composite_score:.3f}
+Duration: {result.experiment_duration:.2f} seconds
+"""
+
+        ax6.text(
+            0.05,
+            0.95,
+            summary_text,
+            transform=ax6.transAxes,
+            fontsize=10,
+            verticalalignment="top",
+            fontfamily="monospace",
+            bbox=dict(boxstyle="round", facecolor="lightblue", alpha=0.3),
+        )
+        ax6.set_xlim(0, 1)
+        ax6.set_ylim(0, 1)
+        ax6.axis("off")
+        ax6.set_title("Backtest Summary")
+
+        plt.tight_layout()
+
+        # Save the plot
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(
+            self.strategy_results_dir,
+            f"{self.strategy_name.lower()}_backtest_{timestamp}.png",
+        )
+        plt.savefig(filename, dpi=300, bbox_inches="tight")
+        print(f"📊 Single backtest visualization saved to {filename}")
+
+        plt.show()
+        return filename
+
+    def create_portfolio_dashboard(
+        self,
+        result: ExperimentResult,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        strategy_class=None,
+    ):
+        """
+        Create comprehensive portfolio performance dashboard
+
+        Args:
+            result: ExperimentResult with portfolio performance data
+            symbols: List of symbols used
+            start_date: Start date of analysis
+            end_date: End date of analysis
+            strategy_class: Strategy class for getting strategy instance (optional)
+        """
+        print(
+            f"📊 Creating comprehensive portfolio dashboard for {self.strategy_name}..."
+        )
+
+        # Set up the plotting style
+        plt.style.use("default")
+
+        # Create a large figure with multiple subplots
+        fig = plt.figure(figsize=(20, 30))
+        fig.suptitle(
+            f"{self.strategy_name} Strategy - Comprehensive Portfolio Dashboard",
+            fontsize=20,
+            fontweight="bold",
+            y=0.985,
+        )
+
+        # Prepare data
+        portfolio_values = getattr(result, "portfolio_values", [])
+        dates = getattr(result, "dates", [])
+
+        if not portfolio_values or not dates:
+            # If no portfolio tracking data, create mock data for visualization structure
+            dates = pd.date_range(start_date, end_date, freq="D")
+            initial_value = result.final_value / (1 + result.total_return / 100)
+            portfolio_values = [
+                initial_value * (1 + result.total_return / 100 * i / len(dates))
+                for i in range(len(dates))
+            ]
+
+        # Convert to pandas for easier manipulation
+        portfolio_df = pd.DataFrame({"date": dates, "value": portfolio_values})
+        portfolio_df["date"] = pd.to_datetime(portfolio_df["date"])
+        portfolio_df.set_index("date", inplace=True)
+
+        # Calculate returns
+        portfolio_df["returns"] = portfolio_df["value"].pct_change()
+        portfolio_df["cumulative_returns"] = (1 + portfolio_df["returns"]).cumprod() - 1
+
+        # Calculate drawdown
+        portfolio_df["peak"] = portfolio_df["value"].cummax()
+        portfolio_df["drawdown"] = (
+            (portfolio_df["value"] - portfolio_df["peak"]) / portfolio_df["peak"] * 100
+        )
+
+        # 1. Portfolio Value Over Time (Top Left)
+        ax1 = plt.subplot(5, 3, 1)
+        ax1.plot(
+            portfolio_df.index,
+            portfolio_df["value"],
+            linewidth=2,
+            color="#2E86AB",
+            label="Portfolio Value",
+        )
+        ax1.fill_between(
+            portfolio_df.index, portfolio_df["value"], alpha=0.3, color="#2E86AB"
+        )
+        ax1.set_title("Portfolio Value Over Time", fontsize=14, fontweight="bold")
+        ax1.set_ylabel("Portfolio Value (₹)")
+        ax1.grid(True, alpha=0.3)
+        ax1.legend()
+        # Format y-axis
+        ax1.yaxis.set_major_formatter(
+            plt.FuncFormatter(
+                lambda x, p: (
+                    f"₹{x/100000:.1f}L" if x < 10000000 else f"₹{x/10000000:.1f}Cr"
+                )
+            )
+        )
+
+        # 2. Drawdown Over Time (Top Middle)
+        ax2 = plt.subplot(5, 3, 2)
+        ax2.fill_between(
+            portfolio_df.index,
+            portfolio_df["drawdown"],
+            0,
+            alpha=0.7,
+            color="red",
+            label="Drawdown",
+        )
+        ax2.plot(
+            portfolio_df.index, portfolio_df["drawdown"], linewidth=1, color="darkred"
+        )
+        ax2.set_title("Drawdown Analysis", fontsize=14, fontweight="bold")
+        ax2.set_ylabel("Drawdown (%)")
+        ax2.grid(True, alpha=0.3)
+        ax2.legend()
+        # Add max drawdown line
+        max_dd = portfolio_df["drawdown"].min()
+        ax2.axhline(
+            y=max_dd,
+            color="red",
+            linestyle="--",
+            alpha=0.8,
+            label=f"Max DD: {max_dd:.2f}%",
+        )
+        ax2.legend()
+
+        # 3. Monthly Returns Heatmap (Top Right)
+        ax3 = plt.subplot(5, 3, 3)
+        if len(portfolio_df) > 30:  # Only create heatmap if we have enough data
+            monthly_returns = (
+                portfolio_df["returns"]
+                .resample("M")
+                .apply(lambda x: (1 + x).prod() - 1)
+                * 100
+            )
+            monthly_returns_df = monthly_returns.to_frame()
+            monthly_returns_df["year"] = monthly_returns_df.index.year
+            monthly_returns_df["month"] = monthly_returns_df.index.month
+
+            # Pivot for heatmap
+            heatmap_data = monthly_returns_df.pivot(
+                index="year", columns="month", values="returns"
+            )
+
+            # Create heatmap
+            import seaborn as sns
+
+            sns.heatmap(
+                heatmap_data,
+                annot=True,
+                fmt=".1f",
+                cmap="RdYlGn",
+                center=0,
+                ax=ax3,
+                cbar_kws={"label": "Monthly Return (%)"},
+            )
+            ax3.set_title("Monthly Returns Heatmap", fontsize=14, fontweight="bold")
+            ax3.set_xlabel("Month")
+            ax3.set_ylabel("Year")
+        else:
+            ax3.text(
+                0.5,
+                0.5,
+                "Insufficient data\nfor monthly heatmap\n(need >30 days)",
+                ha="center",
+                va="center",
+                transform=ax3.transAxes,
+                fontsize=12,
+            )
+            ax3.set_title("Monthly Returns Heatmap", fontsize=14, fontweight="bold")
+
+        # 4. Daily Returns Distribution (Second Row Left)
+        ax4 = plt.subplot(5, 3, 4)
+        returns_clean = portfolio_df["returns"].dropna()
+        if len(returns_clean) > 1:
+            ax4.hist(
+                returns_clean * 100,
+                bins=50,
+                alpha=0.7,
+                color="skyblue",
+                edgecolor="black",
+                density=True,
+            )
+            ax4.axvline(
+                returns_clean.mean() * 100,
+                color="red",
+                linestyle="--",
+                label=f"Mean: {returns_clean.mean()*100:.3f}%",
+            )
+            ax4.axvline(
+                returns_clean.median() * 100,
+                color="green",
+                linestyle="--",
+                label=f"Median: {returns_clean.median()*100:.3f}%",
+            )
+            ax4.set_title("Daily Returns Distribution", fontsize=14, fontweight="bold")
+            ax4.set_xlabel("Daily Return (%)")
+            ax4.set_ylabel("Density")
+            ax4.grid(True, alpha=0.3)
+            ax4.legend()
+        else:
+            ax4.text(
+                0.5,
+                0.5,
+                "Insufficient data\nfor distribution",
+                ha="center",
+                va="center",
+                transform=ax4.transAxes,
+            )
+            ax4.set_title("Daily Returns Distribution", fontsize=14, fontweight="bold")
+
+        # 5. Rolling Sharpe Ratio (Second Row Middle)
+        ax5 = plt.subplot(5, 3, 5)
+        if len(returns_clean) > 30:
+            rolling_sharpe = (
+                returns_clean.rolling(window=30).mean()
+                / returns_clean.rolling(window=30).std()
+                * np.sqrt(252)
+            )
+            ax5.plot(
+                rolling_sharpe.index,
+                rolling_sharpe,
+                linewidth=2,
+                color="purple",
+                label="30-Day Rolling Sharpe",
+            )
+            ax5.axhline(
+                y=1, color="green", linestyle="--", alpha=0.7, label="Sharpe = 1.0"
+            )
+            ax5.axhline(
+                y=2, color="orange", linestyle="--", alpha=0.7, label="Sharpe = 2.0"
+            )
+            ax5.set_title(
+                "Rolling Sharpe Ratio (30-Day)", fontsize=14, fontweight="bold"
+            )
+            ax5.set_ylabel("Sharpe Ratio")
+            ax5.grid(True, alpha=0.3)
+            ax5.legend()
+        else:
+            ax5.text(
+                0.5,
+                0.5,
+                "Insufficient data\nfor rolling Sharpe\n(need >30 days)",
+                ha="center",
+                va="center",
+                transform=ax5.transAxes,
+            )
+            ax5.set_title(
+                "Rolling Sharpe Ratio (30-Day)", fontsize=14, fontweight="bold"
+            )
+
+        # 6. Cumulative Returns vs Benchmark (Second Row Right)
+        ax6 = plt.subplot(5, 3, 6)
+        ax6.plot(
+            portfolio_df.index,
+            portfolio_df["cumulative_returns"] * 100,
+            linewidth=2,
+            color="blue",
+            label=f"{self.strategy_name} Strategy",
+        )
+
+        # Add simple benchmark lines
+        days_total = len(portfolio_df)
+        benchmark_8 = [
+            (8 / 365 * i / days_total * days_total) for i in range(days_total)
+        ]
+        benchmark_12 = [
+            (12 / 365 * i / days_total * days_total) for i in range(days_total)
+        ]
+
+        ax6.plot(
+            portfolio_df.index,
+            benchmark_8,
+            linestyle="--",
+            color="green",
+            alpha=0.7,
+            label="8% p.a. Benchmark",
+        )
+        ax6.plot(
+            portfolio_df.index,
+            benchmark_12,
+            linestyle="--",
+            color="orange",
+            alpha=0.7,
+            label="12% p.a. Benchmark",
+        )
+
+        ax6.set_title(
+            "Cumulative Returns vs Benchmarks", fontsize=14, fontweight="bold"
+        )
+        ax6.set_ylabel("Cumulative Return (%)")
+        ax6.grid(True, alpha=0.3)
+        ax6.legend()
+
+        # 7. Key Performance Metrics (Third Row Left)
+        ax7 = plt.subplot(5, 3, 7)
+        metrics_data = {
+            "Total Return": f"{result.total_return:.2f}%",
+            "Annualized Return": f"{(result.total_return * 365 / (end_date - start_date).days):.2f}%",
+            "Sharpe Ratio": f"{result.sharpe_ratio:.3f}",
+            "Max Drawdown": f"{result.max_drawdown:.2f}%",
+            "Volatility": (
+                f"{returns_clean.std() * np.sqrt(252) * 100:.2f}%"
+                if len(returns_clean) > 1
+                else "N/A"
+            ),
+            "Win Rate": f"{getattr(result, 'win_rate', 0):.1f}%",
+            "Profit Factor": f"{getattr(result, 'profit_factor', 0):.2f}",
+            "Total Trades": f"{getattr(result, 'trades_count', 0)}",
+            "Max Win Streak": f"{getattr(result, 'max_winning_streak', 0)}",
+            "Max Loss Streak": f"{getattr(result, 'max_losing_streak', 0)}",
+            "Avg Win": f"₹{getattr(result, 'avg_win', 0):.2f}",
+            "Avg Loss": f"₹{getattr(result, 'avg_loss', 0):.2f}",
+        }
+
+        y_pos = 0.95
+        line_height = 0.07
+        for metric, value in metrics_data.items():
+            ax7.text(
+                0.05,
+                y_pos,
+                f"{metric}:",
+                fontweight="bold",
+                transform=ax7.transAxes,
+                fontsize=10,
+            )
+            ax7.text(0.6, y_pos, value, transform=ax7.transAxes, fontsize=10)
+            y_pos -= line_height
+
+        ax7.set_xlim(0, 1)
+        ax7.set_ylim(0, 1)
+        ax7.axis("off")
+        ax7.set_title("Key Performance Metrics", fontsize=14, fontweight="bold")
+
+        # 8. Risk-Return Scatter (Third Row Middle)
+        ax8 = plt.subplot(5, 3, 8)
+        volatility = (
+            returns_clean.std() * np.sqrt(252) * 100 if len(returns_clean) > 1 else 0
+        )
+        annualized_return = result.total_return * 365 / (end_date - start_date).days
+
+        # Plot strategy point
+        ax8.scatter(
+            [volatility],
+            [annualized_return],
+            s=200,
+            c="red",
+            marker="*",
+            label=f"{self.strategy_name}",
+            zorder=5,
+        )
+
+        # Add benchmark points
+        benchmarks = [
+            ("Conservative", 5, 8),
+            ("Moderate", 10, 12),
+            ("Aggressive", 15, 16),
+            ("High Risk", 25, 20),
+        ]
+
+        for name, vol, ret in benchmarks:
+            ax8.scatter([vol], [ret], s=100, alpha=0.6, label=name)
+
+        ax8.set_xlabel("Volatility (% p.a.)")
+        ax8.set_ylabel("Return (% p.a.)")
+        ax8.set_title("Risk-Return Profile", fontsize=14, fontweight="bold")
+        ax8.grid(True, alpha=0.3)
+        ax8.legend()
+
+        # 9. Portfolio Composition & Summary (Third Row Right)
+        ax9 = plt.subplot(5, 3, 9)
+        summary_text = f"""
+Portfolio Summary:
+━━━━━━━━━━━━━━━━━━━━
+Strategy: {self.strategy_name}
+Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
+Duration: {(end_date - start_date).days} days
+
+Symbols: {len(symbols)}
+{', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}
+
+Initial Value: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
+Final Value: ₹{result.final_value:,.0f}
+Profit/Loss: ₹{(result.total_return/100 * result.final_value):,.0f}
+
+Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
+        """
+
+        ax9.text(
+            0.05,
+            0.95,
+            summary_text,
+            transform=ax9.transAxes,
+            fontsize=10,
+            verticalalignment="top",
+            fontfamily="monospace",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.3),
+        )
+        ax9.set_xlim(0, 1)
+        ax9.set_ylim(0, 1)
+        ax9.axis("off")
+        ax9.set_title("Portfolio Summary", fontsize=14, fontweight="bold")
+
+        # 10. Weekly Returns Pattern (Fourth Row Left)
+        ax10 = plt.subplot(5, 3, 10)
+        if len(portfolio_df) > 14:
+            portfolio_df["weekday"] = portfolio_df.index.dayofweek
+            weekly_pattern = portfolio_df.groupby("weekday")["returns"].mean() * 100
+            weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            colors = ["green" if x > 0 else "red" for x in weekly_pattern]
+
+            bars = ax10.bar(
+                range(len(weekly_pattern)), weekly_pattern, color=colors, alpha=0.7
+            )
+            ax10.set_xticks(range(len(weekly_pattern)))
+            ax10.set_xticklabels([weekdays[i] for i in weekly_pattern.index])
+            ax10.set_title(
+                "Average Returns by Day of Week", fontsize=14, fontweight="bold"
+            )
+            ax10.set_ylabel("Average Return (%)")
+            ax10.grid(True, alpha=0.3, axis="y")
+
+            # Add value labels
+            for bar, value in zip(bars, weekly_pattern):
+                height = bar.get_height()
+                ax10.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + (max(weekly_pattern) - min(weekly_pattern)) * 0.01,
+                    f"{value:.3f}%",
+                    ha="center",
+                    va="bottom" if height >= 0 else "top",
+                    fontsize=9,
+                )
+        else:
+            ax10.text(
+                0.5,
+                0.5,
+                "Insufficient data\nfor weekly pattern",
+                ha="center",
+                va="center",
+                transform=ax10.transAxes,
+            )
+            ax10.set_title(
+                "Average Returns by Day of Week", fontsize=14, fontweight="bold"
+            )
+
+        # 11. Rolling Volatility (Fourth Row Middle)
+        ax11 = plt.subplot(5, 3, 11)
+        if len(returns_clean) > 30:
+            rolling_vol = returns_clean.rolling(window=30).std() * np.sqrt(252) * 100
+            ax11.plot(
+                rolling_vol.index,
+                rolling_vol,
+                linewidth=2,
+                color="red",
+                label="30-Day Rolling Volatility",
+            )
+            ax11.axhline(
+                y=rolling_vol.mean(),
+                color="blue",
+                linestyle="--",
+                alpha=0.7,
+                label=f"Mean: {rolling_vol.mean():.1f}%",
+            )
+            ax11.set_title(
+                "Rolling Volatility (30-Day)", fontsize=14, fontweight="bold"
+            )
+            ax11.set_ylabel("Volatility (% p.a.)")
+            ax11.grid(True, alpha=0.3)
+            ax11.legend()
+        else:
+            ax11.text(
+                0.5,
+                0.5,
+                "Insufficient data\nfor rolling volatility",
+                ha="center",
+                va="center",
+                transform=ax11.transAxes,
+            )
+            ax11.set_title(
+                "Rolling Volatility (30-Day)", fontsize=14, fontweight="bold"
+            )
+
+        # 12. Underwater Plot (Fourth Row Right)
+        ax12 = plt.subplot(5, 3, 12)
+        ax12.fill_between(
+            portfolio_df.index, portfolio_df["drawdown"], 0, alpha=0.7, color="red"
+        )
+        ax12.plot(
+            portfolio_df.index, portfolio_df["drawdown"], linewidth=1, color="darkred"
+        )
+        ax12.set_title(
+            "Underwater Plot (Drawdown Visualization)", fontsize=14, fontweight="bold"
+        )
+        ax12.set_ylabel("Drawdown (%)")
+        ax12.grid(True, alpha=0.3)
+
+        # Add recovery periods
+        in_drawdown = portfolio_df["drawdown"] < -0.01  # More than 0.01% drawdown
+        if in_drawdown.any():
+            drawdown_periods = portfolio_df[in_drawdown].index
+            if len(drawdown_periods) > 0:
+                ax12.axvline(
+                    x=drawdown_periods[0],
+                    color="orange",
+                    linestyle=":",
+                    alpha=0.7,
+                    label="DD Start",
+                )
+                if not in_drawdown.iloc[-1]:  # If recovered
+                    recovery_date = portfolio_df[
+                        ~in_drawdown & (portfolio_df.index > drawdown_periods[-1])
+                    ].index
+                    if len(recovery_date) > 0:
+                        ax12.axvline(
+                            x=recovery_date[0],
+                            color="green",
+                            linestyle=":",
+                            alpha=0.7,
+                            label="Recovery",
+                        )
+        ax12.legend()
+
+        # 13. Optimal Parameters Panel (Fifth Row - Spanning all 3 columns)
+        ax13 = plt.subplot(5, 1, 5)  # This spans the entire bottom row
+
+        # Create a visually appealing parameters display
+        params_text = "🏆 OPTIMAL STRATEGY PARAMETERS (Best Configuration) 🏆\n"
+        params_text += "=" * 80 + "\n\n"
+
+        # Format parameters in a table-like structure
+        param_items = list(result.params.items())
+        # Split parameters into two columns for better layout
+        mid_point = len(param_items) // 2 + len(param_items) % 2
+        left_params = param_items[:mid_point]
+        right_params = param_items[mid_point:]
+
+        # Create two-column layout
+        for i in range(max(len(left_params), len(right_params))):
+            line = ""
+
+            # Left column
+            if i < len(left_params):
+                param, value = left_params[i]
+                if isinstance(value, float):
+                    line += f"{param.replace('_', ' ').title():<20}: {value:<10.3f}"
+                else:
+                    line += f"{param.replace('_', ' ').title():<20}: {str(value):<10}"
+            else:
+                line += " " * 32
+
+            line += "    "  # Spacing between columns
+
+            # Right column
+            if i < len(right_params):
+                param, value = right_params[i]
+                if isinstance(value, float):
+                    line += f"{param.replace('_', ' ').title():<20}: {value:<10.3f}"
+                else:
+                    line += f"{param.replace('_', ' ').title():<20}: {str(value):<10}"
+
+            params_text += line + "\n"
+
+        # Add performance metrics at the bottom
+        params_text += "\n" + "─" * 80 + "\n"
+        params_text += f"📊 PERFORMANCE SUMMARY:\n"
+        params_text += f"Total Return: {result.total_return:.2f}%  |  "
+        params_text += f"Sharpe Ratio: {result.sharpe_ratio:.3f}  |  "
+        params_text += f"Max Drawdown: {result.max_drawdown:.2f}%  |  "
+        params_text += f"Composite Score: {result.composite_score:.4f}"
+
+        # Display the text with special formatting
+        ax13.text(
+            0.5,
+            0.5,
+            params_text,
+            transform=ax13.transAxes,
+            fontsize=11,
+            ha="center",
+            va="center",
+            fontfamily="monospace",
+            bbox=dict(
+                boxstyle="round,pad=1",
+                facecolor="gold",
+                alpha=0.3,
+                edgecolor="darkgoldenrod",
+                linewidth=3,
+            ),
+        )
+
+        ax13.set_xlim(0, 1)
+        ax13.set_ylim(0, 1)
+        ax13.axis("off")
+
+        # Add a crown emoji as title decoration
+        ax13.text(
+            0.5,
+            0.95,
+            "👑 WINNING CONFIGURATION 👑",
+            transform=ax13.transAxes,
+            fontsize=16,
+            fontweight="bold",
+            ha="center",
+            va="top",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.8),
+        )
+
+        plt.tight_layout(rect=[0, 0, 1, 0.97])  # Leave space for suptitle
+
+        # Save the dashboard
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(
+            self.strategy_results_dir,
+            f"{self.strategy_name.lower()}_dashboard_{timestamp}.png",
+        )
+        plt.savefig(filename, dpi=300, bbox_inches="tight")
+        print(f"📊 Comprehensive portfolio dashboard saved to {filename}")
+
+        plt.show()
+        return filename
+
+    def run_portfolio_analysis(
+        self,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        initial_cash: float = 1000000,
+        params: Dict[str, Any] = None,
+    ) -> Optional[str]:
+        """
+        Run portfolio analysis and generate dashboard without experiments
+
+        Args:
+            symbols: List of stock symbols
+            start_date: Analysis start date
+            end_date: Analysis end date
+            initial_cash: Initial portfolio value
+            params: Strategy parameters (uses defaults if None)
+
+        Returns:
+            Path to generated dashboard file
+        """
+        print(f"📊 Running portfolio analysis for {self.strategy_name} strategy...")
+
+        # Use default params if none provided
+        if params is None:
+            params = self.strategy_config.get_default_params()
+
+        # Run single experiment to get portfolio data
+        result = self.run_single_experiment(
+            params=params,
+            symbols=symbols,
+            start_date=start_date,
+            end_date=end_date,
+            initial_cash=initial_cash,
+        )
+
+        if result:
+            # Generate comprehensive dashboard
+            dashboard_file = self.create_portfolio_dashboard(
+                result, symbols, start_date, end_date
+            )
+
+            # Print summary
+            print(f"\n✅ Portfolio analysis completed!")
+            print(f"📈 Total Return: {result.total_return:.2f}%")
+            print(f"⚖️ Sharpe Ratio: {result.sharpe_ratio:.3f}")
+            print(f"📉 Max Drawdown: {result.max_drawdown:.2f}%")
+            print(f"💰 Final Value: ₹{result.final_value:,.2f}")
+
+            return dashboard_file
+        else:
+            print("❌ Portfolio analysis failed")
+            return None
 
     def get_optimal_parameters(self) -> Optional[Dict[str, Any]]:
         """Get the optimal parameters from experiments"""

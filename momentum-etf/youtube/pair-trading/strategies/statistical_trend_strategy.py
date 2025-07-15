@@ -1,46 +1,49 @@
 """
-Statistical Trend Following Strategy
+Pure-equity Stat-Trend Hybrid (Nifty-50 cash segment)
+Author:  <you>
+Date:    2024-07-15
 
 A strategy that uses statistical measures and trend indicators to identify
-and follow trends in stock prices. This strategy combines multiple statistical
-indicators to create robust trend-following signals.
+and follow trends in stock prices. This strategy combines z-score mean reversion
+with momentum filters using EMA and ADX indicators.
 """
 
 import backtrader as bt
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List
+from datetime import time
 
 from .base_strategy import BaseStrategy, StrategyConfig
 
 
 class StatisticalTrendStrategy(BaseStrategy):
     """
-    Statistical Trend Following Strategy
+    Pure-equity Stat-Trend Hybrid Strategy
 
-    This strategy combines multiple statistical indicators:
-    1. Moving Average Convergence Divergence (MACD)
-    2. Relative Strength Index (RSI)
-    3. Bollinger Bands
-    4. Average True Range (ATR) for position sizing
-    5. Linear regression slope for trend strength
+    This strategy combines:
+    1. Z-score based mean reversion signals
+    2. EMA trend filters (fast vs slow)
+    3. ADX momentum strength filter
+    4. ATR-based position sizing
+    5. Risk management with maximum positions
     """
 
     params = (
-        ("macd_fast", 12),  # MACD fast period
-        ("macd_slow", 26),  # MACD slow period
-        ("macd_signal", 9),  # MACD signal period
-        ("rsi_period", 14),  # RSI period
-        ("bb_period", 20),  # Bollinger Bands period
-        ("bb_std", 2.0),  # Bollinger Bands standard deviations
-        ("atr_period", 14),  # ATR period for volatility
-        ("trend_period", 20),  # Period for trend strength calculation
-        ("rsi_oversold", 30),  # RSI oversold threshold
-        ("rsi_overbought", 70),  # RSI overbought threshold
-        ("trend_threshold", 0.001),  # Minimum trend slope threshold
-        ("risk_per_trade", 0.02),  # Risk per trade
-        ("max_positions", 8),  # Maximum positions
-        ("rebalance_freq", 3),  # Rebalance frequency
+        ("lookback", 20),  # Lookback period for z-score calculation
+        ("z_entry", 2.0),  # Z-score threshold to trigger entry
+        ("z_exit", 1.0),  # Z-score threshold to trigger exit
+        ("ema_fast", 20),  # Fast EMA period
+        ("ema_slow", 50),  # Slow EMA period
+        ("adx_period", 14),  # ADX period
+        ("adx_level", 25),  # Minimum ADX level for trend strength
+        ("max_risk", 0.008),  # Maximum risk per trade (0.8% of equity)
+        ("slippage", 0.0002),  # Slippage percentage
+        ("comm", 0.0003),  # Commission (3 bps one-way for equity delivery)
+        ("short", False),  # Enable short selling (set True if you have SLB)
+        ("square_off_hour", 15),  # Square off hour
+        ("square_off_minute", 20),  # Square off minute
+        ("max_positions", 5),  # Maximum concurrent positions
         ("printlog", False),
     )
 
@@ -53,199 +56,177 @@ class StatisticalTrendStrategy(BaseStrategy):
     def __init__(self):
         """Initialize indicators for all data feeds"""
         super().__init__()
-        self.rebalance_counter = 0
 
         # Dictionary to store indicators for each data feed
         self.indicators = {}
 
         for data in self.datas:
             self.indicators[data._name] = {
-                "macd": bt.indicators.MACD(
-                    data.close,
-                    period_me1=self.params.macd_fast,
-                    period_me2=self.params.macd_slow,
-                    period_signal=self.params.macd_signal,
-                ),
-                "rsi": bt.indicators.RSI(data.close, period=self.params.rsi_period),
-                "bb": bt.indicators.BollingerBands(
-                    data.close,
-                    period=self.params.bb_period,
-                    devfactor=self.params.bb_std,
-                ),
-                "atr": bt.indicators.ATR(data, period=self.params.atr_period),
-                "sma": bt.indicators.SMA(data.close, period=self.params.trend_period),
+                "ema_fast": bt.indicators.EMA(data.close, period=self.params.ema_fast),
+                "ema_slow": bt.indicators.EMA(data.close, period=self.params.ema_slow),
+                "adx": bt.indicators.ADX(data, period=self.params.adx_period),
+                "atr": bt.indicators.ATR(data, period=14),
+                # Daily returns for z-score calculation
+                "ret": bt.indicators.PctChange(data.close, period=1),
+                # Z-score on daily returns
+                "z": self.create_zscore_indicator(data),
             }
 
-    def calculate_trend_strength(self, data):
-        """Calculate trend strength using linear regression slope"""
-        if len(data.close) < self.params.trend_period:
-            return 0.0
+    def create_zscore_indicator(self, data):
+        """Create a custom z-score indicator for the data"""
 
-        # Get recent prices
-        prices = []
-        for i in range(self.params.trend_period):
-            prices.append(data.close[-i])
+        class ZScore(bt.Indicator):
+            lines = ("zscore",)
+            params = (("period", self.params.lookback),)
 
-        # Reverse to get chronological order
-        prices = prices[::-1]
+            def __init__(self):
+                self.returns = bt.indicators.PctChange(data.close, period=1)
+                self.addminperiod(self.params.period)
 
-        # Calculate linear regression slope
-        x = np.arange(len(prices))
-        y = np.array(prices)
+            def next(self):
+                returns_array = np.array(
+                    [self.returns[-i] for i in range(self.params.period)]
+                )
+                returns_array = returns_array[::-1]  # Reverse to chronological order
 
-        # Handle edge cases
-        if len(y) < 2 or np.std(y) == 0:
-            return 0.0
+                if len(returns_array) >= self.params.period:
+                    mean_ret = np.mean(returns_array)
+                    std_ret = np.std(returns_array)
 
-        try:
-            # Calculate slope
-            slope = np.polyfit(x, y, 1)[0]
-            # Normalize by average price to get percentage slope
-            avg_price = np.mean(y)
-            if avg_price > 0:
-                normalized_slope = slope / avg_price
-            else:
-                normalized_slope = 0.0
-
-            return normalized_slope
-        except:
-            return 0.0
-
-    def get_signal_strength(self, data):
-        """Calculate combined signal strength for a data feed"""
-        if data._name not in self.indicators:
-            return 0.0, {}
-
-        ind = self.indicators[data._name]
-
-        # Initialize signal components
-        signals = {"macd_signal": 0, "rsi_signal": 0, "bb_signal": 0, "trend_signal": 0}
-
-        try:
-            # MACD Signal
-            if len(ind["macd"].macd) > 0 and len(ind["macd"].signal) > 0:
-                if ind["macd"].macd[0] > ind["macd"].signal[0]:
-                    signals["macd_signal"] = 1  # Bullish
+                    if std_ret > 0:
+                        current_ret = self.returns[0]
+                        self.lines.zscore[0] = (current_ret - mean_ret) / std_ret
+                    else:
+                        self.lines.zscore[0] = 0.0
                 else:
-                    signals["macd_signal"] = -1  # Bearish
+                    self.lines.zscore[0] = 0.0
 
-            # RSI Signal
-            if len(ind["rsi"]) > 0:
-                rsi_val = ind["rsi"][0]
-                if rsi_val < self.params.rsi_oversold:
-                    signals["rsi_signal"] = 1  # Oversold - bullish
-                elif rsi_val > self.params.rsi_overbought:
-                    signals["rsi_signal"] = -1  # Overbought - bearish
+        return ZScore()
+
+    def is_square_off_time(self):
+        """Check if it's time to square off all positions"""
+        current_time = self.datas[0].datetime.time(0)
+        square_off_time = time(
+            self.params.square_off_hour, self.params.square_off_minute
+        )
+        return current_time >= square_off_time
+
+    def close_all_positions(self):
+        """Close all open positions"""
+        for data in self.datas:
+            position = self.getposition(data)
+            if position.size != 0:
+                self.close(data=data)
+                self.log(f"Square off: Closing position for {data._name}")
+
+    def get_candidates(self):
+        """Get candidate stocks for trading based on z-score and momentum filters"""
+        candidates = []
+        debug_info = []
+
+        for data in self.datas:
+            # Need sufficient data for indicators
+            if len(data) < max(self.params.lookback, self.params.ema_slow) + 1:
+                debug_info.append(f"{data._name}: Insufficient data ({len(data)} bars)")
+                continue
+
+            indicators = self.indicators[data._name]
+
+            # Get current values
+            z_score = (
+                indicators["z"].zscore[0] if len(indicators["z"].zscore) > 0 else 0
+            )
+            ema_fast = (
+                indicators["ema_fast"][0] if len(indicators["ema_fast"]) > 0 else 0
+            )
+            ema_slow = (
+                indicators["ema_slow"][0] if len(indicators["ema_slow"]) > 0 else 0
+            )
+            adx = indicators["adx"][0] if len(indicators["adx"]) > 0 else 0
+
+            debug_info.append(
+                f"{data._name}: z={z_score:.3f}, adx={adx:.1f}, ema_fast={ema_fast:.2f}, ema_slow={ema_slow:.2f}"
+            )
+
+            # Check entry conditions - RELAXED CONDITIONS
+            z_threshold = self.params.z_entry
+            adx_threshold = self.params.adx_level
+
+            if abs(z_score) > z_threshold and adx > adx_threshold:
+                if self.params.short:
+                    # Long on negative z-score with uptrend, short on positive z-score with downtrend
+                    if z_score < -z_threshold and ema_fast > ema_slow:
+                        candidates.append((data, 1, z_score))  # Long
+                        debug_info.append(
+                            f"{data._name}: LONG candidate (z={z_score:.3f})"
+                        )
+                    elif z_score > z_threshold and ema_fast < ema_slow:
+                        candidates.append((data, -1, z_score))  # Short
+                        debug_info.append(
+                            f"{data._name}: SHORT candidate (z={z_score:.3f})"
+                        )
                 else:
-                    signals["rsi_signal"] = 0  # Neutral
+                    # Long-only: only buy on negative z-score with uptrend OR positive z-score in strong downtrend (contrarian)
+                    if z_score < -z_threshold and ema_fast > ema_slow:
+                        candidates.append((data, 1, z_score))  # Long only
+                        debug_info.append(
+                            f"{data._name}: LONG candidate (z={z_score:.3f})"
+                        )
+                    elif z_score > z_threshold and ema_fast < ema_slow:
+                        # Allow contrarian long entries when stock is oversold in downtrend
+                        candidates.append((data, 1, z_score))  # Contrarian long
+                        debug_info.append(
+                            f"{data._name}: CONTRARIAN LONG candidate (z={z_score:.3f})"
+                        )
 
-            # Bollinger Bands Signal
-            if (
-                len(ind["bb"].top) > 0
-                and len(ind["bb"].bot) > 0
-                and len(ind["bb"].mid) > 0
-            ):
+        # Log debug info occasionally
+        if len(debug_info) > 0 and self.params.printlog:
+            self.log(f"Scan results: {len(candidates)} candidates")
+            for info in debug_info[:5]:  # Show first 5 for brevity
+                self.log(info)
 
-                current_price = data.close[0]
-                if current_price > ind["bb"].top[0]:
-                    signals["bb_signal"] = -1  # Above upper band - bearish
-                elif current_price < ind["bb"].bot[0]:
-                    signals["bb_signal"] = 1  # Below lower band - bullish
-                elif current_price > ind["bb"].mid[0]:
-                    signals["bb_signal"] = 0.5  # Above middle - mildly bullish
-                else:
-                    signals["bb_signal"] = -0.5  # Below middle - mildly bearish
+        return candidates
 
-            # Trend Signal
-            trend_strength = self.calculate_trend_strength(data)
-            if abs(trend_strength) > self.params.trend_threshold:
-                signals["trend_signal"] = 1 if trend_strength > 0 else -1
-            else:
-                signals["trend_signal"] = 0
-
-            # Combine signals (weighted average)
-            weights = {
-                "macd_signal": 0.3,
-                "rsi_signal": 0.25,
-                "bb_signal": 0.25,
-                "trend_signal": 0.2,
-            }
-
-            combined_signal = sum(signals[key] * weights[key] for key in signals)
-
-            return combined_signal, signals
-
-        except Exception as e:
-            self.log(f"Error calculating signals for {data._name}: {e}")
-            return 0.0, signals
-
-    def get_position_size(self, data):
+    def calculate_position_size(self, data):
         """Calculate position size based on ATR and risk management"""
-        if data._name not in self.indicators:
-            return 0
-
         try:
-            available_cash = self.broker.get_cash()
-            risk_amount = available_cash * self.params.risk_per_trade
+            indicators = self.indicators[data._name]
+            atr = indicators["atr"][0] if len(indicators["atr"]) > 0 else 0
 
-            # Use ATR for volatility-based sizing
-            atr = self.indicators[data._name]["atr"]
-            if len(atr) > 0 and atr[0] > 0:
-                # Size based on ATR - risk one ATR per trade
-                current_price = data.close[0]
-                if current_price > 0:
-                    size = int(risk_amount / (atr[0] * 2))  # 2x ATR for stop loss
-                    return max(size, 1)
+            if atr <= 0:
+                return 0
 
-            # Fallback to simple sizing
-            current_price = data.close[0]
-            if current_price > 0:
-                size = int(risk_amount / current_price)
-                return max(size, 1)
+            # Risk amount based on portfolio value
+            portfolio_value = self.broker.getvalue()
+            risk_amount = portfolio_value * self.params.max_risk
+
+            # Position size based on ATR stop loss (0.75 * ATR as in original)
+            stop_distance = 0.75 * atr
+
+            if stop_distance > 0:
+                size = int(risk_amount / stop_distance)
+                return max(size, 0)
+            else:
+                return 0
 
         except Exception as e:
             self.log(f"Error calculating position size for {data._name}: {e}")
-
-        return 1
-
-    def should_enter_long(self, data):
-        """Check if we should enter a long position"""
-        if self.getposition(data).size != 0:
-            return False
-
-        signal_strength, signals = self.get_signal_strength(data)
-
-        # Strong bullish signal (threshold can be adjusted)
-        return signal_strength > 0.3
-
-    def should_enter_short(self, data):
-        """Check if we should enter a short position"""
-        if self.getposition(data).size != 0:
-            return False
-
-        signal_strength, signals = self.get_signal_strength(data)
-
-        # Strong bearish signal
-        return signal_strength < -0.3
+            return 0
 
     def should_exit_position(self, data):
-        """Check if we should exit current position"""
+        """Check if existing position should be exited based on z-score reversal"""
         position = self.getposition(data)
         if position.size == 0:
             return False
 
-        signal_strength, signals = self.get_signal_strength(data)
+        indicators = self.indicators[data._name]
+        z_score = indicators["z"].zscore[0] if len(indicators["z"].zscore) > 0 else 0
 
-        # Exit long position if signal turns bearish or weak
-        if position.size > 0:
-            return signal_strength < 0.1
-
-        # Exit short position if signal turns bullish or weak
-        else:
-            return signal_strength > -0.1
+        # Exit if z-score has reverted below exit threshold
+        return abs(z_score) < self.params.z_exit
 
     def count_positions(self):
-        """Count current number of positions"""
+        """Count current number of open positions"""
         count = 0
         for data in self.datas:
             if self.getposition(data).size != 0:
@@ -253,71 +234,58 @@ class StatisticalTrendStrategy(BaseStrategy):
         return count
 
     def execute_strategy(self):
-        """Execute statistical trend strategy logic"""
-        # Rebalance only on specified frequency
-        if self.rebalance_counter % self.params.rebalance_freq != 0:
-            self.rebalance_counter += 1
+        """Execute the main strategy logic"""
+        # Check if it's time to square off all positions
+        if self.is_square_off_time():
+            self.close_all_positions()
             return
 
-        # Need minimum data for indicators
-        min_data_needed = max(
-            self.params.macd_slow + self.params.macd_signal,
-            self.params.rsi_period,
-            self.params.bb_period,
-            self.params.trend_period,
-        )
-
-        if len(self.datas[0]) < min_data_needed:
-            self.rebalance_counter += 1
-            return
-
-        # First, check exit conditions for existing positions
+        # Exit existing positions if z-score has reverted
         for data in self.datas:
             if self.should_exit_position(data):
                 self.close(data=data)
-                self.log(f"Closing position for {data._name}")
+                self.log(f"Exiting position for {data._name} - z-score reverted")
 
-        # Then, look for new entry opportunities
+        # Get trading candidates
+        candidates = self.get_candidates()
+
+        if not candidates:
+            return
+
+        # Limit to maximum positions
         current_positions = self.count_positions()
+        available_slots = max(0, self.params.max_positions - current_positions)
 
-        if current_positions < self.params.max_positions:
-            # Find potential trades
-            potential_trades = []
+        if available_slots == 0:
+            return
 
-            for data in self.datas:
-                if self.getposition(data).size == 0:  # No current position
-                    signal_strength, signals = self.get_signal_strength(data)
+        # Sort by absolute z-score (strongest signals first)
+        candidates.sort(key=lambda x: abs(x[2]), reverse=True)
 
-                    if abs(signal_strength) > 0.3:  # Strong signal
-                        potential_trades.append((data, signal_strength, signals))
+        # Take positions up to available slots
+        for data, direction, z_score in candidates[:available_slots]:
+            # Skip if already have position in this stock
+            if self.getposition(data).size != 0:
+                continue
 
-            # Sort by signal strength (strongest first)
-            potential_trades.sort(key=lambda x: abs(x[1]), reverse=True)
+            size = self.calculate_position_size(data)
 
-            # Enter positions up to max limit
-            remaining_slots = self.params.max_positions - current_positions
-
-            for data, signal_strength, signals in potential_trades[:remaining_slots]:
-                position_size = self.get_position_size(data)
-
-                if signal_strength > 0.3:  # Long signal
-                    self.buy(data=data, size=position_size)
+            if size > 0:
+                if direction > 0:  # Long
+                    self.buy(data=data, size=size)
                     self.log(
-                        f"Entering LONG {data._name}, Signal: {signal_strength:.3f}"
+                        f"Entering LONG {data._name}, z-score: {z_score:.3f}, size: {size}"
                     )
-
-                elif signal_strength < -0.3:  # Short signal
-                    self.sell(data=data, size=position_size)
+                elif direction < 0:  # Short
+                    self.sell(data=data, size=size)
                     self.log(
-                        f"Entering SHORT {data._name}, Signal: {signal_strength:.3f}"
+                        f"Entering SHORT {data._name}, z-score: {z_score:.3f}, size: {size}"
                     )
-
-        self.rebalance_counter += 1
 
 
 class StatisticalTrendConfig(StrategyConfig):
     """
-    Configuration for Statistical Trend Following Strategy
+    Configuration for Pure-equity Stat-Trend Hybrid Strategy
     """
 
     def get_parameter_grid(self) -> Dict[str, List[Any]]:
@@ -325,20 +293,18 @@ class StatisticalTrendConfig(StrategyConfig):
         Define the parameter grid for statistical trend strategy experiments
         """
         return {
-            "macd_fast": [8, 12, 16, 20],
-            "macd_slow": [21, 26, 30, 35],
-            "macd_signal": [6, 9, 12, 15],
-            "rsi_period": [10, 14, 18, 21],
-            "bb_period": [15, 20, 25, 30],
-            "bb_std": [1.5, 2.0, 2.5, 3.0],
-            "atr_period": [10, 14, 18, 21],
-            "trend_period": [15, 20, 25, 30],
-            "rsi_oversold": [25, 30, 35],
-            "rsi_overbought": [65, 70, 75],
-            "trend_threshold": [0.0005, 0.001, 0.002, 0.003],
-            "risk_per_trade": [0.01, 0.015, 0.02, 0.025],
-            "max_positions": [5, 8, 10, 12],
-            "rebalance_freq": [1, 3, 5, 7],
+            "lookback": [15, 20, 25],
+            "z_entry": [1.0, 1.5, 2.0, 2.5],  # More lenient starting from 1.0
+            "z_exit": [0.5, 0.75, 1.0, 1.5],
+            "ema_fast": [15, 20, 25],
+            "ema_slow": [40, 50, 60],
+            "adx_period": [10, 14, 18],
+            "adx_level": [15, 20, 25, 30],  # More lenient starting from 15
+            "max_risk": [0.005, 0.008, 0.01, 0.012],
+            "max_positions": [5, 8, 10, 12],  # Increased maximum positions
+            "square_off_hour": [15],
+            "square_off_minute": [20],
+            "short": [False, True],
         }
 
     def get_default_params(self) -> Dict[str, Any]:
@@ -346,51 +312,48 @@ class StatisticalTrendConfig(StrategyConfig):
         Get default parameters for statistical trend strategy
         """
         return {
-            "macd_fast": 12,
-            "macd_slow": 26,
-            "macd_signal": 9,
-            "rsi_period": 14,
-            "bb_period": 20,
-            "bb_std": 2.0,
-            "atr_period": 14,
-            "trend_period": 20,
-            "rsi_oversold": 30,
-            "rsi_overbought": 70,
-            "trend_threshold": 0.001,
-            "risk_per_trade": 0.02,
-            "max_positions": 8,
-            "rebalance_freq": 3,
-            "printlog": False,
+            "lookback": 20,
+            "z_entry": 1.5,  # Reduced from 2.0 to get more trades
+            "z_exit": 0.75,  # Reduced from 1.0
+            "ema_fast": 20,
+            "ema_slow": 50,
+            "adx_period": 14,
+            "adx_level": 20,  # Reduced from 25 to be more lenient
+            "max_risk": 0.008,
+            "slippage": 0.0002,
+            "comm": 0.0003,
+            "short": False,
+            "square_off_hour": 15,
+            "square_off_minute": 20,
+            "max_positions": 8,  # Increased from 5 to allow more positions
+            "printlog": True,  # Enable logging to debug
         }
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """
         Validate statistical trend strategy parameters
         """
-        # MACD fast should be less than slow
-        if params.get("macd_fast", 0) >= params.get("macd_slow", 0):
+        # EMA fast should be less than slow
+        if params.get("ema_fast", 0) >= params.get("ema_slow", 0):
             return False
 
-        # RSI thresholds should be valid
-        oversold = params.get("rsi_oversold", 30)
-        overbought = params.get("rsi_overbought", 70)
-        if oversold >= overbought or oversold < 10 or overbought > 90:
+        # Z-score thresholds should be valid
+        z_entry = params.get("z_entry", 2.0)
+        z_exit = params.get("z_exit", 1.0)
+        if z_exit >= z_entry or z_exit <= 0 or z_entry <= 0:
             return False
 
         # All positive parameters must be positive
         positive_params = [
-            "macd_fast",
-            "macd_slow",
-            "macd_signal",
-            "rsi_period",
-            "bb_period",
-            "bb_std",
-            "atr_period",
-            "trend_period",
-            "trend_threshold",
-            "risk_per_trade",
+            "lookback",
+            "z_entry",
+            "z_exit",
+            "ema_fast",
+            "ema_slow",
+            "adx_period",
+            "adx_level",
+            "max_risk",
             "max_positions",
-            "rebalance_freq",
         ]
 
         for param in positive_params:
@@ -398,11 +361,16 @@ class StatisticalTrendConfig(StrategyConfig):
                 return False
 
         # Risk per trade should be reasonable
-        if params.get("risk_per_trade", 0) > 0.05:
+        if params.get("max_risk", 0) > 0.02:  # Max 2% risk per trade
             return False
 
         # Max positions should be reasonable
-        if params.get("max_positions", 0) > 20:
+        if params.get("max_positions", 0) > 15:
+            return False
+
+        # ADX level should be between 10 and 50
+        adx_level = params.get("adx_level", 25)
+        if adx_level < 10 or adx_level > 50:
             return False
 
         return True
@@ -421,10 +389,10 @@ class StatisticalTrendConfig(StrategyConfig):
 
     def get_composite_score_weights(self) -> Dict[str, float]:
         """
-        Weights optimized for trend following strategy
+        Weights optimized for stat-trend hybrid strategy
         """
         return {
-            "total_return": 0.4,
-            "sharpe_ratio": 0.35,
-            "max_drawdown": 0.25,  # Lower weight since trend following can have larger drawdowns
+            "total_return": 0.35,
+            "sharpe_ratio": 0.4,
+            "max_drawdown": 0.25,  # Balanced approach for mean reversion + trend following
         }
