@@ -293,15 +293,34 @@ class StatisticalTrendConfig(StrategyConfig):
         Define the parameter grid for statistical trend strategy experiments
         """
         return {
-            "lookback": [15, 20, 25],
+            "lookback": [15, 20, 25, 30, 40],  # Extended for intraday
             "z_entry": [1.0, 1.5, 2.0, 2.5],  # More lenient starting from 1.0
             "z_exit": [0.5, 0.75, 1.0, 1.5],
-            "ema_fast": [15, 20, 25],
-            "ema_slow": [40, 50, 60],
-            "adx_period": [10, 14, 18],
+            "ema_fast": [15, 20, 25, 30, 40],  # Extended for intraday
+            "ema_slow": [40, 50, 60, 80, 100],  # Extended for intraday
+            "adx_period": [10, 14, 18, 24, 30],  # Extended for intraday
             "adx_level": [15, 20, 25, 30],  # More lenient starting from 15
             "max_risk": [0.005, 0.008, 0.01, 0.012],
             "max_positions": [5, 8, 10, 12],  # Increased maximum positions
+            "square_off_hour": [15],
+            "square_off_minute": [20],
+            "short": [False, True],
+        }
+
+    def get_intraday_parameter_grid(self) -> Dict[str, List[Any]]:
+        """
+        Define parameter grid optimized for intraday (5m, 15m) trading
+        """
+        return {
+            "lookback": [48, 60, 72, 96],  # 4-8 hours of 5m data
+            "z_entry": [0.8, 1.0, 1.2, 1.5],  # More sensitive for intraday
+            "z_exit": [0.3, 0.5, 0.7, 1.0],  # Quicker exits for intraday
+            "ema_fast": [24, 36, 48, 60],  # 2-5 hours of 5m data
+            "ema_slow": [72, 96, 120, 144],  # 6-12 hours of 5m data
+            "adx_period": [24, 36, 48],  # 2-4 hours of 5m data
+            "adx_level": [20, 25, 30, 35],  # Higher ADX threshold for intraday noise
+            "max_risk": [0.003, 0.005, 0.008],  # Lower risk for intraday volatility
+            "max_positions": [3, 5, 8],  # Fewer positions for intraday management
             "square_off_hour": [15],
             "square_off_minute": [20],
             "short": [False, True],
@@ -327,6 +346,28 @@ class StatisticalTrendConfig(StrategyConfig):
             "square_off_minute": 20,
             "max_positions": 8,  # Increased from 5 to allow more positions
             "printlog": True,  # Enable logging to debug
+        }
+
+    def get_intraday_default_params(self) -> Dict[str, Any]:
+        """
+        Get default parameters optimized for intraday trading
+        """
+        return {
+            "lookback": 60,  # 5 hours of 5m data
+            "z_entry": 1.0,  # More sensitive for intraday
+            "z_exit": 0.5,  # Quicker exits
+            "ema_fast": 36,  # 3 hours of 5m data
+            "ema_slow": 96,  # 8 hours of 5m data
+            "adx_period": 36,  # 3 hours of 5m data
+            "adx_level": 25,  # Higher threshold for noise
+            "max_risk": 0.005,  # Lower risk for volatility
+            "slippage": 0.0005,  # Higher slippage for intraday
+            "comm": 0.0003,
+            "short": False,
+            "square_off_hour": 15,
+            "square_off_minute": 20,
+            "max_positions": 5,  # Fewer positions for management
+            "printlog": True,
         }
 
     def validate_params(self, params: Dict[str, Any]) -> bool:

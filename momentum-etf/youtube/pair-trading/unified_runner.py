@@ -2,7 +2,20 @@
 Unified Trading Strategies Runner
 
 This script provides a unified interface to run any trading strategy from the strategies folder.
-Users can easily add new strategies by inheriting from BaseStrategy and StrategyConfig classes.
+Users can easily add new strategies by inheriting from BaseStrategy and S    # Set default dates
+    if start_date is None:
+        if interval in ["1m", "2m", "5m", "15m", "30m", "60m", "90m"]:
+            # Intraday data: Yahoo Finance limits to last 60 days for minute data
+            start_date = datetime.now() - timedelta(days=55)  # Use 55 days to be safe
+            print(f"⚠️ Using last 55 days for {interval} interval (Yahoo Finance limitation)")
+        elif interval in ["1h"]:
+            # Hourly data: Available for ~730 days
+            start_date = datetime.now() - timedelta(days=700)  # Use 700 days to be safe
+            print(f"⚠️ Using last 700 days for {interval} interval (Yahoo Finance limitation)")
+        else:
+            start_date = datetime(2020, 1, 1)
+    if end_date is None:
+        end_date = datetime.now()gyConfig classes.
 """
 
 import sys
@@ -106,7 +119,12 @@ def list_strategies():
 
 
 def run_strategy_backtest(
-    strategy_key, symbols=None, start_date=None, end_date=None, initial_cash=1000000
+    strategy_key,
+    symbols=None,
+    start_date=None,
+    end_date=None,
+    initial_cash=1000000,
+    interval="1d",
 ):
     """Run a single strategy backtest"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -120,7 +138,20 @@ def run_strategy_backtest(
 
     # Set default dates
     if start_date is None:
-        start_date = datetime(2020, 1, 1)
+        if interval in ["1m", "2m", "5m", "15m", "30m", "60m", "90m"]:
+            # Intraday data: Yahoo Finance limits to last 60 days for minute data
+            start_date = datetime.now() - timedelta(days=55)  # Use 55 days to be safe
+            print(
+                f"⚠️ Using last 55 days for {interval} interval (Yahoo Finance limitation)"
+            )
+        elif interval in ["1h"]:
+            # Hourly data: Available for ~730 days
+            start_date = datetime.now() - timedelta(days=700)  # Use 700 days to be safe
+            print(
+                f"⚠️ Using last 700 days for {interval} interval (Yahoo Finance limitation)"
+            )
+        else:
+            start_date = datetime(2020, 1, 1)
     if end_date is None:
         end_date = datetime.now()
 
@@ -163,6 +194,7 @@ def run_strategy_backtest(
         start_date=start_date,
         end_date=end_date,
         initial_cash=initial_cash,
+        interval=interval,
     )
 
     if result:
@@ -189,6 +221,7 @@ def run_strategy_optimization(
     end_date=None,
     max_experiments=50,
     initial_cash=1000000,
+    interval="1d",
 ):
     """Run strategy parameter optimization"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -233,6 +266,7 @@ def run_strategy_optimization(
         initial_cash=initial_cash,
         use_parallel=True,
         max_workers=4,
+        interval=interval,
     )
 
     # Get sorted results by composite score
@@ -297,6 +331,12 @@ def main():
         default=50,
         help="Maximum experiments for optimization",
     )
+    parser.add_argument(
+        "--interval",
+        type=str,
+        default="1d",
+        help="Data interval (1d, 5m, 15m, 1h, etc.) - default: 1d. Note: Intraday data (5m, 15m) limited to last 60 days",
+    )
 
     args = parser.parse_args()
 
@@ -307,6 +347,30 @@ def main():
     if not args.strategy:
         print("❌ Please specify a strategy. Use --list to see available strategies.")
         return
+
+    # Validate and warn about interval limitations
+    if args.interval in ["1m", "2m", "5m", "15m", "30m", "60m", "90m"]:
+        print(
+            f"⚠️ Warning: {args.interval} interval data is limited to the last 60 days by Yahoo Finance"
+        )
+        if args.start_date and datetime.strptime(
+            args.start_date, "%Y-%m-%d"
+        ) < datetime.now() - timedelta(days=60):
+            print(
+                f"❌ Error: Start date too old for {args.interval} interval. Maximum 60 days back from today."
+            )
+            return
+    elif args.interval in ["1h"]:
+        print(
+            f"⚠️ Warning: {args.interval} interval data is limited to approximately 2 years by Yahoo Finance"
+        )
+        if args.start_date and datetime.strptime(
+            args.start_date, "%Y-%m-%d"
+        ) < datetime.now() - timedelta(days=730):
+            print(
+                f"❌ Error: Start date too old for {args.interval} interval. Maximum ~2 years back from today."
+            )
+            return
 
     # Parse dates
     start_date = None
@@ -335,6 +399,7 @@ def main():
             end_date=end_date,
             max_experiments=args.max_experiments,
             initial_cash=args.initial_cash,
+            interval=args.interval,
         )
     else:
         run_strategy_backtest(
@@ -343,6 +408,7 @@ def main():
             start_date=start_date,
             end_date=end_date,
             initial_cash=args.initial_cash,
+            interval=args.interval,
         )
 
 
@@ -358,6 +424,7 @@ if __name__ == "__main__":
         print("\n💡 Example commands:")
         print("   python unified_runner.py --list")
         print("   python unified_runner.py --strategy momentum")
+        print("   python unified_runner.py --strategy momentum --interval 5m")
         print(
             "   python unified_runner.py --strategy pairs --symbols HDFCBANK.NS ICICIBANK.NS"
         )
@@ -365,7 +432,9 @@ if __name__ == "__main__":
             "   python unified_runner.py --strategy momentum --optimize --max-experiments 20"
         )
         print("   python unified_runner.py --strategy momentum --initial-cash 500000")
-        print("   python unified_runner.py --strategy pairs --initial-cash 2000000")
+        print(
+            "   python unified_runner.py --strategy pairs --initial-cash 2000000 --interval 15m"
+        )
 
         # Simple interactive mode
         strategy_key = (

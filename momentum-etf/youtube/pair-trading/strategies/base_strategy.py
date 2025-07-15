@@ -99,6 +99,15 @@ class StrategyConfig(ABC):
         """
         pass
 
+    def get_required_timeframe(self) -> str:
+        """
+        Get the required timeframe/interval for the strategy
+
+        Returns:
+            str: Timeframe interval (e.g., "1d", "5m", "15m", "1h")
+        """
+        return "1d"  # Default to daily data
+
     @abstractmethod
     def get_required_data_feeds(self) -> int:
         """

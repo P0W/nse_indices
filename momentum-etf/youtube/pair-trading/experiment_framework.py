@@ -62,18 +62,26 @@ class UnifiedExperimentFramework:
         self.best_score = -float("inf")
 
     def generate_parameter_combinations(
-        self, max_combinations: int = 100
+        self, max_combinations: int = 100, interval: str = "1d"
     ) -> List[Dict[str, Any]]:
         """
         Generate parameter combinations for testing
 
         Args:
             max_combinations: Maximum number of combinations to test
+            interval: Data interval to optimize parameter selection
 
         Returns:
             list: List of parameter dictionaries
         """
-        param_grid = self.strategy_config.get_parameter_grid()
+        # Use intraday-specific parameter grid for minute intervals
+        if interval in ["1m", "2m", "5m", "15m", "30m"] and hasattr(
+            self.strategy_config, "get_intraday_parameter_grid"
+        ):
+            param_grid = self.strategy_config.get_intraday_parameter_grid()
+            print(f"📊 Using intraday-optimized parameter grid for {interval} interval")
+        else:
+            param_grid = self.strategy_config.get_parameter_grid()
 
         # Generate all possible combinations
         keys = param_grid.keys()
@@ -100,7 +108,11 @@ class UnifiedExperimentFramework:
         return valid_combinations
 
     def prepare_data_feeds(
-        self, symbols: List[str], start_date: datetime, end_date: datetime
+        self,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        interval: str = "1d",
     ) -> List[bt.feeds.PandasData]:
         """
         Prepare data feeds for the strategy
@@ -109,10 +121,32 @@ class UnifiedExperimentFramework:
             symbols: List of stock symbols
             start_date: Start date for data
             end_date: End date for data
+            interval: Data interval ('1d', '5m', '15m', '1h', etc.)
 
         Returns:
             list: List of backtrader data feeds
         """
+        # Adjust date range based on interval limitations
+        adjusted_start_date = start_date
+        adjusted_end_date = end_date
+
+        if interval in ["1m", "2m", "5m", "15m", "30m", "60m", "90m"]:
+            # Intraday data: Yahoo Finance limits to last 60 days for minute data
+            max_start_date = end_date - timedelta(days=55)  # Use 55 days to be safe
+            if start_date < max_start_date:
+                adjusted_start_date = max_start_date
+                print(
+                    f"⚠️ Adjusted start date to {adjusted_start_date.strftime('%Y-%m-%d')} for {interval} interval (Yahoo Finance limitation)"
+                )
+        elif interval in ["1h"]:
+            # Hourly data: Available for ~730 days
+            max_start_date = end_date - timedelta(days=700)  # Use 700 days to be safe
+            if start_date < max_start_date:
+                adjusted_start_date = max_start_date
+                print(
+                    f"⚠️ Adjusted start date to {adjusted_start_date.strftime('%Y-%m-%d')} for {interval} interval (Yahoo Finance limitation)"
+                )
+
         loader = MarketDataLoader()
 
         required_feeds = self.strategy_config.get_required_data_feeds()
@@ -120,8 +154,9 @@ class UnifiedExperimentFramework:
         if required_feeds == -1:  # Variable number (like momentum strategy)
             data_feeds = loader.load_market_data(
                 symbols=symbols,
-                start_date=start_date,
-                end_date=end_date,
+                start_date=adjusted_start_date,
+                end_date=adjusted_end_date,
+                interval=interval,
                 force_refresh=False,
                 use_parallel=False,  # Disable parallel for experiments
             )
@@ -135,8 +170,9 @@ class UnifiedExperimentFramework:
 
             data_feeds = loader.load_market_data(
                 symbols=symbols[:2],
-                start_date=start_date,
-                end_date=end_date,
+                start_date=adjusted_start_date,
+                end_date=adjusted_end_date,
+                interval=interval,
                 force_refresh=False,
                 use_parallel=False,
             )
@@ -144,8 +180,9 @@ class UnifiedExperimentFramework:
             # Fixed number of feeds
             data_feeds = loader.load_market_data(
                 symbols=symbols[:required_feeds],
-                start_date=start_date,
-                end_date=end_date,
+                start_date=adjusted_start_date,
+                end_date=adjusted_end_date,
+                interval=interval,
                 force_refresh=False,
                 use_parallel=False,
             )
@@ -160,6 +197,7 @@ class UnifiedExperimentFramework:
         end_date: datetime,
         initial_cash: float = 1000000,
         preloaded_data_feeds: List[bt.feeds.PandasData] = None,
+        interval: str = "1d",
     ) -> Optional[ExperimentResult]:
         """
         Run a single experiment with given parameters
@@ -171,6 +209,7 @@ class UnifiedExperimentFramework:
             end_date: End date for backtest
             initial_cash: Initial cash for backtest
             preloaded_data_feeds: Pre-loaded data feeds to avoid re-loading
+            interval: Data interval ('1d', '5m', '15m', '1h', etc.)
 
         Returns:
             ExperimentResult or None if experiment failed
@@ -195,7 +234,9 @@ class UnifiedExperimentFramework:
             if preloaded_data_feeds:
                 data_feeds = preloaded_data_feeds
             else:
-                data_feeds = self.prepare_data_feeds(symbols, start_date, end_date)
+                data_feeds = self.prepare_data_feeds(
+                    symbols, start_date, end_date, interval
+                )
 
             if not data_feeds:
                 sys.stdout = old_stdout
@@ -212,7 +253,13 @@ class UnifiedExperimentFramework:
                 return None
 
             # Merge default params with experiment params
-            default_params = self.strategy_config.get_default_params()
+            # Use intraday-specific defaults for minute intervals
+            if interval in ["1m", "2m", "5m", "15m", "30m"] and hasattr(
+                self.strategy_config, "get_intraday_default_params"
+            ):
+                default_params = self.strategy_config.get_intraday_default_params()
+            else:
+                default_params = self.strategy_config.get_default_params()
             final_params = {**default_params, **params}
 
             cerebro.addstrategy(strategy_class, **final_params)
@@ -335,6 +382,7 @@ class UnifiedExperimentFramework:
         initial_cash: float = 1000000,
         use_parallel: bool = True,
         max_workers: int = 4,
+        interval: str = "1d",
     ):
         """
         Run multiple experiments with different parameter combinations
@@ -347,27 +395,33 @@ class UnifiedExperimentFramework:
             initial_cash: Initial cash for backtest
             use_parallel: Whether to use parallel processing
             max_workers: Number of parallel workers
+            interval: Data interval ('1d', '5m', '15m', '1h', etc.)
         """
         # Set default dates if not provided
         if end_date is None:
             end_date = datetime.now()
         if start_date is None:
-            start_date = end_date - timedelta(days=365 * 2)  # 2 years ago
+            start_date = end_date - timedelta(
+                days=365 * 2
+            )  # 2 years ago (will be adjusted in prepare_data_feeds if needed)
 
         print(f"🚀 Starting {self.strategy_name} Strategy Experiments")
         print("=" * 60)
         print(
             f"📊 Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
         )
+        print(f"⏰ Interval: {interval}")
         print(f"💰 Initial Cash: ₹{initial_cash:,.0f}")
         print(f"📈 Symbols: {len(symbols)} stocks")
 
         # Generate parameter combinations
-        param_combinations = self.generate_parameter_combinations(max_combinations)
+        param_combinations = self.generate_parameter_combinations(
+            max_combinations, interval
+        )
 
         # 🚀 PRE-LOAD DATA ONCE to avoid repeated loading
         print("📊 Pre-loading market data for experiments...")
-        data_feeds = self.prepare_data_feeds(symbols, start_date, end_date)
+        data_feeds = self.prepare_data_feeds(symbols, start_date, end_date, interval)
         if not data_feeds:
             print("❌ Failed to load market data. Aborting experiments.")
             return
@@ -390,6 +444,7 @@ class UnifiedExperimentFramework:
                         end_date,
                         initial_cash,
                         data_feeds,  # Pass pre-loaded data
+                        interval,
                     ): params
                     for params in param_combinations
                 }
@@ -413,7 +468,13 @@ class UnifiedExperimentFramework:
             print(f"🔄 Running {len(param_combinations)} experiments sequentially...")
             for params in tqdm(param_combinations, desc="🧪 Running experiments"):
                 result = self.run_single_experiment(
-                    params, symbols, start_date, end_date, initial_cash, data_feeds
+                    params,
+                    symbols,
+                    start_date,
+                    end_date,
+                    initial_cash,
+                    data_feeds,
+                    interval,
                 )
                 if result:
                     self.results.append(result)
@@ -1608,6 +1669,7 @@ Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
         end_date: datetime,
         initial_cash: float = 1000000,
         params: Dict[str, Any] = None,
+        interval: str = "1d",
     ) -> Optional[str]:
         """
         Run portfolio analysis and generate dashboard without experiments
@@ -1618,6 +1680,7 @@ Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
             end_date: Analysis end date
             initial_cash: Initial portfolio value
             params: Strategy parameters (uses defaults if None)
+            interval: Data interval ('1d', '5m', '15m', '1h', etc.)
 
         Returns:
             Path to generated dashboard file
@@ -1635,6 +1698,7 @@ Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
             start_date=start_date,
             end_date=end_date,
             initial_cash=initial_cash,
+            interval=interval,
         )
 
         if result:

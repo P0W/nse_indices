@@ -153,6 +153,7 @@ class MarketDataLoader:
         force_refresh: bool = False,
         use_parallel: bool = True,
         max_workers: int = 8,
+        interval: str = "1d",
     ) -> List[bt.feeds.PandasData]:
         """
         Load market data for multiple symbols with intelligent caching and parallel processing.
@@ -164,9 +165,15 @@ class MarketDataLoader:
             force_refresh (bool): Force re-download even if cache exists (default: False)
             use_parallel (bool): Use parallel processing for faster downloads (default: True)
             max_workers (int): Maximum number of parallel workers (default: 8)
+            interval (str): Data interval ('1d', '5m', '15m', '1h', etc.) (default: '1d')
 
         Returns:
             List[bt.feeds.PandasData]: List of backtrader data feeds
+
+        Note:
+            For intraday intervals (5m, 15m, 1h), data availability is limited:
+            - Free tier: Last 60 days for 5m data, last 730 days for hourly
+            - Daily data: Available for longer historical periods
         """
         # Create date-based cache identifiers to avoid incorrect cache usage
         start_str = start_date.strftime("%Y%m%d")
@@ -175,15 +182,21 @@ class MarketDataLoader:
 
         if use_parallel and len(symbols) > 1:
             return self._load_parallel(
-                symbols, start_date, end_date, date_range, force_refresh, max_workers
+                symbols,
+                start_date,
+                end_date,
+                date_range,
+                force_refresh,
+                max_workers,
+                interval,
             )
         else:
             return self._load_sequential(
-                symbols, start_date, end_date, date_range, force_refresh
+                symbols, start_date, end_date, date_range, force_refresh, interval
             )
 
     def _load_sequential(
-        self, symbols, start_date, end_date, date_range, force_refresh
+        self, symbols, start_date, end_date, date_range, force_refresh, interval="1d"
     ):
         """Sequential loading with progress bar"""
         data_feeds = []
@@ -206,6 +219,7 @@ class MarketDataLoader:
                 date_range=date_range,
                 force_refresh=force_refresh,
                 instrument_type=instrument_type,
+                interval=interval,
             )
 
             if symbol_data is not None:
@@ -219,7 +233,14 @@ class MarketDataLoader:
         return data_feeds
 
     def _load_parallel(
-        self, symbols, start_date, end_date, date_range, force_refresh, max_workers
+        self,
+        symbols,
+        start_date,
+        end_date,
+        date_range,
+        force_refresh,
+        max_workers,
+        interval="1d",
     ):
         """Parallel loading with progress bar and thread safety"""
         data_feeds = []
@@ -237,6 +258,7 @@ class MarketDataLoader:
                     date_range=date_range,
                     force_refresh=force_refresh,
                     instrument_type=instrument_type,
+                    interval=interval,
                 )
 
                 if symbol_data is not None:
@@ -318,6 +340,7 @@ class MarketDataLoader:
         date_range: str,
         force_refresh: bool,
         instrument_type: str,
+        interval: str = "1d",
     ) -> Optional[pd.DataFrame]:
         """
         Helper method to load a single instrument with intelligent caching.
@@ -329,13 +352,14 @@ class MarketDataLoader:
             date_range (str): Date range string for cache filename
             force_refresh (bool): Force refresh flag
             instrument_type (str): Type of instrument ('equity', 'index', 'derivative')
+            interval (str): Data interval ('1d', '5m', '15m', '1h', etc.)
 
         Returns:
             pd.DataFrame or None: Loaded data or None if failed
         """
-        # Create cache filename with date range and instrument type
+        # Create cache filename with date range, instrument type, and interval
         safe_symbol = symbol.replace("^", "").replace(".", "_").replace("&", "AND")
-        cache_filename = f"{safe_symbol}_{instrument_type}_{date_range}.pkl"
+        cache_filename = f"{safe_symbol}_{instrument_type}_{interval}_{date_range}.pkl"
         cache_file = os.path.join(self.cache_dir, cache_filename)
 
         # Check for existing cache
@@ -357,6 +381,7 @@ class MarketDataLoader:
                 symbol,
                 start=start_date,
                 end=end_date,
+                interval=interval,
                 progress=False,
                 auto_adjust=True,
             )
