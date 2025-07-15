@@ -99,15 +99,6 @@ class StrategyConfig(ABC):
         """
         pass
 
-    def get_required_timeframe(self) -> str:
-        """
-        Get the required timeframe/interval for the strategy
-
-        Returns:
-            str: Timeframe interval (e.g., "1d", "5m", "15m", "1h")
-        """
-        return "1d"  # Default to daily data
-
     @abstractmethod
     def get_required_data_feeds(self) -> int:
         """
@@ -161,6 +152,19 @@ class BaseStrategy(bt.Strategy):
 
     This class provides common functionality and structure for all trading strategies.
     """
+
+    params = (("printlog", False),)  # Whether to print log messages
+
+    def log(self, txt, dt=None):
+        """Logging function for all strategies
+
+        Args:
+            txt: The text message to log
+            dt: Optional date/time to include in the log (defaults to current bar date)
+        """
+        if self.params.printlog:
+            dt = dt or self.datas[0].datetime.date(0)
+            print(f"{dt.isoformat()}: {txt}")
 
     def __init__(self):
         super().__init__()

@@ -65,11 +65,7 @@ class PairsStrategy(BaseStrategy):
         self.betas = []
         self.correlation_history = []
 
-    def log(self, txt):
-        """Logging function"""
-        if self.p.printlog:
-            dt = self.datas[0].datetime.date(0)
-            print(f"{dt.isoformat()}, {txt}")
+    # Now using log method from BaseStrategy
 
     def calculate_beta(self, returns0, returns1):
         """Calculate beta using linear regression"""

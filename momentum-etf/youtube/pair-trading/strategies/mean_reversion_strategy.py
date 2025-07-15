@@ -37,11 +37,7 @@ class PortfolioMeanReversionStrategy(BaseStrategy):
         ("printlog", False),
     )
 
-    def log(self, txt, dt=None):
-        """Logging function"""
-        if self.params.printlog:
-            dt = dt or self.datas[0].datetime.date(0)
-            print(f"{dt.isoformat()}: {txt}")
+    # Now using log method from BaseStrategy
 
     def __init__(self):
         """Initialize the strategy"""

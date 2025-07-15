@@ -22,6 +22,8 @@ from strategies import (
     PortfolioMeanReversionConfig,
     StatisticalTrendStrategy,
     StatisticalTrendConfig,
+    PMVMomentumStrategy,
+    PMVMomentumConfig,
 )
 from experiment_framework import UnifiedExperimentFramework
 from utils import MarketDataLoader, setup_logger, IndianBrokerageCommission
@@ -41,6 +43,11 @@ STRATEGY_REGISTRY = {
         "name": "Adaptive Momentum Strategy",
         "description": "Multi-stock momentum-based trend following strategy",
         "config_class": AdaptiveMomentumConfig,
+    },
+    "pmv": {
+        "name": "P=MV Momentum Strategy",
+        "description": "Momentum strategy with weekly exits using RSI, VWAP and returns",
+        "config_class": PMVMomentumConfig,
     },
     "pairs": {
         "name": "Pairs Trading Strategy",
@@ -389,8 +396,8 @@ def main():
     parser.add_argument(
         "--max-stocks",
         type=int,
-        default=15,
-        help="Maximum number of stocks to use for optimization (0 or negative = use all stocks). Default: 15 for performance",
+        default=0,
+        help="Maximum number of stocks to use for optimization (0 or negative = use all stocks). Default: 0 all stocks",
     )
     parser.add_argument(
         "--interval",

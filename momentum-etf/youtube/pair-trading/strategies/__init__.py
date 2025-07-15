@@ -10,6 +10,7 @@ from .mean_reversion_strategy import (
     PortfolioMeanReversionConfig,
 )
 from .statistical_trend_strategy import StatisticalTrendStrategy, StatisticalTrendConfig
+from .pmv_momentum_strategy import PMVMomentumStrategy, PMVMomentumConfig
 
 __all__ = [
     "BaseStrategy",
@@ -22,4 +23,6 @@ __all__ = [
     "PortfolioMeanReversionConfig",
     "StatisticalTrendStrategy",
     "StatisticalTrendConfig",
+    "PMVMomentumStrategy",
+    "PMVMomentumConfig",
 ]
