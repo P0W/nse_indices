@@ -2,20 +2,7 @@
 Unified Trading Strategies Runner
 
 This script provides a unified interface to run any trading strategy from the strategies folder.
-Users can easily add new strategies by inheriting from BaseStrategy and S    # Set default dates
-    if start_date is None:
-        if interval in ["1m", "2m", "5m", "15m", "30m", "60m", "90m"]:
-            # Intraday data: Yahoo Finance limits to last 60 days for minute data
-            start_date = datetime.now() - timedelta(days=55)  # Use 55 days to be safe
-            print(f"⚠️ Using last 55 days for {interval} interval (Yahoo Finance limitation)")
-        elif interval in ["1h"]:
-            # Hourly data: Available for ~730 days
-            start_date = datetime.now() - timedelta(days=700)  # Use 700 days to be safe
-            print(f"⚠️ Using last 700 days for {interval} interval (Yahoo Finance limitation)")
-        else:
-            start_date = datetime(2020, 1, 1)
-    if end_date is None:
-        end_date = datetime.now()gyConfig classes.
+Users can easily add new strategies by inheriting from BaseStrategy and StrategyConfig classes.
 """
 
 import sys
@@ -38,6 +25,14 @@ from strategies import (
 )
 from experiment_framework import UnifiedExperimentFramework
 from utils import MarketDataLoader, setup_logger, IndianBrokerageCommission
+from nifty_universe import (
+    get_nifty_universe,
+    get_available_universes,
+    get_universe_info,
+    get_sector_stocks,
+    get_available_sectors,
+    get_sector_info,
+)
 
 
 # Registry of available strategies
@@ -46,59 +41,54 @@ STRATEGY_REGISTRY = {
         "name": "Adaptive Momentum Strategy",
         "description": "Multi-stock momentum-based trend following strategy",
         "config_class": AdaptiveMomentumConfig,
-        "requires_multiple_stocks": True,
     },
     "pairs": {
         "name": "Pairs Trading Strategy",
         "description": "Statistical arbitrage strategy for correlated pairs",
         "config_class": PairsConfig,
-        "requires_multiple_stocks": False,
-        "required_stocks": 2,
     },
     "mean_reversion": {
         "name": "Portfolio Mean Reversion Strategy",
         "description": "Multi-stock mean reversion strategy",
         "config_class": PortfolioMeanReversionConfig,
-        "requires_multiple_stocks": True,
     },
     "statistical_trend": {
         "name": "Pure-equity Stat-Trend Hybrid Strategy",
         "description": "Z-score mean reversion with EMA and ADX momentum filters",
         "config_class": StatisticalTrendConfig,
-        "requires_multiple_stocks": True,
     },
 }
 
 
-def get_default_stocks():
-    """Get default stock list for testing"""
-    return [
-        "RELIANCE.NS",
-        "TCS.NS",
-        "HDFCBANK.NS",
-        "INFY.NS",
-        "HINDUNILVR.NS",
-        "ICICIBANK.NS",
-        "SBIN.NS",
-        "BHARTIARTL.NS",
-        "KOTAKBANK.NS",
-        "ITC.NS",
-        "LT.NS",
-        "ASIANPAINT.NS",
-        "AXISBANK.NS",
-        "MARUTI.NS",
-        "TITAN.NS",
-    ]
+def get_default_stocks(universe="nifty50", sector=None):
+    """Get default stock list based on universe or sector"""
+    if sector:
+        try:
+            return get_sector_stocks(sector)
+        except ValueError:
+            print(f"⚠️ Unknown sector '{sector}', falling back to universe '{universe}'")
 
-
-def get_pairs_stocks():
-    """Get correlated pairs for pairs trading"""
-    return [
-        "HDFCBANK.NS",
-        "ICICIBANK.NS",  # Banking pair
-        # "RELIANCE.NS", "ONGC.NS",      # Oil & Gas pair
-        # "TCS.NS", "INFY.NS",           # IT pair
-    ]
+    try:
+        return get_nifty_universe(universe)
+    except ValueError:
+        # Fallback to original list if universe not found
+        return [
+            "RELIANCE.NS",
+            "TCS.NS",
+            "HDFCBANK.NS",
+            "INFY.NS",
+            "HINDUNILVR.NS",
+            "ICICIBANK.NS",
+            "SBIN.NS",
+            "BHARTIARTL.NS",
+            "KOTAKBANK.NS",
+            "ITC.NS",
+            "LT.NS",
+            "ASIANPAINT.NS",
+            "AXISBANK.NS",
+            "MARUTI.NS",
+            "TITAN.NS",
+        ]
 
 
 def list_strategies():
@@ -110,12 +100,31 @@ def list_strategies():
         print(f"\n📊 {key.upper()}")
         print(f"   Name: {info['name']}")
         print(f"   Description: {info['description']}")
-        if "required_stocks" in info:
-            print(f"   Required stocks: {info['required_stocks']}")
-        elif info["requires_multiple_stocks"]:
-            print(f"   Required stocks: Multiple (5+ recommended)")
-        else:
-            print(f"   Required stocks: 1")
+
+
+def list_universes():
+    """List all available Nifty universes and sectors"""
+    print("\n🌌 Available Nifty Universes:")
+    print("=" * 50)
+
+    universe_info = get_universe_info()
+    for universe, count in universe_info.items():
+        print(f"📈 {universe.upper()}: {count} stocks")
+
+    print(f"\n🏢 Available Sectors:")
+    print("=" * 50)
+
+    sector_info = get_sector_info()
+    for sector, count in sector_info.items():
+        print(f"🔍 {sector.upper()}: {count} stocks")
+
+    print(f"\n💡 Usage examples:")
+    print(f"   --universe nifty50     (Use Nifty 50 stocks)")
+    print(f"   --universe nifty100    (Use Nifty 100 stocks)")
+    print(f"   --universe nifty200    (Use Nifty 200 stocks)")
+    print(f"   --sector banking       (Use banking sector stocks)")
+    print(f"   --sector it            (Use IT sector stocks)")
+    print(f"   --symbols HDFCBANK.NS ICICIBANK.NS  (Custom stock selection)")
 
 
 def run_strategy_backtest(
@@ -125,6 +134,8 @@ def run_strategy_backtest(
     end_date=None,
     initial_cash=1000000,
     interval="1d",
+    universe="nifty50",
+    sector=None,
 ):
     """Run a single strategy backtest"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -155,25 +166,14 @@ def run_strategy_backtest(
     if end_date is None:
         end_date = datetime.now()
 
-    # Set default symbols based on strategy
+    # Set default symbols if not provided
     if symbols is None:
-        if strategy_key == "pairs":
-            symbols = get_pairs_stocks()
+        # Use sector or universe selection for symbol list
+        symbols = get_default_stocks(universe, sector)
+        if sector:
+            print(f"📊 Using {sector.upper()} sector: {len(symbols)} stocks")
         else:
-            symbols = get_default_stocks()
-
-    # Validate symbol count
-    if "required_stocks" in strategy_info:
-        if len(symbols) != strategy_info["required_stocks"]:
-            print(
-                f"❌ {strategy_info['name']} requires exactly {strategy_info['required_stocks']} stocks"
-            )
-            return
-    elif strategy_info["requires_multiple_stocks"] and len(symbols) < 3:
-        print(
-            f"❌ {strategy_info['name']} requires at least 3 stocks for proper diversification"
-        )
-        return
+            print(f"📊 Using {universe.upper()} universe: {len(symbols)} stocks")
 
     print(f"\n🚀 Running {strategy_info['name']}")
     print(
@@ -222,6 +222,9 @@ def run_strategy_optimization(
     max_experiments=50,
     initial_cash=1000000,
     interval="1d",
+    universe="nifty50",
+    sector=None,
+    max_stocks=None,
 ):
     """Run strategy parameter optimization"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -240,10 +243,44 @@ def run_strategy_optimization(
         end_date = datetime.now()
 
     if symbols is None:
-        if strategy_key == "pairs":
-            symbols = get_pairs_stocks()
+        # Get full symbol list
+        full_symbols = get_default_stocks(universe, sector)
+
+        # Apply stock limit if specified, otherwise use reasonable defaults
+        if max_stocks is not None:
+            # User explicitly set max_stocks
+            if max_stocks <= 0:
+                symbols = full_symbols  # Use all stocks if max_stocks is 0 or negative
+            else:
+                symbols = full_symbols[:max_stocks]
         else:
-            symbols = get_default_stocks()[:10]  # Limit for optimization
+            # Default behavior: limit to 15 for performance unless it's a small universe/sector
+            if len(full_symbols) > 15:
+                symbols = full_symbols[
+                    :15
+                ]  # Default limit for optimization performance
+            else:
+                symbols = full_symbols
+
+        # Print information about stock selection
+        if len(symbols) == len(full_symbols):
+            if sector:
+                print(
+                    f"📊 Using all {len(symbols)} stocks from {sector.upper()} sector"
+                )
+            else:
+                print(
+                    f"📊 Using all {len(symbols)} stocks from {universe.upper()} universe"
+                )
+        else:
+            if sector:
+                print(
+                    f"📊 Using {len(symbols)} out of {len(full_symbols)} stocks from {sector.upper()} sector for optimization"
+                )
+            else:
+                print(
+                    f"📊 Using {len(symbols)} out of {len(full_symbols)} stocks from {universe.upper()} universe for optimization"
+                )
 
     print(f"\n🔬 Optimizing {strategy_info['name']}")
     print(
@@ -305,6 +342,11 @@ def main():
     parser = argparse.ArgumentParser(description="Unified Trading Strategies Runner")
     parser.add_argument("--list", action="store_true", help="List available strategies")
     parser.add_argument(
+        "--list-universes",
+        action="store_true",
+        help="List available Nifty universes and sector pairs",
+    )
+    parser.add_argument(
         "--strategy",
         type=str,
         help="Strategy to run (momentum, pairs, mean_reversion, statistical_trend)",
@@ -316,6 +358,19 @@ def main():
     )
     parser.add_argument(
         "--symbols", nargs="+", help="List of stock symbols (e.g., RELIANCE.NS TCS.NS)"
+    )
+    parser.add_argument(
+        "--universe",
+        type=str,
+        choices=["nifty50", "nifty100", "nifty200"],
+        default="nifty50",
+        help="Nifty universe to use for stock selection (default: nifty50)",
+    )
+    parser.add_argument(
+        "--sector",
+        type=str,
+        choices=get_available_sectors(),
+        help="Sector to use for stock selection (overrides universe if specified)",
     )
     parser.add_argument("--start-date", type=str, help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end-date", type=str, help="End date (YYYY-MM-DD)")
@@ -332,6 +387,12 @@ def main():
         help="Maximum experiments for optimization",
     )
     parser.add_argument(
+        "--max-stocks",
+        type=int,
+        default=15,
+        help="Maximum number of stocks to use for optimization (0 or negative = use all stocks). Default: 15 for performance",
+    )
+    parser.add_argument(
         "--interval",
         type=str,
         default="1d",
@@ -344,8 +405,24 @@ def main():
         list_strategies()
         return
 
+    if args.list_universes:
+        list_universes()
+        return
+
     if not args.strategy:
         print("❌ Please specify a strategy. Use --list to see available strategies.")
+        return
+
+    # Validate universe
+    if args.universe not in get_available_universes():
+        print(
+            f"❌ Invalid universe: {args.universe}. Available: {get_available_universes()}"
+        )
+        return
+
+    # Validate sector if provided
+    if args.sector and args.sector not in get_available_sectors():
+        print(f"❌ Invalid sector: {args.sector}. Available: {get_available_sectors()}")
         return
 
     # Validate and warn about interval limitations
@@ -400,6 +477,9 @@ def main():
             max_experiments=args.max_experiments,
             initial_cash=args.initial_cash,
             interval=args.interval,
+            universe=args.universe,
+            sector=args.sector,
+            max_stocks=args.max_stocks,
         )
     else:
         run_strategy_backtest(
@@ -409,6 +489,8 @@ def main():
             end_date=end_date,
             initial_cash=args.initial_cash,
             interval=args.interval,
+            universe=args.universe,
+            sector=args.sector,
         )
 
 
@@ -420,21 +502,34 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("\n📋 Interactive Mode")
         list_strategies()
+        print()
+        list_universes()
 
         print("\n💡 Example commands:")
         print("   python unified_runner.py --list")
+        print("   python unified_runner.py --list-universes")
         print("   python unified_runner.py --strategy momentum")
-        print("   python unified_runner.py --strategy momentum --interval 5m")
+        print("   python unified_runner.py --strategy momentum --universe nifty100")
+        print("   python unified_runner.py --strategy momentum --universe nifty200")
+        print("   python unified_runner.py --strategy momentum --sector banking")
+        print("   python unified_runner.py --strategy momentum --sector it")
         print(
             "   python unified_runner.py --strategy pairs --symbols HDFCBANK.NS ICICIBANK.NS"
         )
+        print("   python unified_runner.py --strategy pairs --sector banking")
         print(
-            "   python unified_runner.py --strategy momentum --optimize --max-experiments 20"
+            "   python unified_runner.py --strategy momentum --optimize --universe nifty100"
+        )
+        print(
+            "   python unified_runner.py --strategy momentum --optimize --sector pharma"
+        )
+        print(
+            "   python unified_runner.py --strategy momentum --optimize --universe nifty100 --max-stocks 0  # Use all stocks"
+        )
+        print(
+            "   python unified_runner.py --strategy momentum --optimize --universe nifty200 --max-stocks 50"
         )
         print("   python unified_runner.py --strategy momentum --initial-cash 500000")
-        print(
-            "   python unified_runner.py --strategy pairs --initial-cash 2000000 --interval 15m"
-        )
 
         # Simple interactive mode
         strategy_key = (
@@ -446,14 +541,63 @@ if __name__ == "__main__":
         )
 
         if strategy_key in STRATEGY_REGISTRY:
+            # Ask for selection preference
+            selection_type = (
+                input("🔍 Select by (universe/sector/skip) [universe]: ")
+                .strip()
+                .lower()
+            )
+            if not selection_type:
+                selection_type = "universe"
+
+            universe = "nifty50"
+            sector = None
+
+            if selection_type == "sector":
+                sector = (
+                    input(
+                        f"� Enter sector ({'/'.join(get_available_sectors())}) [banking]: "
+                    )
+                    .strip()
+                    .lower()
+                )
+                if not sector:
+                    sector = "banking"
+                if sector not in get_available_sectors():
+                    print(f"❌ Invalid sector. Using default: banking")
+                    sector = "banking"
+            elif selection_type == "universe":
+                universe = (
+                    input("�🌌 Enter universe (nifty50/nifty100/nifty200) [nifty50]: ")
+                    .strip()
+                    .lower()
+                )
+                if not universe:
+                    universe = "nifty50"
+                if universe not in get_available_universes():
+                    print(f"❌ Invalid universe. Using default: nifty50")
+                    universe = "nifty50"
+
             optimize = input("🔬 Run optimization? (y/N): ").strip().lower() == "y"
 
             if optimize:
                 max_exp = input("🧪 Max experiments (50): ").strip()
                 max_exp = int(max_exp) if max_exp.isdigit() else 50
-                run_strategy_optimization(strategy_key, max_experiments=max_exp)
+                max_stocks_input = input(
+                    "📊 Max stocks for optimization (15, or 0 for all): "
+                ).strip()
+                max_stocks = int(max_stocks_input) if max_stocks_input.isdigit() else 15
+                if max_stocks == 0:
+                    max_stocks = None  # Use all stocks
+                run_strategy_optimization(
+                    strategy_key,
+                    max_experiments=max_exp,
+                    universe=universe,
+                    sector=sector,
+                    max_stocks=max_stocks,
+                )
             else:
-                run_strategy_backtest(strategy_key)
+                run_strategy_backtest(strategy_key, universe=universe, sector=sector)
         else:
             print("❌ Invalid strategy name")
     else:
