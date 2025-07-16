@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+requirements.lock
+.uv/uv.toml
 *.so
 .Python
 build/

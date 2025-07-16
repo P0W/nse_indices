@@ -267,13 +267,16 @@ class UnifiedExperimentFramework:
             cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
             cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
             cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="trades")
+            cerebro.addanalyzer(bt.analyzers.TimeReturn, _name="timereturn")
 
             # Add custom streak analyzer
             cerebro.addanalyzer(StreakAnalyzer, _name="streaks")
             cerebro.addanalyzer(DetailedTradeAnalyzer, _name="detailed_trades")
 
             # Run backtest
-            results = cerebro.run()
+            # Set runonce=True for performance, assuming data feeds are aligned.
+            # This may need to be False if data feeds have varying lengths.
+            results = cerebro.run(runonce=True)
             result = results[0]
 
             # Extract metrics
@@ -386,10 +389,19 @@ class UnifiedExperimentFramework:
                 expectancy=expectancy,
             )
 
-            # Store portfolio values for single experiment visualization
-            if hasattr(result, "portfolio_values") and hasattr(result, "dates"):
-                experiment_result.portfolio_values = result.portfolio_values
-                experiment_result.dates = result.dates
+            # Extract and store portfolio values from TimeReturn analyzer
+            timereturn_analysis = result.analyzers.timereturn.get_analysis()
+            dates = list(timereturn_analysis.keys())
+
+            # Calculate portfolio value from returns, starting with initial cash
+            if dates:
+                returns = pd.Series(list(timereturn_analysis.values()))
+                portfolio_values = (initial_cash * (1 + returns).cumprod()).tolist()
+            else:
+                portfolio_values = []
+
+            experiment_result.portfolio_values = portfolio_values
+            experiment_result.dates = dates
 
             return experiment_result
 

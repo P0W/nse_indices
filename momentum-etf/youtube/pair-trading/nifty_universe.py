@@ -79,7 +79,6 @@ NIFTY_100_ADDITIONAL = [
     "DALBHARAT.NS",
     "GODREJCP.NS",
     "HAVELLS.NS",
-    "HDFC.NS",
     "IDFCFIRSTB.NS",
     "INDIGO.NS",
     "IOC.NS",

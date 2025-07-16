@@ -56,42 +56,7 @@ class MomentumTrendStrategy(BaseStrategy):
 
         for d in self.datas:
             self.log(f"Setting up indicators for symbol: {d._name}")
-
-            # Check data availability before creating indicators
             try:
-                data_length = len(d)
-                close_length = len(d.close)
-                self.log(
-                    f"Data check for {d._name}: total_length={data_length}, close_length={close_length}"
-                )
-
-                # Ensure we have enough data for all indicators
-                min_required = max(
-                    self.p.sma_slow, self.p.momentum_period, self.p.atr_period
-                )
-                if data_length < min_required:
-                    self.log(
-                        f"WARNING: {d._name} has insufficient data ({data_length} < {min_required}), skipping"
-                    )
-                    continue
-
-                # Check if close data is valid
-                if close_length == 0:
-                    self.log(f"WARNING: {d._name} has no close data, skipping")
-                    continue
-
-                # Try to access the first and last close values to verify data integrity
-                first_close = d.close[0] if close_length > 0 else None
-                last_close = d.close[-1] if close_length > 0 else None
-
-                if first_close is None or last_close is None:
-                    self.log(f"WARNING: {d._name} has invalid close data, skipping")
-                    continue
-
-                self.log(
-                    f"Creating indicators for {d._name} (first_close={first_close:.2f}, last_close={last_close:.2f})"
-                )
-
                 self.inds[d._name] = {
                     "sma_fast": bt.ind.SMA(d.close, period=int(self.p.sma_fast)),
                     "sma_slow": bt.ind.SMA(d.close, period=int(self.p.sma_slow)),
@@ -99,15 +64,19 @@ class MomentumTrendStrategy(BaseStrategy):
                     "momentum": bt.ind.ROC(d.close, period=int(self.p.momentum_period)),
                 }
                 self.log(f"Successfully created indicators for {d._name}")
-
             except Exception as e:
                 self.log(f"ERROR creating indicators for {d._name}: {str(e)}")
                 import traceback
 
                 self.log(f"Indicator creation traceback for {d._name}:")
                 self.log(traceback.format_exc())
-                # Don't raise here, just skip this symbol
-                continue
+                # Create a dummy indicator set to avoid KeyError later
+                self.inds[d._name] = {
+                    "sma_fast": None,
+                    "sma_slow": None,
+                    "atr": None,
+                    "momentum": None,
+                }
 
         self.log(f"Indicators initialized for {len(self.inds)} symbols")
 
@@ -268,7 +237,7 @@ class MomentumTrendStrategy(BaseStrategy):
 
                     # Check if momentum indicator has data and is valid
                     momentum_ind = self.inds[d._name]["momentum"]
-                    if len(momentum_ind) == 0:
+                    if momentum_ind is None or len(momentum_ind) == 0:
                         self.log(f"Momentum indicator has no data for {d._name}")
                         continue
 
