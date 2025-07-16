@@ -13,7 +13,6 @@ import json
 import os
 import sys
 import time
-from io import StringIO
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -217,10 +216,6 @@ class UnifiedExperimentFramework:
         experiment_start_time = time.time()
 
         try:
-            # Suppress output for experiments
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
-
             # Create cerebro instance
             cerebro = bt.Cerebro()
             cerebro.broker.setcash(initial_cash)
@@ -239,7 +234,6 @@ class UnifiedExperimentFramework:
                 )
 
             if not data_feeds:
-                sys.stdout = old_stdout
                 return None
 
             # Add data feeds
@@ -249,7 +243,6 @@ class UnifiedExperimentFramework:
             # Get strategy class and add with parameters
             strategy_class = self.strategy_config.get_strategy_class()
             if strategy_class is None:
-                sys.stdout = old_stdout
                 return None
 
             # Merge default params with experiment params
@@ -277,9 +270,6 @@ class UnifiedExperimentFramework:
             # Run backtest
             results = cerebro.run()
             result = results[0]
-
-            # Restore stdout
-            sys.stdout = old_stdout
 
             # Extract metrics
             final_value = cerebro.broker.getvalue()
@@ -321,6 +311,35 @@ class UnifiedExperimentFramework:
             # Trade length from detailed analyzer
             avg_trade_length = detailed_analysis.get("len", {}).get("avg", 0.0)
 
+            # Calculate additional metrics
+            # Annualized return (assuming 252 trading days per year)
+            days_in_backtest = (end_date - start_date).days
+            annualized_return = (
+                ((final_value / initial_cash) ** (365.25 / days_in_backtest) - 1) * 100
+                if days_in_backtest > 0
+                else 0
+            )
+
+            # Expectancy calculation using TradeAnalyzer data
+            # Expectancy = (Probability of Win × Average Win) + (Probability of Loss × Average Loss)
+            if total_trades > 0:
+                prob_win = won_trades / total_trades
+                prob_loss = (total_trades - won_trades) / total_trades
+
+                # Get average win and loss from TradeAnalyzer
+                avg_win_trade = (
+                    trades_analysis.get("won", {}).get("pnl", {}).get("average", 0) or 0
+                )
+                avg_loss_trade = (
+                    trades_analysis.get("lost", {}).get("pnl", {}).get("average", 0)
+                    or 0
+                )
+
+                # Calculate expectancy (expected value per trade in rupees)
+                expectancy = (prob_win * avg_win_trade) + (prob_loss * avg_loss_trade)
+            else:
+                expectancy = 0
+
             # Calculate metrics dict for composite score
             metrics = {
                 "total_return": total_return,
@@ -358,6 +377,8 @@ class UnifiedExperimentFramework:
                 consecutive_losses=consecutive_losses,
                 even_trades=even_trades,
                 avg_trade_length=avg_trade_length,
+                annualized_return=annualized_return,
+                expectancy=expectancy,
             )
 
             # Store portfolio values for single experiment visualization
@@ -368,8 +389,6 @@ class UnifiedExperimentFramework:
             return experiment_result
 
         except Exception as e:
-            # Restore stdout in case of error
-            sys.stdout = old_stdout
             print(f"❌ Experiment failed: {str(e)}")
             return None
 
@@ -534,6 +553,8 @@ class UnifiedExperimentFramework:
                 "consecutive_losses": result.consecutive_losses,
                 "even_trades": result.even_trades,
                 "avg_trade_length": result.avg_trade_length,
+                "annualized_return": getattr(result, "annualized_return", 0),
+                "expectancy": getattr(result, "expectancy", 0),
             }
             results_data.append(result_dict)
 
@@ -580,6 +601,8 @@ class UnifiedExperimentFramework:
                     "consecutive_losses": result.consecutive_losses,
                     "even_trades": result.even_trades,
                     "avg_trade_length": result.avg_trade_length,
+                    "annualized_return": getattr(result, "annualized_return", 0),
+                    "expectancy": getattr(result, "expectancy", 0),
                 }
             )
             flat_results.append(flat_result)
@@ -603,29 +626,28 @@ class UnifiedExperimentFramework:
             best_data = [["Parameter", "Value"]]
             for param, value in self.best_result.params.items():
                 best_data.append([param.replace("_", " ").title(), value])
-            print(tabulate(best_data, headers="firstrow", tablefmt="grid"))
+            print(tabulate(best_data, headers="firstrow", tablefmt="compact"))
 
         # Top 10 results with enhanced metrics
         top_10 = df.nlargest(10, "composite_score")
         print(f"\n📈 TOP 10 RESULTS")
         display_cols = [
             "total_return",
+            "annualized_return",
             "sharpe_ratio",
             "max_drawdown",
             "trades_count",
             "win_rate",
-            "profit_factor",
+            "expectancy",
             "max_winning_streak",
             "max_losing_streak",
-            "avg_win",
-            "avg_loss",
             "composite_score",
         ]
         print(
             tabulate(
                 top_10[display_cols].round(2),
                 headers=[col.replace("_", " ").title() for col in display_cols],
-                tablefmt="grid",
+                tablefmt="compact",
                 showindex=False,
             )
         )
@@ -684,7 +706,7 @@ class UnifiedExperimentFramework:
                 f"{df['max_losing_streak'].max():.0f}",
             ],
         ]
-        print(tabulate(stats_data, headers="firstrow", tablefmt="grid"))
+        print(tabulate(stats_data, headers="firstrow", tablefmt="compact"))
 
     def create_visualizations(self):
         """Create visualizations of experiment results"""
@@ -1013,15 +1035,15 @@ class UnifiedExperimentFramework:
         ax6 = plt.subplot(2, 3, 6)
         summary_text = f"""Backtest Summary:
 
-Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
-Symbols: {len(symbols)} stocks
-Initial Cash: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
-Final Value: ₹{result.final_value:,.0f}
+        Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
+        Symbols: {len(symbols)} stocks
+        Initial Cash: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
+        Final Value: ₹{result.final_value:,.0f}
 
-Strategy: {self.strategy_name}
-Composite Score: {result.composite_score:.3f}
-Duration: {result.experiment_duration:.2f} seconds
-"""
+        Strategy: {self.strategy_name}
+        Composite Score: {result.composite_score:.3f}
+        Duration: {result.experiment_duration:.2f} seconds
+        """
 
         ax6.text(
             0.05,
@@ -1413,20 +1435,20 @@ Duration: {result.experiment_duration:.2f} seconds
         # 9. Portfolio Composition & Summary (Third Row Right)
         ax9 = plt.subplot(5, 3, 9)
         summary_text = f"""
-Portfolio Summary:
-━━━━━━━━━━━━━━━━━━━━
-Strategy: {self.strategy_name}
-Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
-Duration: {(end_date - start_date).days} days
+            Portfolio Summary:
+            ━━━━━━━━━━━━━━━━━━━━
+            Strategy: {self.strategy_name}
+            Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
+            Duration: {(end_date - start_date).days} days
 
-Symbols: {len(symbols)}
-{', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}
+            Symbols: {len(symbols)}
+            {', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}
 
-Initial Value: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
-Final Value: ₹{result.final_value:,.0f}
-Profit/Loss: ₹{(result.total_return/100 * result.final_value):,.0f}
+            Initial Value: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
+            Final Value: ₹{result.final_value:,.0f}
+            Profit/Loss: ₹{(result.total_return/100 * result.final_value):,.0f}
 
-Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
+            Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
         """
 
         ax9.text(
@@ -1659,7 +1681,6 @@ Performance Rating: {'⭐' * min(5, max(1, int(result.sharpe_ratio + 2)))}
         plt.savefig(filename, dpi=300, bbox_inches="tight")
         print(f"📊 Comprehensive portfolio dashboard saved to {filename}")
 
-        plt.show()
         return filename
 
     def run_portfolio_analysis(

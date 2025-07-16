@@ -24,6 +24,8 @@ from strategies import (
     StatisticalTrendConfig,
     PMVMomentumStrategy,
     PMVMomentumConfig,
+    NiftyShopStrategy,
+    NiftyShopConfig,
 )
 from experiment_framework import UnifiedExperimentFramework
 from utils import MarketDataLoader, setup_logger, IndianBrokerageCommission
@@ -63,6 +65,11 @@ STRATEGY_REGISTRY = {
         "name": "Pure-equity Stat-Trend Hybrid Strategy",
         "description": "Z-score mean reversion with EMA and ADX momentum filters",
         "config_class": StatisticalTrendConfig,
+    },
+    "niftyshop": {
+        "name": "Nifty Shop Strategy",
+        "description": "Simple buy-below-MA, sell-on-target strategy with averaging down",
+        "config_class": NiftyShopConfig,
     },
 }
 
@@ -143,6 +150,7 @@ def run_strategy_backtest(
     interval="1d",
     universe="nifty50",
     sector=None,
+    printlog=False,
 ):
     """Run a single strategy backtest"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -194,9 +202,13 @@ def run_strategy_backtest(
     config = config_class()
     framework = UnifiedExperimentFramework(config)
 
+    # Get default parameters and add printlog
+    default_params = config.get_default_params()
+    default_params["printlog"] = printlog
+
     # Run single experiment with default parameters
     result = framework.run_single_experiment(
-        params=config.get_default_params(),
+        params=default_params,
         symbols=symbols,
         start_date=start_date,
         end_date=end_date,
@@ -232,6 +244,7 @@ def run_strategy_optimization(
     universe="nifty50",
     sector=None,
     max_stocks=None,
+    printlog=False,
 ):
     """Run strategy parameter optimization"""
     if strategy_key not in STRATEGY_REGISTRY:
@@ -405,6 +418,11 @@ def main():
         default="1d",
         help="Data interval (1d, 5m, 15m, 1h, etc.) - default: 1d. Note: Intraday data (5m, 15m) limited to last 60 days",
     )
+    parser.add_argument(
+        "--printlog",
+        action="store_true",
+        help="Enable debug logging for strategy execution (default: False)",
+    )
 
     args = parser.parse_args()
 
@@ -487,6 +505,7 @@ def main():
             universe=args.universe,
             sector=args.sector,
             max_stocks=args.max_stocks,
+            printlog=args.printlog,
         )
     else:
         run_strategy_backtest(
@@ -498,6 +517,7 @@ def main():
             interval=args.interval,
             universe=args.universe,
             sector=args.sector,
+            printlog=args.printlog,
         )
 
 
@@ -602,9 +622,12 @@ if __name__ == "__main__":
                     universe=universe,
                     sector=sector,
                     max_stocks=max_stocks,
+                    printlog=False,  # Default to False for interactive mode
                 )
             else:
-                run_strategy_backtest(strategy_key, universe=universe, sector=sector)
+                run_strategy_backtest(
+                    strategy_key, universe=universe, sector=sector, printlog=False
+                )
         else:
             print("❌ Invalid strategy name")
     else:

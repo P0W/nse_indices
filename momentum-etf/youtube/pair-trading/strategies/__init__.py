@@ -11,6 +11,7 @@ from .mean_reversion_strategy import (
 )
 from .statistical_trend_strategy import StatisticalTrendStrategy, StatisticalTrendConfig
 from .pmv_momentum_strategy import PMVMomentumStrategy, PMVMomentumConfig
+from .nifty_shop_strategy import NiftyShopStrategy, NiftyShopConfig
 
 __all__ = [
     "BaseStrategy",
@@ -25,4 +26,6 @@ __all__ = [
     "StatisticalTrendConfig",
     "PMVMomentumStrategy",
     "PMVMomentumConfig",
+    "NiftyShopStrategy",
+    "NiftyShopConfig",
 ]

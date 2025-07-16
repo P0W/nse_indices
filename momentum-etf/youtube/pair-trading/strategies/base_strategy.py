@@ -45,6 +45,8 @@ class ExperimentResult:
     consecutive_losses: int = 0
     even_trades: int = 0
     avg_trade_length: float = 0.0
+    annualized_return: float = 0.0
+    expectancy: float = 0.0
 
 
 class StrategyConfig(ABC):
