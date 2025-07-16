@@ -44,13 +44,72 @@ class MomentumTrendStrategy(BaseStrategy):
         self.peak_value = self.broker.getvalue()
         self.drawdowns = []
 
+        self.log(
+            f"Initializing MomentumTrendStrategy with {len(self.datas)} data feeds"
+        )
+        self.log(
+            f"Parameters: SMA_fast={self.p.sma_fast}, SMA_slow={self.p.sma_slow}, ATR_period={self.p.atr_period}, Momentum_period={self.p.momentum_period}"
+        )
+        self.log(
+            f"Rebalance_days={self.p.rebalance_days}, Top_n_stocks={self.p.top_n_stocks}, ATR_multiplier={self.p.atr_multiplier}"
+        )
+
         for d in self.datas:
-            self.inds[d._name] = {
-                "sma_fast": bt.ind.SMA(d.close, period=int(self.p.sma_fast)),
-                "sma_slow": bt.ind.SMA(d.close, period=int(self.p.sma_slow)),
-                "atr": bt.ind.ATR(d, period=int(self.p.atr_period)),
-                "momentum": bt.ind.ROC(d.close, period=int(self.p.momentum_period)),
-            }
+            self.log(f"Setting up indicators for symbol: {d._name}")
+
+            # Check data availability before creating indicators
+            try:
+                data_length = len(d)
+                close_length = len(d.close)
+                self.log(
+                    f"Data check for {d._name}: total_length={data_length}, close_length={close_length}"
+                )
+
+                # Ensure we have enough data for all indicators
+                min_required = max(
+                    self.p.sma_slow, self.p.momentum_period, self.p.atr_period
+                )
+                if data_length < min_required:
+                    self.log(
+                        f"WARNING: {d._name} has insufficient data ({data_length} < {min_required}), skipping"
+                    )
+                    continue
+
+                # Check if close data is valid
+                if close_length == 0:
+                    self.log(f"WARNING: {d._name} has no close data, skipping")
+                    continue
+
+                # Try to access the first and last close values to verify data integrity
+                first_close = d.close[0] if close_length > 0 else None
+                last_close = d.close[-1] if close_length > 0 else None
+
+                if first_close is None or last_close is None:
+                    self.log(f"WARNING: {d._name} has invalid close data, skipping")
+                    continue
+
+                self.log(
+                    f"Creating indicators for {d._name} (first_close={first_close:.2f}, last_close={last_close:.2f})"
+                )
+
+                self.inds[d._name] = {
+                    "sma_fast": bt.ind.SMA(d.close, period=int(self.p.sma_fast)),
+                    "sma_slow": bt.ind.SMA(d.close, period=int(self.p.sma_slow)),
+                    "atr": bt.ind.ATR(d, period=int(self.p.atr_period)),
+                    "momentum": bt.ind.ROC(d.close, period=int(self.p.momentum_period)),
+                }
+                self.log(f"Successfully created indicators for {d._name}")
+
+            except Exception as e:
+                self.log(f"ERROR creating indicators for {d._name}: {str(e)}")
+                import traceback
+
+                self.log(f"Indicator creation traceback for {d._name}:")
+                self.log(traceback.format_exc())
+                # Don't raise here, just skip this symbol
+                continue
+
+        self.log(f"Indicators initialized for {len(self.inds)} symbols")
 
     def _should_exit(self, d):
         """Determine if we should exit a position"""
@@ -58,93 +117,278 @@ class MomentumTrendStrategy(BaseStrategy):
         if pos.size == 0:  # No position to exit
             return False
 
-        price = d.close[0]
-        ind = self.inds[d._name]
-        return (
-            price < pos.price - self.p.atr_multiplier * ind["atr"][0]
-            or ind["sma_fast"][0] < ind["sma_slow"][0]
-            or ind["momentum"][0] < 0
-        )
+        try:
+            self.log(
+                f"Checking exit conditions for {d._name}, position size: {pos.size}"
+            )
+
+            # Check if indicators have enough data
+            ind = self.inds[d._name]
+            if (
+                len(ind["atr"]) == 0
+                or len(ind["sma_fast"]) == 0
+                or len(ind["sma_slow"]) == 0
+                or len(ind["momentum"]) == 0
+            ):
+                self.log(f"WARNING: Not enough data for indicators on {d._name}")
+                return False
+
+            price = d.close[0]
+            atr_value = ind["atr"][0]
+            sma_fast_value = ind["sma_fast"][0]
+            sma_slow_value = ind["sma_slow"][0]
+            momentum_value = ind["momentum"][0]
+
+            stop_loss_price = pos.price - self.p.atr_multiplier * atr_value
+
+            self.log(
+                f"Exit check for {d._name}: price={price:.2f}, stop_loss={stop_loss_price:.2f}, "
+                f"sma_fast={sma_fast_value:.2f}, sma_slow={sma_slow_value:.2f}, momentum={momentum_value:.4f}"
+            )
+
+            should_exit = (
+                price < stop_loss_price
+                or sma_fast_value < sma_slow_value
+                or momentum_value < 0
+            )
+
+            if should_exit:
+                self.log(
+                    f"EXIT SIGNAL for {d._name}: price_below_stop={price < stop_loss_price}, "
+                    f"sma_bearish={sma_fast_value < sma_slow_value}, momentum_negative={momentum_value < 0}"
+                )
+
+            return should_exit
+
+        except (IndexError, ValueError, KeyError) as e:
+            self.log(f"ERROR in _should_exit for {d._name}: {str(e)}")
+            return False
 
     def _should_enter(self, d):
         """Determine if we should enter a position"""
-        ind = self.inds[d._name]
-        return ind["sma_fast"][0] > ind["sma_slow"][0]
+        try:
+            ind = self.inds[d._name]
+
+            # Check if indicators have enough data
+            if len(ind["sma_fast"]) == 0 or len(ind["sma_slow"]) == 0:
+                self.log(f"WARNING: Not enough SMA data for entry check on {d._name}")
+                return False
+
+            sma_fast_value = ind["sma_fast"][0]
+            sma_slow_value = ind["sma_slow"][0]
+
+            should_enter = sma_fast_value > sma_slow_value
+
+            self.log(
+                f"Entry check for {d._name}: sma_fast={sma_fast_value:.2f}, "
+                f"sma_slow={sma_slow_value:.2f}, should_enter={should_enter}"
+            )
+
+            return should_enter
+
+        except (IndexError, ValueError, KeyError) as e:
+            self.log(f"ERROR in _should_enter for {d._name}: {str(e)}")
+            return False
 
     def execute_strategy(self):
         """Execute momentum strategy logic"""
-        # Track portfolio performance
-        current_value = self.broker.getvalue()
-        current_date = self.datas[0].datetime.date(0)
+        try:
+            # Track portfolio performance
+            current_value = self.broker.getvalue()
+            current_date = self.datas[0].datetime.date(0)
 
-        # Update peak and calculate drawdown
-        if current_value > self.peak_value:
-            self.peak_value = current_value
+            # Check if we have enough data to run the strategy
+            # We need at least max(sma_slow, momentum_period, atr_period) bars
+            min_bars_needed = max(
+                self.p.sma_slow, self.p.momentum_period, self.p.atr_period
+            )
+            current_bar = len(self.datas[0])
 
-        drawdown = (self.peak_value - current_value) / self.peak_value * 100
-        self.drawdowns.append(drawdown)
+            if current_bar < min_bars_needed:
+                self.log(
+                    f"Not enough data yet: {current_bar}/{min_bars_needed} bars, skipping strategy execution"
+                )
+                return
 
-        # Track monthly returns
-        month_year = current_date.strftime("%Y-%m")
-        if month_year not in self.monthly_returns:
-            if len(self.portfolio_values) > 1:
-                # Find the last value from previous month
-                prev_month_values = [
-                    v
-                    for i, v in enumerate(self.portfolio_values[:-1])
-                    if self.dates[i].strftime("%Y-%m") != month_year
-                ]
-                if prev_month_values:
-                    prev_value = prev_month_values[-1]
-                    monthly_return = (current_value - prev_value) / prev_value * 100
-                    self.monthly_returns[month_year] = monthly_return
+            self.log(
+                f"Strategy execution on {current_date}, portfolio value: {current_value:.2f}, rebalance_counter: {self.rebalance_counter}, bar: {current_bar}"
+            )
 
-        if self.rebalance_counter % self.p.rebalance_days != 0:
-            self.rebalance_counter += 1
-            return
+            # Update peak and calculate drawdown
+            if current_value > self.peak_value:
+                self.peak_value = current_value
 
-        # Filter valid data feeds (not NaN) and sort by momentum
-        valid_datas = []
-        for d in self.datas:
-            try:
-                if (
-                    len(d.close) > 0
-                    and d.close[0] == d.close[0]  # Check for NaN
-                    and d._name in self.inds
-                    and len(self.inds[d._name]["momentum"]) > 0
-                    and self.inds[d._name]["momentum"][0]
-                    == self.inds[d._name]["momentum"][0]
-                ):  # Check momentum not NaN
+            drawdown = (self.peak_value - current_value) / self.peak_value * 100
+            self.drawdowns.append(drawdown)
+
+            # Track monthly returns
+            month_year = current_date.strftime("%Y-%m")
+            if month_year not in self.monthly_returns:
+                if len(self.portfolio_values) > 1:
+                    # Find the last value from previous month
+                    prev_month_values = [
+                        v
+                        for i, v in enumerate(self.portfolio_values[:-1])
+                        if self.dates[i].strftime("%Y-%m") != month_year
+                    ]
+                    if prev_month_values:
+                        prev_value = prev_month_values[-1]
+                        monthly_return = (current_value - prev_value) / prev_value * 100
+                        self.monthly_returns[month_year] = monthly_return
+
+            if self.rebalance_counter % self.p.rebalance_days != 0:
+                self.rebalance_counter += 1
+                return
+
+            self.log(f"Rebalancing portfolio on day {self.rebalance_counter}")
+
+            # Filter valid data feeds (not NaN) and sort by momentum
+            valid_datas = []
+            for d in self.datas:
+                try:
+                    # First check if we have indicators for this symbol
+                    if d._name not in self.inds:
+                        self.log(f"No indicators found for {d._name}, skipping")
+                        continue
+
+                    # Check basic data availability
+                    if not hasattr(d, "close") or len(d.close) == 0:
+                        self.log(f"No close data for {d._name}")
+                        continue
+
+                    # Check if current price is valid
+                    try:
+                        current_price = d.close[0]
+                        if current_price != current_price:  # Check for NaN
+                            self.log(f"NaN price for {d._name}")
+                            continue
+                    except IndexError:
+                        self.log(f"Cannot access current price for {d._name}")
+                        continue
+
+                    # Check if momentum indicator has data and is valid
+                    momentum_ind = self.inds[d._name]["momentum"]
+                    if len(momentum_ind) == 0:
+                        self.log(f"Momentum indicator has no data for {d._name}")
+                        continue
+
+                    try:
+                        momentum_val = momentum_ind[0]
+                        if momentum_val != momentum_val:  # Check for NaN
+                            self.log(f"NaN momentum value for {d._name}")
+                            continue
+                    except IndexError:
+                        self.log(
+                            f"Cannot access momentum[0] for {d._name}, length: {len(momentum_ind)}"
+                        )
+                        continue
+
+                    # If we get here, the data is valid
+                    self.log(f"Valid data for {d._name}, momentum: {momentum_val:.4f}")
                     valid_datas.append(d)
-            except (IndexError, KeyError):
-                continue  # Skip this data feed if there's an issue
 
-        if not valid_datas:
+                except Exception as e:
+                    self.log(f"Error checking data validity for {d._name}: {str(e)}")
+                    continue  # Skip this data feed if there's an issue
+
+            self.log(
+                f"Found {len(valid_datas)} valid data feeds out of {len(self.datas)} total"
+            )
+
+            if not valid_datas:
+                self.log("No valid data feeds found, skipping rebalancing")
+                self.rebalance_counter += 1
+                return
+
+            # Sort by momentum and select top stocks
+            try:
+                # Additional safety check before sorting
+                safe_valid_datas = []
+                for d in valid_datas:
+                    try:
+                        momentum_val = self.inds[d._name]["momentum"][0]
+                        if momentum_val == momentum_val:  # Not NaN
+                            safe_valid_datas.append(d)
+                        else:
+                            self.log(
+                                f"Filtering out {d._name} due to NaN momentum in sorting phase"
+                            )
+                    except (IndexError, KeyError) as e:
+                        self.log(
+                            f"Error accessing momentum for {d._name} in sorting phase: {str(e)}"
+                        )
+                        continue
+
+                if not safe_valid_datas:
+                    self.log("No safe valid data feeds for sorting")
+                    self.rebalance_counter += 1
+                    return
+
+                top_stocks = sorted(
+                    safe_valid_datas,
+                    key=lambda d: self.inds[d._name]["momentum"][0],
+                    reverse=True,
+                )[: self.p.top_n_stocks]
+
+                top_symbols = [d._name for d in top_stocks]
+                top_momentums = [self.inds[d._name]["momentum"][0] for d in top_stocks]
+                self.log(
+                    f"Top {len(top_stocks)} momentum stocks: {dict(zip(top_symbols, top_momentums))}"
+                )
+
+            except Exception as e:
+                self.log(f"Error sorting stocks by momentum: {str(e)}")
+                import traceback
+
+                self.log(f"Sorting traceback: {traceback.format_exc()}")
+                self.rebalance_counter += 1
+                return
+
+            # Exit positions that should be closed
+            exits_made = 0
+            for data_feed in self.datas:
+                pos = self.getposition(data_feed)
+                if pos.size != 0:
+                    if self._should_exit(data_feed):
+                        self.log(
+                            f"Closing position in {data_feed._name}, size: {pos.size}"
+                        )
+                        self.close(data_feed)
+                        exits_made += 1
+
+            self.log(f"Made {exits_made} position exits")
+
+            # Enter new positions for top momentum stocks
+            entries_made = 0
+            for d in top_stocks:
+                if self.getposition(d).size == 0 and self._should_enter(d):
+                    available_cash = self.broker.get_cash()
+                    if available_cash > 0 and d.close[0] > 0:
+                        size = int(available_cash / (self.p.top_n_stocks * d.close[0]))
+                        if size > 0:
+                            self.log(
+                                f"Buying {size} shares of {d._name} at {d.close[0]:.2f}, cash available: {available_cash:.2f}"
+                            )
+                            self.buy(data=d, size=size)
+                            entries_made += 1
+                        else:
+                            self.log(
+                                f"Insufficient cash to buy {d._name}, required: {d.close[0]:.2f}, available: {available_cash:.2f}"
+                            )
+                    else:
+                        self.log(
+                            f"Cannot buy {d._name}: cash={available_cash:.2f}, price={d.close[0] if len(d.close) > 0 else 'N/A'}"
+                        )
+
+            self.log(f"Made {entries_made} new position entries")
             self.rebalance_counter += 1
-            return
 
-        top_stocks = sorted(
-            valid_datas,
-            key=lambda d: self.inds[d._name]["momentum"][0],
-            reverse=True,
-        )[: self.p.top_n_stocks]
+        except Exception as e:
+            self.log(f"CRITICAL ERROR in execute_strategy: {str(e)}")
+            import traceback
 
-        # Exit positions that should be closed
-        for data_feed in self.datas:
-            pos = self.getposition(data_feed)
-            if pos.size != 0 and self._should_exit(data_feed):
-                self.close(data_feed)
-
-        # Enter new positions for top momentum stocks
-        for d in top_stocks:
-            if self.getposition(d).size == 0 and self._should_enter(d):
-                available_cash = self.broker.get_cash()
-                if available_cash > 0 and d.close[0] > 0:
-                    size = int(available_cash / (self.p.top_n_stocks * d.close[0]))
-                    if size > 0:
-                        self.buy(data=d, size=size)
-
-        self.rebalance_counter += 1
+            self.log(f"Traceback: {traceback.format_exc()}")
+            raise
 
 
 class AdaptiveMomentumConfig(StrategyConfig):

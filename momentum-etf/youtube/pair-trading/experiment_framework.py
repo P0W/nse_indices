@@ -13,6 +13,8 @@ import json
 import os
 import sys
 import time
+import logging
+import traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -28,6 +30,9 @@ from streak_analyzer import StreakAnalyzer, DetailedTradeAnalyzer
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UnifiedExperimentFramework:
@@ -389,7 +394,9 @@ class UnifiedExperimentFramework:
             return experiment_result
 
         except Exception as e:
-            print(f"❌ Experiment failed: {str(e)}")
+            logger.error(f"Experiment failed: {str(e)}")
+            logger.error("Full traceback:")
+            logger.error(traceback.format_exc())
             return None
 
     def run_experiments(
@@ -439,12 +446,12 @@ class UnifiedExperimentFramework:
         )
 
         # 🚀 PRE-LOAD DATA ONCE to avoid repeated loading
-        print("📊 Pre-loading market data for experiments...")
+        logger.info("Pre-loading market data for experiments...")
         data_feeds = self.prepare_data_feeds(symbols, start_date, end_date, interval)
         if not data_feeds:
-            print("❌ Failed to load market data. Aborting experiments.")
+            logger.error("Failed to load market data. Aborting experiments.")
             return
-        print(f"✅ Data loaded successfully for {len(data_feeds)} instruments")
+        logger.info(f"Data loaded successfully for {len(data_feeds)} instruments")
 
         # Run experiments
         self.results = []
@@ -830,249 +837,7 @@ class UnifiedExperimentFramework:
         plt.savefig(filename, dpi=300, bbox_inches="tight")
         print(f"📊 Visualizations saved to {filename}")
 
-        plt.show()
-
-    def create_single_backtest_visualization(
-        self,
-        result: ExperimentResult,
-        symbols: List[str],
-        start_date: datetime,
-        end_date: datetime,
-    ):
-        """Create visualization for a single backtest result"""
-        print(f"📊 Creating visualization for {self.strategy_name} backtest...")
-
-        # Set up the plotting style
-        plt.style.use(
-            "default"
-        )  # Use default style as seaborn-v0_8 might not be available everywhere
-        fig = plt.figure(figsize=(16, 12))
-        fig.suptitle(
-            f"{self.strategy_name} Strategy - Single Backtest Results",
-            fontsize=16,
-            fontweight="bold",
-        )
-
-        # 1. Portfolio Value Over Time
-        ax1 = plt.subplot(2, 3, 1)
-        if (
-            hasattr(result, "portfolio_values")
-            and hasattr(result, "dates")
-            and result.portfolio_values
-        ):
-            ax1.plot(result.dates, result.portfolio_values, linewidth=2, color="blue")
-            ax1.set_title("Portfolio Value Over Time")
-            ax1.set_xlabel("Date")
-            ax1.set_ylabel("Portfolio Value (₹)")
-            ax1.grid(True, alpha=0.3)
-            # Format y-axis to show values in lakhs/crores
-            ax1.yaxis.set_major_formatter(
-                plt.FuncFormatter(
-                    lambda x, p: (
-                        f"₹{x/100000:.1f}L" if x < 10000000 else f"₹{x/10000000:.1f}Cr"
-                    )
-                )
-            )
-        else:
-            ax1.text(
-                0.5,
-                0.5,
-                "Portfolio tracking\nnot available",
-                ha="center",
-                va="center",
-                transform=ax1.transAxes,
-            )
-            ax1.set_title("Portfolio Value Over Time")
-
-        # 2. Key Metrics Bar Chart
-        ax2 = plt.subplot(2, 3, 2)
-        metrics_names = ["Total Return (%)", "Sharpe Ratio", "Max Drawdown (%)"]
-        metrics_values = [
-            result.total_return,
-            result.sharpe_ratio,
-            abs(result.max_drawdown),
-        ]
-        colors = [
-            "green" if result.total_return > 0 else "red",
-            (
-                "green"
-                if result.sharpe_ratio > 1
-                else "orange" if result.sharpe_ratio > 0 else "red"
-            ),
-            "red" if abs(result.max_drawdown) > 10 else "orange",
-        ]
-
-        bars = ax2.bar(metrics_names, metrics_values, color=colors, alpha=0.7)
-        ax2.set_title("Key Performance Metrics")
-        ax2.set_ylabel("Value")
-
-        # Add value labels on bars
-        for bar, value in zip(bars, metrics_values):
-            height = bar.get_height()
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2.0,
-                height + max(metrics_values) * 0.01,
-                f"{value:.2f}",
-                ha="center",
-                va="bottom",
-            )
-
-        plt.xticks(rotation=45)
-
-        # 3. Strategy Parameters
-        ax3 = plt.subplot(2, 3, 3)
-        param_text = "Strategy Parameters:\n\n"
-        for param, value in result.params.items():
-            if isinstance(value, float):
-                param_text += f"{param.replace('_', ' ').title()}: {value:.3f}\n"
-            else:
-                param_text += f"{param.replace('_', ' ').title()}: {value}\n"
-
-        ax3.text(
-            0.05,
-            0.95,
-            param_text,
-            transform=ax3.transAxes,
-            fontsize=10,
-            verticalalignment="top",
-            fontfamily="monospace",
-            bbox=dict(boxstyle="round", facecolor="lightgray", alpha=0.5),
-        )
-        ax3.set_xlim(0, 1)
-        ax3.set_ylim(0, 1)
-        ax3.axis("off")
-        ax3.set_title("Strategy Configuration")
-
-        # 4. Risk-Return Analysis
-        ax4 = plt.subplot(2, 3, 4)
-        # Create a simple risk-return plot with benchmarks
-        benchmark_returns = [8, 12, 15]  # Simple benchmarks
-        benchmark_risks = [5, 10, 15]  # Associated risks
-        benchmark_labels = ["Conservative", "Moderate", "Aggressive"]
-
-        ax4.scatter(
-            benchmark_risks,
-            benchmark_returns,
-            c=["green", "orange", "red"],
-            s=100,
-            alpha=0.6,
-            label="Benchmarks",
-        )
-        ax4.scatter(
-            [abs(result.max_drawdown)],
-            [result.total_return],
-            c="blue",
-            s=200,
-            marker="^",
-            label="Strategy",
-        )
-
-        for i, label in enumerate(benchmark_labels):
-            ax4.annotate(
-                label,
-                (benchmark_risks[i], benchmark_returns[i]),
-                xytext=(5, 5),
-                textcoords="offset points",
-            )
-
-        ax4.annotate(
-            "Our Strategy",
-            (abs(result.max_drawdown), result.total_return),
-            xytext=(5, 5),
-            textcoords="offset points",
-            fontweight="bold",
-        )
-
-        ax4.set_xlabel("Risk (Max Drawdown %)")
-        ax4.set_ylabel("Return (%)")
-        ax4.set_title("Risk-Return Profile")
-        ax4.grid(True, alpha=0.3)
-        ax4.legend()
-
-        # 5. Trade Statistics (if available)
-        ax5 = plt.subplot(2, 3, 5)
-        if hasattr(result, "trades_count") and result.trades_count > 0:
-            trade_metrics = ["Total Trades", "Win Rate (%)", "Profit Factor"]
-            trade_values = [
-                result.trades_count,
-                getattr(result, "win_rate", 0),
-                getattr(result, "profit_factor", 0),
-            ]
-
-            bars = ax5.bar(
-                trade_metrics,
-                trade_values,
-                color=["blue", "green", "purple"],
-                alpha=0.7,
-            )
-            ax5.set_title("Trading Statistics")
-            ax5.set_ylabel("Value")
-
-            # Add value labels
-            for bar, value in zip(bars, trade_values):
-                height = bar.get_height()
-                ax5.text(
-                    bar.get_x() + bar.get_width() / 2.0,
-                    height + max(trade_values) * 0.01,
-                    f"{value:.1f}",
-                    ha="center",
-                    va="bottom",
-                )
-
-            plt.xticks(rotation=45)
-        else:
-            ax5.text(
-                0.5,
-                0.5,
-                "No trades executed\nor trade data\nnot available",
-                ha="center",
-                va="center",
-                transform=ax5.transAxes,
-            )
-            ax5.set_title("Trading Statistics")
-
-        # 6. Summary Information
-        ax6 = plt.subplot(2, 3, 6)
-        summary_text = f"""Backtest Summary:
-
-        Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
-        Symbols: {len(symbols)} stocks
-        Initial Cash: ₹{result.final_value - (result.total_return/100 * result.final_value):,.0f}
-        Final Value: ₹{result.final_value:,.0f}
-
-        Strategy: {self.strategy_name}
-        Composite Score: {result.composite_score:.3f}
-        Duration: {result.experiment_duration:.2f} seconds
-        """
-
-        ax6.text(
-            0.05,
-            0.95,
-            summary_text,
-            transform=ax6.transAxes,
-            fontsize=10,
-            verticalalignment="top",
-            fontfamily="monospace",
-            bbox=dict(boxstyle="round", facecolor="lightblue", alpha=0.3),
-        )
-        ax6.set_xlim(0, 1)
-        ax6.set_ylim(0, 1)
-        ax6.axis("off")
-        ax6.set_title("Backtest Summary")
-
-        plt.tight_layout()
-
-        # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join(
-            self.strategy_results_dir,
-            f"{self.strategy_name.lower()}_backtest_{timestamp}.png",
-        )
-        plt.savefig(filename, dpi=300, bbox_inches="tight")
-        print(f"📊 Single backtest visualization saved to {filename}")
-
-        plt.show()
-        return filename
+        # plt.show()
 
     def create_portfolio_dashboard(
         self,

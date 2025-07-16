@@ -25,276 +25,316 @@ class PMVMomentumStrategy(BaseStrategy):
 
     params = (
         ("rsi_period", 14),
-        ("vwap_period", 20),  # Days to calculate VWAP
-        ("top_n_stocks", 15),  # Number of stocks to hold in portfolio
-        ("position_size", 0.2),  # Maximum position size per stock (% of portfolio)
-        ("weekly_exit", True),  # Whether to exit after a week of holding
-        ("stop_loss", 5.0),  # Stop loss percentage
-        ("take_profit", 10.0),  # Take profit percentage
-        ("printlog", False),  # Whether to print log messages
+        ("top_n_stocks", 15),
+        ("position_size", 0.2),
+        ("weekly_exit", True),
+        ("stop_loss", 5.0),
+        ("take_profit", 10.0),
+        ("printlog", False),
     )
 
+    # --------------------- init ------------------------------
     def __init__(self):
         super().__init__()
+        # keep original attribute names
+        self.entry_dates: Dict[str, int] = {}  # bar index of entry
+        self.peak_prices: Dict[str, float] = {}
+
+        # lightweight indicators
         self.inds = {}
-        self.entry_dates = {}  # Track entry dates for each position
-        self.peak_prices = {}  # Track peak prices for trailing stops
-        self.monthly_returns = {}
-        self.peak_value = self.broker.getvalue()
-        self.drawdowns = []
-        self.bar_executed = 0  # Counter for executed bars
-
-        # Create indicators for each data feed
         for d in self.datas:
-            # Calculate RSI
-            rsi = bt.ind.RSI(d.close, period=self.p.rsi_period)
-
-            # Create return indicators using ROC (Rate of Change)
-            returns_1w = bt.ind.ROC(d.close, period=5)  # 1-week return
-            returns_1mo = bt.ind.ROC(d.close, period=20)  # 1-month return
-            returns_1y = bt.ind.ROC(d.close, period=252)  # 1-year return
-
-            # VWAP calculations for different timeframes
-            # For simplicity, we'll use SMA as a proxy for VWAP in backtrader
-            vwap_1w = bt.ind.SMA(d.close * d.volume, period=5) / bt.ind.SMA(
-                d.volume, period=5
-            )
-            vwap_1mo = bt.ind.SMA(d.close * d.volume, period=20) / bt.ind.SMA(
-                d.volume, period=20
-            )
-            vwap_1y = bt.ind.SMA(d.close * d.volume, period=252) / bt.ind.SMA(
-                d.volume, period=252
+            self.inds[d._name] = dict(
+                rsi=bt.ind.RSI(d.close, period=self.p.rsi_period),
+                roc_5=bt.ind.ROC(d.close, period=5),
+                roc_20=bt.ind.ROC(d.close, period=20),
+                roc_252=bt.ind.ROC(d.close, period=252),
+                vol_ratio=d.volume / bt.ind.SMA(d.volume, period=20),
             )
 
-            # Store all indicators
-            self.inds[d._name] = {
-                "rsi": rsi,
-                "returns_1w": returns_1w,
-                "returns_1mo": returns_1mo,
-                "returns_1y": returns_1y,
-                "vwap_1w": vwap_1w,
-                "vwap_1mo": vwap_1mo,
-                "vwap_1y": vwap_1y,
-            }
+        self.log(f"PMV Momentum Strategy initialized with {len(self.datas)} stocks")
+        self.log(
+            f"Parameters: RSI={self.p.rsi_period}, Top N={self.p.top_n_stocks}, "
+            f"Position Size={self.p.position_size}, Stop Loss={self.p.stop_loss}%, "
+            f"Take Profit={self.p.take_profit}%"
+        )
 
-    def _calculate_composite_score(self, data):
-        """Calculate the composite score for a stock using the p=mv formula"""
-        if len(data) < 252 or self.bar_executed < 252:  # Need at least a year of data
-            return -999  # Invalid score
+    def notify_trade(self, trade):
+        """Log completed trades"""
+        super().notify_trade(trade)  # Call parent to track statistics
+        if trade.isclosed:
+            # Calculate PnL percentage more safely
+            if trade.value != 0:
+                pnl_pct = (trade.pnl / abs(trade.value)) * 100
+            else:
+                pnl_pct = 0.0
 
-        d_name = data._name
+            # Calculate exit price more safely
+            if trade.size != 0:
+                exit_price = trade.price + (trade.pnl / trade.size)
+            else:
+                exit_price = trade.price
 
-        # Check if we have indicators for this data
-        if d_name not in self.inds:
-            return -999
+            self.log(
+                f"TRADE CLOSED: {trade.data._name} - "
+                f"PnL: {trade.pnl:.2f} ({pnl_pct:.2f}%), "
+                f"Size: {trade.size}, Entry: {trade.price:.2f}, "
+                f"Exit: {exit_price:.2f}"
+            )
 
-        # Get current values - using try/except for safety
+    def notify_order(self, order):
+        """Log order notifications"""
+        if order.status in [order.Completed]:
+            action = "BUY" if order.isbuy() else "SELL"
+            self.log(
+                f"ORDER {action} {order.data._name}: "
+                f"Size={order.executed.size}, Price={order.executed.price:.2f}"
+            )
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log(f"ORDER FAILED {order.data._name}: {order.getstatusname()}")
+
+    # --------------------- helpers ---------------------------
+    def _score(self, d) -> float:
+        """Momentum score (higher = better)."""
         try:
-            rsi = self.inds[d_name]["rsi"][0]
+            i = self.inds[d._name]
+            score = (
+                0.50 * i["roc_5"][0]
+                + 0.30 * i["roc_20"][0]
+                + 0.15 * i["roc_252"][0]
+                + 0.05 * (50 - i["rsi"][0])
+            ) * i["vol_ratio"][0]
 
-            # Extract price and volume data
-            price = data.close[0]
-            volume = data.volume[0]
+            # Only log scores for top candidates to reduce noise
+            if score > 0:
+                self.log(
+                    f"Score for {d._name}: {score:.4f} "
+                    f"(ROC5:{i['roc_5'][0]:.2f}, ROC20:{i['roc_20'][0]:.2f}, "
+                    f"ROC252:{i['roc_252'][0]:.2f}, RSI:{i['rsi'][0]:.1f}, "
+                    f"VolRatio:{i['vol_ratio'][0]:.2f})"
+                )
+            return score
+        except (IndexError, TypeError) as e:
+            self.log(f"Score error {d._name}: {e}")
+            return -np.inf
 
-            # Ensure we have numeric values for our calculations
-            returns_1w = float(self.inds[d_name]["returns_1w"][0])
-            returns_1mo = float(self.inds[d_name]["returns_1mo"][0])
-            returns_1y = float(self.inds[d_name]["returns_1y"][0])
-
-            vwap_1w = float(self.inds[d_name]["vwap_1w"][0])
-            vwap_1mo = float(self.inds[d_name]["vwap_1mo"][0])
-            vwap_1y = float(self.inds[d_name]["vwap_1y"][0])
-
-            # Prepare returns dict for the composite score function
-            returns = {
-                "1w": {"return": returns_1w, "vwap": vwap_1w, "rsi": rsi},
-                "1mo": {"return": returns_1mo, "vwap": vwap_1mo, "rsi": rsi},
-                "1y": {"return": returns_1y, "vwap": vwap_1y, "rsi": rsi},
-            }
-
-            # Calculate momentum score
-            score, _, _, _ = self._composite_score(returns, price)
-
-            # Adjust with volume factor (normalized volume relative to average)
-            # Safely calculate average volume
-            volumes = []
-            for i in range(1, min(21, len(data))):
-                if data.volume[-i] > 0:  # Ensure positive volume
-                    volumes.append(data.volume[-i])
-
-            avg_volume = np.mean(volumes) if volumes else 1.0
-            volume_factor = volume / avg_volume if avg_volume > 0 else 1.0
-
-            # Final p=mv score: momentum × volume factor
-            final_score = score * volume_factor
-
-            return final_score
-
-        except Exception as e:
-            print(f"Error calculating score for {d_name}: {str(e)}")
-            return -999  # Return invalid score on error
-
-    def _composite_score(self, returns, price):
-        """Implementation of the composite score calculation"""
-        # Define weights for each metric
-        weight_returns = 0.4
-        weight_vwap = 0.3
-        weight_rsi = 0.3
-
-        normalized_returns = [
-            returns["1y"]["return"],
-            100.0 * ((1 + returns["1mo"]["return"] / 100.0) ** 12 - 1),
-            100.0 * ((1 + returns["1w"]["return"] / 100.0) ** 52 - 1),
-        ]
-
-        # Weighing the recent value more, difference from current price
-        weighted_vwap = [0.2, 0.3, 0.5]
-        normalized_vwap = [
-            (price - returns["1y"]["vwap"]) * weighted_vwap[0] / price,
-            (price - returns["1mo"]["vwap"]) * weighted_vwap[1] / price,
-            (price - returns["1w"]["vwap"]) * weighted_vwap[2] / price,
-        ]
-
-        normalized_rsi = [
-            returns["1y"]["rsi"],
-            returns["1mo"]["rsi"],
-            returns["1w"]["rsi"],
-        ]
-
-        # Calculate time-weighted components (more weight to recent periods)
-        time_weights = [0.2, 0.3, 0.5]  # 1y, 1mo, 1w
-
-        returns_component = sum(r * w for r, w in zip(normalized_returns, time_weights))
-        vwap_component = sum(v * w for v, w in zip(normalized_vwap, time_weights))
-        rsi_component = sum(r * w for r, w in zip(normalized_rsi, time_weights))
-
-        # Calculate the composite score with revised weights
-        composite_score_result = (
-            weight_returns * returns_component
-            + weight_vwap * vwap_component
-            + weight_rsi * rsi_component
-        )
-
-        return (
-            composite_score_result,
-            normalized_returns,
-            normalized_vwap,
-            normalized_rsi,
-        )
-
-    def _should_exit(self, d):
-        """Determine if we should exit a position"""
+    def _should_exit(self, d) -> bool:
+        """Exit rules: time, stop-loss, take-profit."""
         pos = self.getposition(d)
-        if pos.size == 0:  # No position to exit
+        if not pos:
             return False
 
-        current_date = self.datas[0].datetime.date(0)
-        d_name = d._name
+        # Check if we have entry date recorded
+        if d._name not in self.entry_dates:
+            self.log(
+                f"Warning: No entry date for {d._name}, using current bar as entry"
+            )
+            self.entry_dates[d._name] = len(d)
 
-        # Check if we've held for a week (7 calendar days)
-        if self.p.weekly_exit and d_name in self.entry_dates:
-            entry_date = self.entry_dates[d_name]
-            days_held = (current_date - entry_date).days
-            if days_held >= 7:
-                return True
-
-        # Check stop loss
-        price = d.close[0]
-        if price <= pos.price * (1 - self.p.stop_loss / 100):
+        # time-based: 5 trading bars
+        bars_held = len(d) - self.entry_dates[d._name]
+        if bars_held >= 5:
+            self.log(f"Exit {d._name}: Time-based exit (held {bars_held} bars)")
             return True
 
-        # Check take profit
-        if d_name in self.peak_prices:
-            if price >= pos.price * (1 + self.p.take_profit / 100):
-                return True
+        price = d.close[0]
+        entry_price = pos.price
+        pnl_pct = (price - entry_price) / entry_price * 100
 
-        # Update peak price for trailing stops
-        if d_name not in self.peak_prices or price > self.peak_prices[d_name]:
-            self.peak_prices[d_name] = price
-
+        if price <= entry_price * (1 - self.p.stop_loss / 100):
+            self.log(
+                f"Exit {d._name}: Stop-loss triggered at {price:.2f} "
+                f"(entry: {entry_price:.2f}, loss: {pnl_pct:.2f}%)"
+            )
+            return True
+        if price >= entry_price * (1 + self.p.take_profit / 100):
+            self.log(
+                f"Exit {d._name}: Take-profit triggered at {price:.2f} "
+                f"(entry: {entry_price:.2f}, profit: {pnl_pct:.2f}%)"
+            )
+            return True
         return False
 
-    def _should_enter(self, d):
-        """Determine if this stock should be considered for entry"""
-        # Only consider entry if we have enough data and no current position
-        if len(d) < 252 or self.getposition(d).size > 0:
-            return False
+    def _cash_reserved(self) -> float:
+        """Cash already committed to pending buy orders."""
+        return sum(
+            o.size * o.price
+            for o in self.broker.orders
+            if o.isbuy() and o.status in [o.Accepted, o.Submitted]
+        )
 
-        # Calculate momentum score
-        score = self._calculate_composite_score(d)
-        return score > 0  # Positive momentum is required for entry
+    def _cleanup_tracking_dicts(self):
+        """Clean up tracking dictionaries to ensure consistency with actual positions"""
+        # Remove entries for stocks we no longer have positions in
+        stocks_with_positions = {d._name for d in self.datas if self.getposition(d)}
 
+        # Clean entry_dates
+        to_remove = []
+        for stock_name in self.entry_dates:
+            if stock_name not in stocks_with_positions:
+                to_remove.append(stock_name)
+
+        for stock_name in to_remove:
+            self.log(f"Cleaning up orphaned entry_date for {stock_name}")
+            del self.entry_dates[stock_name]
+
+        # Clean peak_prices
+        to_remove = []
+        for stock_name in self.peak_prices:
+            if stock_name not in stocks_with_positions:
+                to_remove.append(stock_name)
+
+        for stock_name in to_remove:
+            self.log(f"Cleaning up orphaned peak_price for {stock_name}")
+            del self.peak_prices[stock_name]
+
+    # --------------------- core logic ------------------------
     def execute_strategy(self):
-        """Execute P=MV momentum strategy logic"""
-        # Track portfolio performance
-        current_value = self.broker.getvalue()
-        current_date = self.datas[0].datetime.date(0)
-
-        # Update peak and calculate drawdown
-        if current_value > self.peak_value:
-            self.peak_value = current_value
-
-        drawdown = (self.peak_value - current_value) / self.peak_value * 100
-        self.drawdowns.append(drawdown)
-
-        # Check for exits first
-        for d in self.datas:
-            if self.getposition(d).size > 0 and self._should_exit(d):
-                self.log(f"EXIT {d._name} at {d.close[0]:.2f}")
-                self.close(d)
-
-                # Remove from entry tracking
-                if d._name in self.entry_dates:
-                    del self.entry_dates[d._name]
-                if d._name in self.peak_prices:
-                    del self.peak_prices[d._name]
-
-        # Calculate scores for potential entries
-        scores = []
-        for d in self.datas:
-            if not self.getposition(d).size > 0 and self._should_enter(d):
-                score = self._calculate_composite_score(d)
-                scores.append((d, score))
-
-        # Sort by score (descending)
-        scores.sort(key=lambda x: x[1], reverse=True)
-
-        # Calculate available cash for new positions
-        available_cash = self.broker.getcash()
-
-        # Enter top N positions not already in portfolio
-        current_positions = sum(1 for d in self.datas if self.getposition(d).size > 0)
-        positions_needed = max(0, self.p.top_n_stocks - current_positions)
-
-        for i, (d, score) in enumerate(scores):
-            if i < positions_needed:
-                # Calculate position size
-                target_value = current_value * self.p.position_size
-                price = d.close[0]
-                size = int(target_value / price)
-
-                if size > 0 and target_value <= available_cash:
-                    self.log(f"BUY {d._name} at {price:.2f}, Score: {score:.2f}")
-                    self.buy(d, size=size)
-                    self.entry_dates[d._name] = current_date
-                    self.peak_prices[d._name] = price
-                    available_cash -= target_value
-
-    def next(self):
-        """Called for each bar of data"""
-        # Increment bar counter
-        self.bar_executed += 1
-
-        # Skip until we have enough data for all indicators
-        if self.bar_executed < 252:
+        if len(self.data) < 252:  # warm-up guard
+            if len(self.data) == 251:
+                self.log("Warm-up period complete, strategy will start next bar")
             return
 
-        # Execute the strategy logic
-        self.execute_strategy()
+        # Clean up any inconsistencies
+        self._cleanup_tracking_dicts()
 
-        # Store portfolio value for performance tracking
-        self.portfolio_values.append(self.broker.getvalue())
-        self.dates.append(self.datas[0].datetime.date(0))
+        current_positions = sum(bool(self.getposition(d)) for d in self.datas)
+        equity = self.broker.getvalue()
+        cash = self.broker.getcash()
+
+        # Log portfolio status every 20 bars to avoid spam
+        if len(self.data) % 20 == 0:
+            self.log(
+                f"Portfolio Status: Positions={current_positions}/{self.p.top_n_stocks}, "
+                f"Equity={equity:.2f}, Cash={cash:.2f}, Bar={len(self.data)}"
+            )
+
+        # Detailed logging for strategy execution
+        total_position_value = sum(
+            self.getposition(d).size * d.close[0]
+            for d in self.datas
+            if self.getposition(d)
+        )
+
+        self.log(
+            f"Strategy execution: Positions={current_positions}/{self.p.top_n_stocks}, "
+            f"Equity={equity:.2f}, Cash={cash:.2f}, "
+            f"Position Value={total_position_value:.2f}"
+        )
+
+        # ---------- exits ----------
+        exits_count = 0
+        for d in self.datas:
+            if self.getposition(d) and self._should_exit(d):
+                pos_value = self.getposition(d).size * d.close[0]
+                self.log(f"Closing position {d._name}: value={pos_value:.2f}")
+                self.close(d)
+
+                # Safely remove from tracking dictionaries
+                if d._name in self.entry_dates:
+                    self.entry_dates.pop(d._name, None)
+                else:
+                    self.log(
+                        f"Warning: {d._name} not found in entry_dates when exiting"
+                    )
+
+                if d._name in self.peak_prices:
+                    self.peak_prices.pop(d._name, None)
+                else:
+                    self.log(
+                        f"Warning: {d._name} not found in peak_prices when exiting"
+                    )
+
+                exits_count += 1
+
+        if exits_count > 0:
+            self.log(f"Executed {exits_count} exits")
+
+        # ---------- entries ----------
+        candidates = [
+            (d, self._score(d)) for d in self.datas if not self.getposition(d)
+        ]
+        candidates.sort(key=lambda x: x[1], reverse=True)
+
+        open_slots = max(
+            0, self.p.top_n_stocks - sum(bool(self.getposition(d)) for d in self.datas)
+        )
+
+        cash_reserved = self._cash_reserved()
+        available_cash = cash - cash_reserved
+
+        # Show top 5 candidates for debugging
+        top_candidates = candidates[:5]
+        self.log(
+            f"Top 5 candidates: {[(d._name, f'{score:.4f}') for d, score in top_candidates]}"
+        )
+
+        self.log(
+            f"Entry analysis: {len(candidates)} candidates, {open_slots} open slots, "
+            f"Available cash: {available_cash:.2f} (reserved: {cash_reserved:.2f})"
+        )
+
+        entries_count = 0
+        for d, score in candidates[:open_slots]:
+            if score <= 0:
+                self.log(f"Skipping {d._name}: negative score {score:.4f}")
+                continue
+
+            # Check if we already have a position (shouldn't happen but let's be safe)
+            if self.getposition(d):
+                self.log(f"Warning: Already have position in {d._name}, skipping")
+                continue
+
+            # More conservative position sizing
+            # Use the smaller of: target position size OR available cash divided by remaining slots
+            remaining_slots = open_slots - entries_count
+            if remaining_slots <= 0:
+                break
+
+            target_position_value = equity * self.p.position_size
+            max_cash_per_position = available_cash / remaining_slots
+
+            # Use the smaller value for position sizing
+            position_value = min(target_position_value, max_cash_per_position)
+
+            # Ensure we can afford at least 1 share
+            if position_value < d.close[0]:
+                self.log(
+                    f"Cannot afford {d._name}: min cost {d.close[0]:.2f}, "
+                    f"max position value {position_value:.2f}"
+                )
+                continue
+
+            size = max(1, int(position_value / d.close[0]))
+            cost = size * d.close[0]
+
+            if cost <= available_cash:
+                # Check if we already have an entry date (shouldn't happen)
+                if d._name in self.entry_dates:
+                    self.log(f"Warning: Overwriting existing entry date for {d._name}")
+
+                self.buy(d, size=size)
+                self.entry_dates[d._name] = len(d)
+                self.peak_prices[d._name] = d.close[0]
+                self.log(
+                    f"BUY {d._name}: size={size}, price={d.close[0]:.2f}, "
+                    f"cost={cost:.2f}, score={score:.4f}, "
+                    f"target={target_position_value:.2f}, max_cash={max_cash_per_position:.2f}"
+                )
+                available_cash -= cost
+                entries_count += 1
+            else:
+                self.log(
+                    f"Insufficient cash for {d._name}: need {cost:.2f}, have {available_cash:.2f}"
+                )
+                # If we can't afford this position, we likely can't afford any more
+                break
+
+        if entries_count > 0:
+            self.log(f"Executed {entries_count} entries")
+        elif open_slots > 0:
+            self.log(
+                f"No entries executed despite {open_slots} open slots - likely insufficient cash"
+            )
 
 
 class PMVMomentumConfig(StrategyConfig):
@@ -308,13 +348,12 @@ class PMVMomentumConfig(StrategyConfig):
         """
         return {
             "rsi_period": [9, 14, 21],
-            "vwap_period": [10, 20, 30],
             "top_n_stocks": [5, 10, 15],
             "position_size": [0.1, 0.15, 0.2],
             "weekly_exit": [True],  # Always exit after a week
             "stop_loss": [3.0, 5.0, 7.0],
             "take_profit": [7.0, 10.0, 15.0],
-            "printlog": [False],  # Don't include in optimization
+            "printlog": [False, True],  # Include both for testing
         }
 
     def get_default_params(self) -> Dict[str, Any]:
@@ -323,13 +362,12 @@ class PMVMomentumConfig(StrategyConfig):
         """
         return {
             "rsi_period": 14,
-            "vwap_period": 20,
             "top_n_stocks": 15,
             "position_size": 0.2,
             "weekly_exit": True,
             "stop_loss": 5.0,
             "take_profit": 10.0,
-            "printlog": False,
+            "printlog": True,  # Enable logging by default for debugging
         }
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
@@ -339,7 +377,6 @@ class PMVMomentumConfig(StrategyConfig):
         # All numeric parameters must be positive
         for key in [
             "rsi_period",
-            "vwap_period",
             "top_n_stocks",
             "stop_loss",
             "take_profit",
