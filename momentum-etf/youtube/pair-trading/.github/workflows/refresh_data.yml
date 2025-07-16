@@ -1,0 +1,40 @@
+name: Daily Data Refresh
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  refresh-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install and configure uv
+        run: |
+          pip install uv
+          uv pip sync pyproject.toml
+
+      - name: Run data refresh script
+        run: python refresh_data.py
+
+      - name: Commit and push if data changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data_parquet/
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "Automated daily data refresh"
+            git push
+          else
+            echo "No data changes to commit."
+          fi
