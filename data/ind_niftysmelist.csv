@@ -19,7 +19,7 @@ Aeron Composite Ltd.,Capital Goods,AERON,SM,INE0WL801011
 Aesthetik Engineers Ltd.,Construction,AESTHETIK,ST,INE0TSF01011
 Agarwal Float Glass India Ltd.,Capital Goods,AGARWALFT,SM,INE0MLA01012
 Agarwal Toughened Glass India Ltd.,Capital Goods,AGARWALTUF,ST,INE0P8X01016
-Agni Green Power Ltd.,Construction,AGNI,ST,INE0LF301013
+Agni Green Power Ltd.,Construction,AGNI,SM,INE0LF301013
 Aimtron Electronics Ltd.,Diversified,AIMTRON,SM,INE0RUV01018
 Akanksha Power and Infrastructure Ltd.,Capital Goods,AKANKSHA,ST,INE0PCY01014
 Akiko Global Services Ltd.,Financial Services,AKIKO,ST,INE0PMR01017
@@ -140,9 +140,9 @@ Giriraj Civil Developers Ltd.,Construction,GIRIRAJ,ST,INE614Z01017
 Global Pet Industries Ltd.,Capital Goods,GLOBALPET,SM,INE0PS501019
 Globe International Carriers Ltd.,Services,GICL,SM,INE947T01014
 Globesecure Technologies Ltd.,Information Technology,GSTL,ST,INE00WS01056
-Goldstar Power Ltd.,Automobile and Auto Components,GOLDSTAR,ST,INE405Y01021
+Goldstar Power Ltd.,Automobile and Auto Components,GOLDSTAR,SM,INE405Y01021
 Goyal Salt Ltd.,Fast Moving Consumer Goods,GOYALSALT,SM,INE0QFE01017
-Grand Continent Hotels Ltd.,Consumer Services,GCHOTELS,ST,INE12E301017
+Grand Continent Hotels Ltd.,Consumer Services,GCHOTELS,SM,INE12E301017
 Graphisads Ltd.,Media Entertainment & Publication,GRAPHISAD,SM,INE0POU01017
 Greenchef Appliances Ltd.,Consumer Durables,GREENCHEF,SM,INE0O7P01015
 Gretex Industries Ltd.,Media Entertainment & Publication,GRETEX,SM,INE985P01012
@@ -176,7 +176,7 @@ Jalan Transolutions (India) Ltd.,Services,JALAN,ST,INE349X01015
 Jay Bee Laminations Ltd.,Capital Goods,JAYBEE,SM,INE0SMY01017
 Jay Jalaram Technologies Ltd.,Consumer Services,KORE,ST,INE0J6801010
 Jeyyam Global Foods Ltd.,Fast Moving Consumer Goods,JEYYAM,SM,INE0RXB01022
-Jiwanram Sheoduttrai Industries Ltd.,Capital Goods,JIWANRAM,ST,INE0N5H01017
+Jiwanram Sheoduttrai Industries Ltd.,Capital Goods,JIWANRAM,SM,INE0N5H01017
 K2 Infragen Ltd.,Construction,K2INFRA,SM,INE0DEZ01013
 KHFM Hospitality And Facility Management Services Ltd.,Services,KHFM,SM,INE00UG01014
 KKV Agro Powers Ltd.,Consumer Durables,KKVAPOW,SM,INE239T01016
@@ -240,7 +240,7 @@ Neelam Linens and Garments (India) Ltd.,Textiles,NEELAM,ST,INE0N1401016
 Nephro Care India Ltd.,Healthcare,NEPHROCARE,SM,INE0SUN01013
 Net Avenue Technologies Ltd.,Consumer Services,CBAZAAR,ST,INE518X01015
 Newjaisa Technologies Ltd.,Information Technology,NEWJAISA,SM,INE0PW501021
-Newmalayalam Steel Ltd.,Capital Goods,NMSTEEL,ST,INE0TP801012
+Newmalayalam Steel Ltd.,Capital Goods,NMSTEEL,SM,INE0TP801012
 Nidan Laboratories And Healthcare Ltd.,Healthcare,NIDAN,SM,INE0J6L01013
 Nirman Agri Gentics Ltd.,Fast Moving Consumer Goods,NIRMAN,SM,INE0OK701014
 OBSC Perfection Ltd.,Automobile and Auto Components,OBSCP,ST,INE0YHV01011
@@ -306,7 +306,7 @@ Rex Pipes and Cables Industries Ltd.,Capital Goods,REXPIPES,ST,INE00D001018
 Rexpro Enterprises Ltd.,Consumer Durables,REXPRO,SM,INE113601012
 Richa Info Systems Ltd.,Information Technology,RICHA,SM,INE0J1P01015
 Rite Zone Chemcon India Ltd.,Chemicals,RITEZONE,SM,INE0MRA01019
-Rockingdeals Circular Economy Ltd.,Services,ROCKINGDCE,ST,INE0PTR01012
+Rockingdeals Circular Economy Ltd.,Services,ROCKINGDCE,SM,INE0PTR01012
 Rox Hi-Tech Ltd.,Information Technology,ROXHITECH,SM,INE0PDJ01013
 Royal Arc Electrodes Ltd.,Capital Goods,ROYALARC,SM,INE0EO401019
 Rulka Electricals Ltd.,Services,RULKA,SM,INE0R7301013
@@ -331,7 +331,7 @@ Sar Televenture Ltd.,Telecommunication,SARTELE,SM,INE0PUC01020
 Saroja Pharma Industries India Ltd.,Chemicals,SAROJA,SM,INE0PCL01011
 Sat Kartar Shopping Ltd.,Healthcare,SATKARTAR,ST,INE0NB801022
 Sathlokhar Synergys E&C Global Ltd.,Construction,SSEGL,SM,INE0RFP01011
-Sati Poly Plast Ltd.,Capital Goods,SATIPOLY,ST,INE0RPM01017
+Sati Poly Plast Ltd.,Capital Goods,SATIPOLY,SM,INE0RPM01017
 Service Care Ltd.,Services,SERVICE,SM,INE0P1Q01015
 Shanthala FMCG Products Ltd.,Fast Moving Consumer Goods,SHANTHALA,SM,INE0Q9Q01017
 Sharp Chucks and Machines Ltd.,Capital Goods,SCML,SM,INE460Q01014
@@ -370,7 +370,7 @@ Sylvan Plyboard (India) Ltd.,Consumer Durables,SYLVANPLY,SM,INE01IH01015
 Synoptics Technologies Ltd.,Information Technology,SYNOPTICS,ST,INE0BTR01012
 Systango Technologies Ltd.,Information Technology,SYSTANGO,SM,INE0O7R01011
 TAC Infosec Ltd.,Information Technology,TAC,SM,INE0SOY01013
-TBI Corn Ltd.,Fast Moving Consumer Goods,TBI,ST,INE0N2D01013
+TBI Corn Ltd.,Fast Moving Consumer Goods,TBI,SM,INE0N2D01013
 Tankup Engineers Ltd.,Capital Goods,TANKUP,ST,INE0Z7N01017
 Tapi Fruit Processing Ltd.,Fast Moving Consumer Goods,TAPIFRUIT,SM,INE0M7001010
 TechEra Engineering (India) Ltd.,Capital Goods,TECHERA,ST,INE0JQS01019
