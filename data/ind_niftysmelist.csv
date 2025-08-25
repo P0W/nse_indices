@@ -63,7 +63,7 @@ Bombay Metrics Supply Chain Ltd.,Services,BMETRICS,SM,INE0I3Y01014
 Boss Packaging Solutions Ltd.,Capital Goods,BOSS,SM,INE0QNI01012
 Brace Port Logistics Ltd.,Services,BRACEPORT,SM,INE0R4Z01018
 Bulkcorp International Ltd.,Capital Goods,BULKCORP,ST,INE0SZ301012
-C P S Shapers Ltd.,Textiles,CPS,ST,INE0QBU01012
+C P S Shapers Ltd.,Textiles,CPS,SM,INE0QBU01012
 C2C Advanced Systems Ltd.,Capital Goods,C2C,SM,INE0U7V01015
 Cadsys (India) Ltd.,Services,CADSYS,SM,INE090Y01013
 Canarys Automations Ltd.,Information Technology,CANARYS,SM,INE0QG301017
@@ -157,7 +157,7 @@ Homesfy Realty Ltd.,Realty,HOMESFY,SM,INE0N7F01017
 IBL Finance Ltd.,Financial Services,IBLFL,SM,INE0O7401018
 Ideal Technoplast Industries Ltd.,Capital Goods,IDEALTECHO,SM,INE0T9I01011
 Identical Brains Studios Ltd.,Media Entertainment & Publication,IDENTICAL,SM,INE0TD101011
-Indian Emulsifiers Ltd.,Chemicals,IEML,ST,INE0RRU01016
+Indian Emulsifiers Ltd.,Chemicals,IEML,SM,INE0RRU01016
 Indian Phosphate Ltd.,Chemicals,IPHL,SM,INE0DHF01018
 Indifra Ltd.,Oil Gas & Consumable Fuels,INDIFRA,SM,INE0PS301014
 Infinium Pharmachem Ltd.,Healthcare,INFINIUM,SM,INE0MRE01011
@@ -174,7 +174,7 @@ JFL Life Sciences Ltd.,Healthcare,JFLLIFE,SM,INE0LA901015
 Jainam Ferro Alloys (I) Ltd.,Metals & Mining,JAINAM,SM,INE02KC01010
 Jalan Transolutions (India) Ltd.,Services,JALAN,ST,INE349X01015
 Jay Bee Laminations Ltd.,Capital Goods,JAYBEE,SM,INE0SMY01017
-Jay Jalaram Technologies Ltd.,Consumer Services,KORE,ST,INE0J6801010
+Jay Jalaram Technologies Ltd.,Consumer Services,KORE,SM,INE0J6801010
 Jeyyam Global Foods Ltd.,Fast Moving Consumer Goods,JEYYAM,SM,INE0RXB01022
 Jiwanram Sheoduttrai Industries Ltd.,Capital Goods,JIWANRAM,SM,INE0N5H01017
 K2 Infragen Ltd.,Construction,K2INFRA,SM,INE0DEZ01013
@@ -187,14 +187,14 @@ Kandarp Digi Smart BPO Ltd.,Services,KANDARP,SM,INE0MOT01016
 Karnika Industries Ltd.,Textiles,KARNIKA,SM,INE0MGA01012
 Kataria Industries Ltd.,Capital Goods,KATARIA,SM,INE0SVY01018
 Kaushalya Logistics Ltd.,Consumer Services,KLL,SM,INE0Q2V01012
-Kay Cee Energy & Infra Ltd.,Capital Goods,KCEIL,ST,INE0RCG01017
+Kay Cee Energy & Infra Ltd.,Capital Goods,KCEIL,SM,INE0RCG01017
 Kck Industries Ltd.,Fast Moving Consumer Goods,KCK,SM,INE0J1E01027
 Ken Enterprises Ltd.,Textiles,KEN,SM,INE15DO01012
 Kody Technolab Ltd.,Information Technology,KODYTECH,SM,INE0Q7P01013
 Konstelec Engineers Ltd.,Construction,KONSTELEC,ST,INE0QEI01011
 Kontor Space Ltd.,Services,KONTOR,SM,INE0KZ301010
 Kore Digital Ltd.,Telecommunication,KDL,SM,INE0O4R01018
-Kotyark Industries Ltd.,Oil Gas & Consumable Fuels,KOTYARK,SM,INE0J0B01017
+Kotyark Industries Ltd.,Oil Gas & Consumable Fuels,KOTYARK,ST,INE0J0B01017
 Krishca Strapping Solutions Ltd.,Capital Goods,KRISHCA,SM,INE0NR701018
 Krishna Defence and Allied Industries Ltd.,Capital Goods,KRISHNADEF,SM,INE0J5601015
 Kundan Edifice Ltd.,Consumer Durables,KEL,SM,INE0OWX01025
@@ -284,7 +284,7 @@ Pulz Electronics Ltd.,Consumer Durables,PULZ,SM,INE335X01014
 Purple United Sales Ltd.,Textiles,PURPLEUTED,ST,INE0P5R01014
 Purv Flexipack Ltd.,Capital Goods,PURVFLEXI,SM,INE0R6C01012
 QMS Medical Allied Services Ltd.,Healthcare,QMSMEDI,SM,INE0FMW01018
-QVC Exports Ltd.,Metals & Mining,QVCEL,ST,INE0KZF01015
+QVC Exports Ltd.,Metals & Mining,QVCEL,SM,INE0KZF01015
 Quadpro ITeS Ltd.,Information Technology,QUADPRO,ST,INE0GOJ01027
 Quality Foils (India) Ltd.,Capital Goods,QFIL,SM,INE0O1M01015
 Quest Laboratories Ltd.,Healthcare,QUESTLAB,SM,INE0TNW01017
@@ -300,7 +300,7 @@ Ramdevbaba Solvent Ltd.,Fast Moving Consumer Goods,RBS,SM,INE0RJH01010
 Rapid Fleet Management Services Ltd.,Services,RAPIDFLEET,SM,INE0QX901013
 Rappid Valves (India) Ltd.,Capital Goods,RAPPID,SM,INE0MVO01012
 Readymix Construction Machinery Ltd.,Capital Goods,READYMIX,SM,INE10QL01011
-Refractory Shapes Ltd.,Capital Goods,REFRACTORY,ST,INE0TNX01015
+Refractory Shapes Ltd.,Capital Goods,REFRACTORY,SM,INE0TNX01015
 Remus Pharmaceuticals Ltd.,Healthcare,REMUS,SM,INE0O5T01011
 Rex Pipes and Cables Industries Ltd.,Capital Goods,REXPIPES,ST,INE00D001018
 Rexpro Enterprises Ltd.,Consumer Durables,REXPRO,SM,INE113601012
@@ -318,7 +318,7 @@ SMVD Ploy Pack Ltd.,Capital Goods,SMVD,SM,INE702Y01013
 SP Refractories Ltd.,Capital Goods,SPRL,SM,INE0JW501011
 SPP Polymer Ltd.,Capital Goods,SPPPOLY,SM,INE0QR801013
 Saakshi Medtech and Panels Ltd.,Capital Goods,SAAKSHI,ST,INE0PSK01027
-Sabar Flex India Ltd.,Capital Goods,SABAR,ST,INE0DZ101013
+Sabar Flex India Ltd.,Capital Goods,SABAR,SM,INE0DZ101013
 Sadhav Shipping Ltd.,Services,SADHAV,ST,INE0K5H01010
 Sahaj Solar Ltd.,Capital Goods,SAHAJSOLAR,SM,INE0P4701011
 Sahana System Ltd.,Information Technology,SAHANA,SM,INE0LEX01011
@@ -335,13 +335,13 @@ Sati Poly Plast Ltd.,Capital Goods,SATIPOLY,SM,INE0RPM01017
 Service Care Ltd.,Services,SERVICE,SM,INE0P1Q01015
 Shanthala FMCG Products Ltd.,Fast Moving Consumer Goods,SHANTHALA,SM,INE0Q9Q01017
 Sharp Chucks and Machines Ltd.,Capital Goods,SCML,SM,INE460Q01014
-Sheetal Universal Ltd.,Fast Moving Consumer Goods,SHEETAL,ST,INE04VX01019
+Sheetal Universal Ltd.,Fast Moving Consumer Goods,SHEETAL,SM,INE04VX01019
 Shera Energy Ltd.,Capital Goods,SHERA,SM,INE0MM001019
 Shigan Quantum Technologies Ltd.,Automobile and Auto Components,SHIGAN,SM,INE03KJ01013
 Shivalic Power Control Ltd.,Capital Goods,SPCL,SM,INE0T7B01010
 Shree Karni Fabcom Ltd.,Textiles,SHREEKARNI,SM,INE0S4Y01010
 Shree OSFM E-Mobility Ltd.,Services,SHREEOSFM,SM,INE02S501018
-Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,ST,INE238Y01018
+Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,SM,INE238Y01018
 Shri Ahimsa Naturals Ltd.,Fast Moving Consumer Goods,SHRIAHIMSA,SM,INE0DM401012
 Shri Techtex Ltd.,Capital Goods,SHRITECH,SM,INE0OMF01015
 Shubhlaxmi Jewel Art Ltd.,Consumer Durables,SHUBHLAXMI,SM,INE01Z401013
@@ -362,7 +362,7 @@ Sungarner Energies Ltd.,Capital Goods,SEL,SM,INE0O3O01017
 Sunlite Recycling Industries Ltd.,Capital Goods,SUNLITE,ST,INE0U2N01013
 Sunrest Lifescience Ltd.,Healthcare,SUNREST,SM,INE0PLZ01012
 Supreme Facility Management Ltd.,Services,SFML,SM,INE0U6N01014
-Supreme Power Equipment Ltd.,Capital Goods,SUPREMEPWR,ST,INE0QHG01026
+Supreme Power Equipment Ltd.,Capital Goods,SUPREMEPWR,SM,INE0QHG01026
 Surani Steel Tubes Ltd.,Capital Goods,SURANI,SM,INE01ZJ01015
 Swaraj Suiting Ltd.,Textiles,SWARAJ,ST,INE0GMR01016
 Swastik Pipe Ltd.,Capital Goods,SWASTIK,SM,INE0DGC01025
@@ -391,11 +391,11 @@ Uma Converter Ltd.,Capital Goods,UMA,SM,INE067901012
 Unihealth Hospitals Ltd.,Healthcare,UNIHEALTH,SM,INE0PRF01011
 Unilex Colours and Chemicals Ltd.,Chemicals,UNILEX,SM,INE0B2801011
 United Heat Transfer Ltd.,Capital Goods,UHTL,SM,INE0SMR01011
-Upsurge Seeds of Agriculture Ltd.,Fast Moving Consumer Goods,USASEEDS,SM,INE0CBM01019
+Upsurge Seeds of Agriculture Ltd.,Fast Moving Consumer Goods,USASEEDS,ST,INE0CBM01019
 Urban Enviro Waste Management Ltd.,Utilities,URBAN,SM,INE0O0201019
 Usha Financial Services Ltd.,Financial Services,USHAFIN,SM,INE0LS001014
 Ushanti Colour Chem Ltd.,Chemicals,UCL,SM,INE00NI01015
-Utssav CZ Gold Jewels Ltd.,Consumer Durables,UTSSAV,ST,INE06IJ01010
+Utssav CZ Gold Jewels Ltd.,Consumer Durables,UTSSAV,SM,INE06IJ01010
 V Marc India Ltd.,Capital Goods,VMARCIND,SM,INE0GXK01018
 V R Infraspace Ltd.,Realty,VR,SM,INE0QQM01017
 V.L.Infraprojects Ltd.,Construction,VLINFRA,SM,INE0QXL01015
