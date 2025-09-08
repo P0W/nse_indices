@@ -19,6 +19,7 @@ dependencies = [
     "uvicorn[standard]>=0.24.0",
     "python-multipart>=0.0.6",
     "requests>=2.31.0",
+    "pytz>=2024.1",
 ]
 
 [project.scripts]

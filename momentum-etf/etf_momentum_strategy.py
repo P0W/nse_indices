@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple
 import itertools
 from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import pytz
 
 from core import (
     StrategyConfig,
@@ -313,8 +314,9 @@ class ETFMomentumStrategy:
         """
         logger.info("Checking current portfolio status...")
 
-        # Get current date and calculate data fetch period
-        current_date = datetime.now()
+        # Get current date in IST timezone
+        ist_tz = pytz.timezone('Asia/Kolkata')
+        current_date = datetime.now(ist_tz).replace(tzinfo=None)  # Convert to naive datetime in IST
         data_start = current_date - timedelta(
             days=self.config.min_data_points + 100
         )  # Increased buffer
@@ -327,16 +329,25 @@ class ETFMomentumStrategy:
 
             prices_df = self.data_provider.get_prices(all_data)
 
-            # Convert timezone-aware index to timezone-naive
+            # Convert timezone-aware index to IST timezone, then to timezone-naive
             if prices_df.index.tz is not None:
-                prices_df.index = prices_df.index.tz_localize(None)
+                ist_tz = pytz.timezone('Asia/Kolkata')
+                prices_df.index = prices_df.index.tz_convert(ist_tz).tz_localize(None)
+            else:
+                # If already timezone-naive, assume it's in UTC and convert to IST
+                prices_df.index = pd.to_datetime(prices_df.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
             # Forward-fill prices to handle gaps
             prices_df = prices_df.fillna(method="ffill")
 
             volume_df = self.data_provider.get_volumes(all_data)
-            if volume_df is not None and volume_df.index.tz is not None:
-                volume_df.index = volume_df.index.tz_localize(None)
+            if volume_df is not None:
+                if volume_df.index.tz is not None:
+                    ist_tz = pytz.timezone('Asia/Kolkata')
+                    volume_df.index = volume_df.index.tz_convert(ist_tz).tz_localize(None)
+                else:
+                    # If already timezone-naive, assume it's in UTC and convert to IST
+                    volume_df.index = pd.to_datetime(volume_df.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
             # Get current prices (latest available)
             current_prices = prices_df.iloc[-1]
@@ -356,6 +367,7 @@ class ETFMomentumStrategy:
 
             # Calculate current momentum scores
             eligible_data = prices_df[eligible_tickers]
+            logger.info(f"Calculating momentum scores for eligible ETFs: {eligible_tickers}")
             momentum_scores = self.momentum_calculator.calculate_momentum_scores(
                 eligible_data
             )
@@ -514,17 +526,26 @@ class ETFMomentumStrategy:
         )
 
         prices_df_full = self.data_provider.get_prices(all_data)
-        # Convert timezone-aware index to timezone-naive
+        # Convert timezone-aware index to IST timezone, then to timezone-naive
         if prices_df_full.index.tz is not None:
-            prices_df_full.index = prices_df_full.index.tz_localize(None)
+            ist_tz = pytz.timezone('Asia/Kolkata')
+            prices_df_full.index = prices_df_full.index.tz_convert(ist_tz).tz_localize(None)
+        else:
+            # If already timezone-naive, assume it's in UTC and convert to IST
+            prices_df_full.index = pd.to_datetime(prices_df_full.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
         # Forward-fill prices to handle gaps
         prices_df_full = prices_df_full.fillna(method="ffill")
 
         volume_df_full = self.data_provider.get_volumes(all_data)
-        # Convert timezone-aware index to timezone-naive for volume data too
-        if volume_df_full is not None and volume_df_full.index.tz is not None:
-            volume_df_full.index = volume_df_full.index.tz_localize(None)
+        # Convert timezone-aware index to IST timezone, then to timezone-naive for volume data too
+        if volume_df_full is not None:
+            if volume_df_full.index.tz is not None:
+                ist_tz = pytz.timezone('Asia/Kolkata')
+                volume_df_full.index = volume_df_full.index.tz_convert(ist_tz).tz_localize(None)
+            else:
+                # If already timezone-naive, assume it's in UTC and convert to IST
+                volume_df_full.index = pd.to_datetime(volume_df_full.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
         portfolio_history = []
         # Track portfolio value at last rebalance for threshold comparisons
@@ -1161,4 +1182,5 @@ def run_single_backtest(
 
 if __name__ == "__main__":
     # If run directly, use the unified CLI
+    from cli import unified_cli
     unified_cli()
