@@ -252,24 +252,48 @@ class MomentumCalculator:
         self.config = config
 
     def calculate_returns(self, prices: pd.Series, period_days: int) -> Optional[float]:
-        """Calculate percentage return over specified period."""
-        if len(prices) < period_days:
+        """
+        Calculate percentage return over specified period using DATE-based lookback.
+
+        FIXED: Uses actual calendar days instead of index positions to ensure
+        consistent time periods across all ETFs, especially when data has gaps.
+        """
+        if prices.empty or len(prices) < 50:  # Minimum data requirement
             return None
 
         try:
             current_price = prices.iloc[-1]
-            past_price = prices.iloc[-period_days]
+            current_date = prices.index[-1]
+
+            # Calculate target lookback date (DATE-based instead of index-based)
+            lookback_date = current_date - timedelta(days=period_days)
+
+            # Find closest available date
+            time_diffs = abs(prices.index - lookback_date)
+            closest_idx = time_diffs.argmin()
+
+            # Ensure we found a date within reasonable range (±30 days tolerance)
+            actual_lookback_days = abs((prices.index[closest_idx] - lookback_date).days)
+            if actual_lookback_days > 30:
+                # Lookback date is too far from requested period
+                return None
+
+            past_price = prices.iloc[closest_idx]
 
             if past_price == 0 or np.isnan(past_price) or np.isnan(current_price):
                 return None
 
             return (current_price / past_price) - 1
-        except (IndexError, ZeroDivisionError):
+
+        except (IndexError, ZeroDivisionError, KeyError):
             return None
 
     def calculate_momentum_scores(self, prices_df: pd.DataFrame) -> pd.Series:
         """
         Calculate momentum scores for all ETFs using vectorized operations.
+
+        FIXED: Uses forward-fill instead of dropna to maintain time alignment
+        and ensure consistent lookback periods across all ETFs.
 
         Returns:
             Series with ETF tickers as index and momentum scores as values
@@ -288,12 +312,16 @@ class MomentumCalculator:
                 long_weight, short_weight = 0.5, 0.5
 
         for ticker in prices_df.columns:
-            prices = prices_df[ticker].dropna()
+            # FIXED: Use forward-fill instead of dropna to maintain time alignment
+            prices = prices_df[ticker].fillna(method='ffill')
+
+            # Remove leading NaN values if any
+            prices = prices.dropna()
 
             if len(prices) < self.config.min_data_points:
                 continue
 
-            # Calculate returns
+            # Calculate returns with fixed date-based method
             long_return = self.calculate_returns(
                 prices, self.config.long_term_period_days
             )
@@ -320,13 +348,16 @@ class MomentumCalculator:
         """
         Apply various filters to screen ETFs.
 
+        FIXED: Uses forward-fill for consistency with momentum calculation.
+
         Returns:
             List of ticker symbols that pass all filters
         """
         filtered_tickers = []
 
         for ticker in prices_df.columns:
-            prices = prices_df[ticker].dropna()
+            # FIXED: Use forward-fill instead of dropna
+            prices = prices_df[ticker].fillna(method='ffill').dropna()
 
             if len(prices) < self.config.min_data_points:
                 continue
@@ -344,7 +375,8 @@ class MomentumCalculator:
             # Volume filter
             if self.config.use_volume_filter and volume_df is not None:
                 if ticker in volume_df.columns:
-                    volumes = volume_df[ticker].dropna()
+                    # FIXED: Use forward-fill for volumes too
+                    volumes = volume_df[ticker].fillna(method='ffill').dropna()
                     if not self._passes_volume_filter(volumes):
                         continue
 
@@ -353,9 +385,19 @@ class MomentumCalculator:
         return filtered_tickers
 
     def _passes_retracement_filter(self, prices: pd.Series) -> bool:
-        """Check if ETF passes retracement filter."""
+        """
+        Check if ETF passes retracement filter.
+
+        FIXED: Uses date-based lookback for consistency with momentum calculation.
+        """
         try:
-            lookback_prices = prices.iloc[-self.config.long_term_period_days :]
+            # Use date-based lookback for consistency
+            current_date = prices.index[-1]
+            lookback_date = current_date - timedelta(days=self.config.long_term_period_days)
+
+            # Get prices within lookback period
+            lookback_prices = prices[prices.index >= lookback_date]
+
             if len(lookback_prices) < 50:  # Minimum lookback
                 return False
 
