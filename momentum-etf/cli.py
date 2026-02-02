@@ -47,6 +47,12 @@ def _create_rebalance_parser(parser):
         help="Purchase date in YYYY-MM-DD format (used for price lookup when price is -1, not needed for Smallcase exports)",
     )
     parser.add_argument(
+        "--amount",
+        type=float,
+        default=None,
+        help="Target investment amount for rebalancing (default: use current portfolio value)",
+    )
+    parser.add_argument(
         "--size", type=int, default=5, help="Portfolio size (default: 5)"
     )
     return parser
@@ -127,6 +133,7 @@ def rebalance_cli():
     show_rebalancing_needs(
         holdings_file=args.holdings_file,
         from_date=args.from_date,
+        target_amount=args.amount,
         portfolio_size=args.size,
     )
 
@@ -261,7 +268,7 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
         print(f"❌ Error: {e}")
 
 
-def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
+def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfolio_size=5):
     """Show what rebalancing is needed for an existing portfolio."""
     import json
     import csv
@@ -338,12 +345,13 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                     lines = f.readlines()
 
                 # Look for the header line with Ticker, Shares, etc.
+                # Smallcase exports may have different column name formats
                 header_line_idx = None
                 for i, line in enumerate(lines):
                     if (
                         "Ticker" in line
                         and "Shares" in line
-                        and "Avg Buy Price" in line
+                        and ("Avg Buy Price" in line or "Avg. Buy Price" in line)
                     ):
                         header_line_idx = i
                         break
@@ -355,17 +363,33 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                         f"📊 Detected Smallcase export format (skipped {header_line_idx} header rows)"
                     )
 
+                    # Find the Avg Buy Price column (handles different formats)
+                    avg_buy_price_col = None
+                    for col in df.columns:
+                        if "Avg" in col and "Buy" in col and "Price" in col:
+                            avg_buy_price_col = col
+                            break
+
+                    # Find the Current Price column (handles different formats)
+                    current_price_col = None
+                    for col in df.columns:
+                        if "Current" in col and "Price" in col:
+                            current_price_col = col
+                            break
+
                     # Check if this is a Smallcase export format
                     if (
                         "Ticker" in df.columns
                         and "Shares" in df.columns
-                        and "Avg Buy Price (Rs.)" in df.columns
+                        and avg_buy_price_col is not None
                     ):
-                        # Smallcase export format: Ticker, Shares, Avg Buy Price (Rs.)
+                        # Smallcase export format: Ticker, Shares, Avg Buy Price, Current Price
                         for _, row in df.iterrows():
                             ticker = str(row["Ticker"]).strip()
                             shares = row["Shares"]
-                            avg_buy_price = row["Avg Buy Price (Rs.)"]
+                            avg_buy_price = row[avg_buy_price_col]
+                            # Get current price from CSV if available
+                            csv_current_price = row[current_price_col] if current_price_col else None
 
                             if ticker and shares > 0:
                                 # Add .NS suffix if not present for Yahoo Finance compatibility
@@ -377,7 +401,11 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                                 current_holdings[ticker] = {
                                     "units": shares,
                                     "purchase_price": avg_buy_price,
+                                    "csv_current_price": csv_current_price,
                                 }
+                        
+                        if current_price_col:
+                            print(f"   Using current prices from Smallcase export (not Yahoo Finance)")
                     else:
                         raise ValueError(
                             "Smallcase format detected but required columns not found"
@@ -408,6 +436,7 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                             current_holdings[symbol] = {
                                 "units": units,
                                 "purchase_price": price,
+                                "csv_current_price": None,
                             }
 
                     # Check if any holdings have price = -1 and from_date is not provided
@@ -549,8 +578,12 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                     )
                     continue
 
-            # Get current price
-            current_price = current_prices.get(symbol, 0)
+            # Get current price - prefer CSV price from Smallcase, fallback to Yahoo Finance
+            csv_price = holding.get("csv_current_price")
+            if csv_price is not None and csv_price > 0:
+                current_price = csv_price
+            else:
+                current_price = current_prices.get(symbol, 0)
             if current_price == 0:
                 print(f"⚠️  Warning: No current price found for {symbol}, skipping...")
                 continue
@@ -620,11 +653,50 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
         print(f"\n🎯 CURRENT OPTIMAL PORTFOLIO:")
         print("-" * 60)
 
+        # Use target_amount if specified, otherwise use current portfolio value
+        rebalance_target_value = target_amount if target_amount else total_current_value
+        
+        # Check how many ETFs are actually available
+        available_etfs = len(top_etfs)
+        actual_portfolio_size = min(portfolio_size, available_etfs)
+        
+        if available_etfs < portfolio_size:
+            print(f"⚠️  Only {available_etfs} ETFs have positive momentum (requested {portfolio_size})")
+            print(f"   Adjusting portfolio to {available_etfs} ETFs with full allocation")
+            print()
+        
+        if target_amount:
+            print(f"📊 Target Investment Amount: ₹{target_amount:,.0f}")
+        else:
+            print(f"📊 Using Current Portfolio Value: ₹{total_current_value:,.0f}")
+        
+        print(f"📊 Actual Portfolio Size: {actual_portfolio_size} ETFs")
+
+        # Build a merged price dictionary: prefer CSV prices, fallback to Yahoo Finance for new ETFs
+        # This ensures consistent pricing across all calculations
+        prices_for_calc = {}
+        for ticker in set(optimal_tickers) | set(current_holdings.keys()):
+            # First check if we have a CSV price from Smallcase
+            if ticker in current_holdings:
+                csv_price = current_holdings[ticker].get("csv_current_price")
+                if csv_price is not None and csv_price > 0:
+                    prices_for_calc[ticker] = csv_price
+                    continue
+            # Fallback to Yahoo Finance price
+            prices_for_calc[ticker] = current_prices.get(ticker, 0)
+        
+        # Check if we're using mixed price sources
+        csv_price_count = sum(1 for t in optimal_tickers if t in current_holdings and current_holdings[t].get("csv_current_price"))
+        yf_price_count = len(optimal_tickers) - csv_price_count
+        if csv_price_count > 0 and yf_price_count > 0:
+            print(f"📊 Prices: {csv_price_count} from CSV, {yf_price_count} from Yahoo Finance (for new ETFs)")
+
         optimal_data = []
-        target_allocation = total_current_value / portfolio_size
+        # Allocate across actual available ETFs, not requested size
+        target_allocation = rebalance_target_value / actual_portfolio_size
 
         for i, (ticker, score) in enumerate(top_etfs, 1):
-            price = current_prices.get(ticker, 0)
+            price = prices_for_calc.get(ticker, 0)
             target_units = int(target_allocation / price) if price > 0 else 0
             target_value = target_units * price
 
@@ -668,8 +740,8 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
             sell_value = 0
             for ticker in to_sell:
                 units = current_holdings[ticker]["units"]
-                current_price = current_prices.get(ticker, 0)
-                value = units * current_price
+                price = prices_for_calc.get(ticker, 0)
+                value = units * price
                 sell_value += value
                 print(f"   • {ticker}: SELL ALL {units:,} units → ₹{value:,.0f}")
             print(f"   Total proceeds from sales: ₹{sell_value:,.0f}")
@@ -677,7 +749,7 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
         if to_buy:
             print(f"\n✅ BUY (new entries to optimal portfolio):")
             for ticker in to_buy:
-                price = current_prices.get(ticker, 0)
+                price = prices_for_calc.get(ticker, 0)
                 target_units = int(target_allocation / price) if price > 0 else 0
                 target_value = target_units * price
                 print(
@@ -688,7 +760,7 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
             print(f"\n🔄 ADJUST (rebalance existing holdings):")
             for ticker in to_adjust:
                 current_units = current_holdings[ticker]["units"]
-                price = current_prices.get(ticker, 0)
+                price = prices_for_calc.get(ticker, 0)
                 target_units = int(target_allocation / price) if price > 0 else 0
 
                 current_value = current_units * price
@@ -713,6 +785,48 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
         if not to_sell and not to_buy and not to_adjust:
             print(f"✅ Your portfolio is already optimal! No rebalancing needed.")
 
+        # Calculate detailed cash flow summary
+        total_sell_value = 0
+        total_buy_value = 0
+        total_adjust_buy = 0
+        total_adjust_sell = 0
+
+        # Calculate sell value
+        for ticker in to_sell:
+            units = current_holdings[ticker]["units"]
+            price = prices_for_calc.get(ticker, 0)
+            total_sell_value += units * price
+
+        # Calculate buy value for new ETFs
+        for ticker in to_buy:
+            price = prices_for_calc.get(ticker, 0)
+            target_units = int(target_allocation / price) if price > 0 else 0
+            total_buy_value += target_units * price
+
+        # Calculate adjustments
+        for ticker in to_adjust:
+            current_units = current_holdings[ticker]["units"]
+            price = prices_for_calc.get(ticker, 0)
+            target_units = int(target_allocation / price) if price > 0 else 0
+            diff_units = target_units - current_units
+            diff_value = diff_units * price
+            if diff_value > 0:
+                total_adjust_buy += diff_value
+            else:
+                total_adjust_sell += abs(diff_value)
+
+        # Calculate total optimal portfolio value
+        total_optimal_value = 0
+        for ticker, _ in top_etfs:
+            price = prices_for_calc.get(ticker, 0)
+            target_units = int(target_allocation / price) if price > 0 else 0
+            total_optimal_value += target_units * price
+
+        # Net cash flow
+        total_proceeds = total_sell_value + total_adjust_sell
+        total_purchases = total_buy_value + total_adjust_buy
+        net_cash_flow = total_proceeds - total_purchases
+
         # Summary of actions needed
         print(f"\n📋 REBALANCING SUMMARY:")
         print("-" * 40)
@@ -723,7 +837,7 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
                 [
                     t
                     for t in to_adjust
-                    if int(target_allocation / current_prices.get(t, 1))
+                    if int(target_allocation / prices_for_calc.get(t, 1))
                     != current_holdings[t]["units"]
                 ]
             )
@@ -732,6 +846,49 @@ def show_rebalancing_needs(holdings_file, from_date, portfolio_size=5):
         print(f"   ETFs to buy:      {len(to_buy)}")
         print(f"   ETFs to adjust:   {len(to_adjust)}")
         print(f"   Total transactions: {total_transactions}")
+
+        # Cash flow summary
+        print(f"\n💵 CASH FLOW SUMMARY:")
+        print("-" * 40)
+        print(f"   Current Portfolio Value:  ₹{total_current_value:,.0f}")
+        print(f"   Target Investment:        ₹{rebalance_target_value:,.0f}")
+        
+        # Calculate how much new capital is needed to reach target
+        new_capital_needed = rebalance_target_value - total_current_value
+        if new_capital_needed > 0:
+            print(f"   New Capital Needed:       ₹{new_capital_needed:,.0f} (to reach target)")
+        elif new_capital_needed < 0:
+            print(f"   Capital to Withdraw:      ₹{abs(new_capital_needed):,.0f} (target < current)")
+        
+        print(f"   Optimal Portfolio Value:  ₹{total_optimal_value:,.0f}")
+        print()
+        print(f"   📤 Proceeds from selling:  ₹{total_proceeds:,.0f}")
+        print(f"   📥 Cost of buying:         ₹{total_purchases:,.0f}")
+        
+        # Net transaction cash flow
+        transaction_net = total_proceeds - total_purchases
+        print()
+        if transaction_net >= 0:
+            print(f"   Transaction Net:          ₹{transaction_net:,.0f} (cash left from trades)")
+        else:
+            print(f"   Transaction Net:          ₹{transaction_net:,.0f} (need cash for trades)")
+        
+        # Final summary - what user actually needs to do
+        print()
+        print("   " + "=" * 35)
+        if new_capital_needed > 0:
+            print(f"   💸 ADD ₹{new_capital_needed:,.0f} to reach ₹{rebalance_target_value:,.0f} target")
+        elif new_capital_needed < 0:
+            print(f"   ✅ WITHDRAW ₹{abs(new_capital_needed):,.0f} (portfolio exceeds target)")
+        else:
+            print(f"   ✅ No additional capital needed")
+
+        # Show gap between target and actual optimal
+        gap = rebalance_target_value - total_optimal_value
+        if abs(gap) > 100:
+            print()
+            if gap > 0:
+                print(f"   ⚠️  ₹{gap:,.0f} uninvested due to lot sizes")
 
         if total_transactions > 0:
             print(f"\n💡 NEXT STEPS:")
@@ -1135,6 +1292,7 @@ Holdings File Formats:
             show_rebalancing_needs(
                 holdings_file=args.holdings_file,
                 from_date=args.from_date,
+                target_amount=args.amount,
                 portfolio_size=args.size,
             )
 
