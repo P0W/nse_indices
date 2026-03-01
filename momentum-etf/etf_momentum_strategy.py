@@ -338,7 +338,7 @@ class ETFMomentumStrategy:
                 prices_df.index = pd.to_datetime(prices_df.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
             # Forward-fill prices to handle gaps
-            prices_df = prices_df.fillna(method="ffill")
+            prices_df = prices_df.ffill()
 
             volume_df = self.data_provider.get_volumes(all_data)
             if volume_df is not None:
@@ -535,7 +535,7 @@ class ETFMomentumStrategy:
             prices_df_full.index = pd.to_datetime(prices_df_full.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
 
         # Forward-fill prices to handle gaps
-        prices_df_full = prices_df_full.fillna(method="ffill")
+        prices_df_full = prices_df_full.ffill()
 
         volume_df_full = self.data_provider.get_volumes(all_data)
         # Convert timezone-aware index to IST timezone, then to timezone-naive for volume data too

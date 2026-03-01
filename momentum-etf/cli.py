@@ -196,9 +196,22 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
         current_prices = status["current_prices"]
         top_etfs = status["top_10_momentum_scores"][:portfolio_size]
 
+        # Filter to only include ETFs with positive momentum scores
+        top_etfs = [(t, s) for t, s in top_etfs if s > 0]
+        actual_size = len(top_etfs)
+
+        if actual_size == 0:
+            print("❌ No ETFs have positive momentum. Consider holding cash.")
+            return
+
         print(f"📅 Data Date: {status['market_data_date']}")
-        print(f"🎯 Portfolio Size: {portfolio_size} ETFs")
-        print(f"📊 Equal Weight Allocation: {100/portfolio_size:.1f}% per ETF")
+
+        if actual_size < portfolio_size:
+            print(f"⚠️  Only {actual_size} ETFs have positive momentum (requested {portfolio_size})")
+            print(f"   Allocating to {actual_size} ETFs to avoid investing in declining assets")
+
+        print(f"🎯 Portfolio Size: {actual_size} ETFs")
+        print(f"📊 Equal Weight Allocation: {100/actual_size:.1f}% per ETF")
 
         print(f"\n📈 OPTIMAL PORTFOLIO ALLOCATION:")
 
@@ -208,7 +221,7 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
 
         for i, (ticker, score) in enumerate(top_etfs, 1):
             price = current_prices.get(ticker, 0)
-            allocation = investment_amount / portfolio_size
+            allocation = investment_amount / actual_size
             units = int(allocation / price) if price > 0 else 0
             actual_investment = units * price
             weight = (
@@ -506,7 +519,14 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
 
         current_prices = status["current_prices"]
         top_etfs = status["top_10_momentum_scores"][:portfolio_size]
+
+        # Filter to only include ETFs with positive momentum scores
+        top_etfs = [(t, s) for t, s in top_etfs if s > 0]
         optimal_tickers = [ticker for ticker, _ in top_etfs]
+
+        if not top_etfs:
+            print("❌ No ETFs have positive momentum. Consider holding cash or staying put.")
+            return
 
         print(f"📅 Market Data Date: {status['market_data_date']}")
 

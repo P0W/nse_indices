@@ -769,7 +769,7 @@ class BacktraderMomentumStrategy:
             # Get volume data for this ticker and align with price data
             volume_data = volume_df[ticker].reindex(price_series.index)
             # Fill missing volume with forward fill, then with a reasonable default
-            volume_data = volume_data.fillna(method="ffill").fillna(1000000)
+            volume_data = volume_data.ffill().fillna(1000000)
             df["volume"] = volume_data.values
             logger.info(f"Using real volume data for {ticker}")
         else:

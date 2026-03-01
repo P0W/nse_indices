@@ -233,7 +233,7 @@ class DataProvider:
 
         # Extract Close prices (yfinance auto_adjust=True gives adjusted prices)
         prices = data.xs("Close", level=1, axis=1)
-        return prices.fillna(method="ffill").dropna(how="all")
+        return prices.ffill().dropna(how="all")
 
     def get_volumes(self, data: pd.DataFrame) -> Optional[pd.DataFrame]:
         """Extract volume data from the fetched data."""
@@ -242,7 +242,7 @@ class DataProvider:
         if "Volume" not in data.columns.get_level_values(1):
             return None
         volumes = data.xs("Volume", level=1, axis=1)
-        return volumes.fillna(method="ffill").dropna(how="all")
+        return volumes.ffill().dropna(how="all")
 
 
 class MomentumCalculator:
