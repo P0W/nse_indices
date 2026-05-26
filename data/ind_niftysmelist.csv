@@ -1,6 +1,6 @@
 Company Name,Industry,Symbol,Series,ISIN Code
 A G Universal Ltd.,Capital Goods,AGUL,SM,INE0O6N01012
-ABS Marine Services Ltd.,Services,ABSMARINE,SM,INE0QRV01016
+ABS Marine Services Ltd.,Services,ABSMARINE,ST,INE0QRV01016
 ANB Metal Cast Ltd.,Capital Goods,AMCL,SM,INE0VG001016
 ANI Integrated Services Ltd.,Services,AISL,SM,INE635Y01015
 ARC Insulation & Insulators Ltd.,Capital Goods,ARCIIL,ST,INE0YDV01010
@@ -403,7 +403,7 @@ Shivashrit Foods Ltd.,Fast Moving Consumer Goods,SHIVASHRIT,SM,INE1DLF01018
 Shree Karni Fabcom Ltd.,Textiles,SHREEKARNI,SM,INE0S4Y01010
 Shree OSFM E-Mobility Ltd.,Services,SHREEOSFM,SM,INE02S501018
 Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,SM,INE238Y01018
-Shreeji Global FMCG Ltd.,Fast Moving Consumer Goods,SHETHJI,SM,INE1FL101016
+Shreeji Global FMCG Ltd.,Fast Moving Consumer Goods,SHETHJI,ST,INE1FL101016
 Shri Ahimsa Naturals Ltd.,Fast Moving Consumer Goods,SHRIAHIMSA,SM,INE0DM401012
 Shri Hare-Krishna Sponge Iron Ltd.,Metals & Mining,SHKSIL,SM,INE0NON01025
 Shri Kanha Stainless Ltd.,Capital Goods,SHRIKANHA,ST,INE1V4601019
@@ -450,7 +450,7 @@ TSC India Ltd.,Consumer Services,TSC,SM,INE16VK01010
 Tankup Engineers Ltd.,Capital Goods,TANKUP,SM,INE0Z7N01017
 Tapi Fruit Processing Ltd.,Fast Moving Consumer Goods,TAPIFRUIT,SM,INE0M7001010
 Taurian MPS Ltd.,Capital Goods,TAURIAN,SM,INE0XWS01018
-TechD Cybersecurity Ltd.,Information Technology,TECHD,SM,INE0Y5H01014
+TechD Cybersecurity Ltd.,Information Technology,TECHD,ST,INE0Y5H01014
 TechEra Engineering (India) Ltd.,Capital Goods,TECHERA,SM,INE0JQS01019
 Teerth Gopicon Ltd.,Construction,TGL,ST,INE0K6601012
 Tejas Cargo India Ltd.,Services,TEJASCARGO,SM,INE17WC01013
@@ -505,7 +505,7 @@ Walpar Nutritions Ltd.,Healthcare,WALPAR,SM,INE0G2G01015
 Winny Immigration & Education Services Ltd.,Consumer Services,WINNY,SM,INE0S9101013
 Winsol Engineers Ltd.,Construction,WINSOL,SM,INE0S3D01016
 Wise Travel India Ltd.,Services,WTICAB,SM,INE623Y01011
-Wol 3D India Ltd.,Capital Goods,WOL3D,SM,INE0OO201011
+Wol 3D India Ltd.,Capital Goods,WOL3D,ST,INE0OO201011
 Womancart Ltd.,Consumer Services,WOMANCART,SM,INE0Q9601016
 Yash Optics & Lens Ltd.,Consumer Durables,YASHOPTICS,SM,INE0TO601017
 Yasons Chemex Care Ltd.,Chemicals,YCCL,SM,INE08S201019
