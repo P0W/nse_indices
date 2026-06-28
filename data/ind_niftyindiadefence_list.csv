@@ -1,20 +1,527 @@
-Company Name,Industry,Symbol,Series,ISIN Code
-AXISCADES Technologies Ltd.,Capital Goods,AXISCADES,EQ,INE555B01013
-Aequs Ltd.,Capital Goods,AEQUS,EQ,INE947N01017
-Apollo Micro Systems Ltd.,Capital Goods,APOLLO,EQ,INE713T01028
-Astra Microwave Products Ltd.,Capital Goods,ASTRAMICRO,EQ,INE386C01029
-BEML Ltd.,Capital Goods,BEML,EQ,INE258A01024
-Bharat Dynamics Ltd.,Capital Goods,BDL,EQ,INE171Z01026
-Bharat Electronics Ltd.,Capital Goods,BEL,EQ,INE263A01024
-Bharat Forge Ltd.,Automobile and Auto Components,BHARATFORG,EQ,INE465A01025
-Cochin Shipyard Ltd.,Capital Goods,COCHINSHIP,EQ,INE704P01025
-Data Patterns (India) Ltd.,Capital Goods,DATAPATTNS,EQ,INE0IX101010
-Dynamatic Technologies Ltd.,Capital Goods,DYNAMATECH,EQ,INE221B01012
-Garden Reach Shipbuilders & Engineers Ltd.,Capital Goods,GRSE,EQ,INE382Z01011
-Hindustan Aeronautics Ltd.,Capital Goods,HAL,EQ,INE066F01020
-MTAR Technologies Ltd.,Capital Goods,MTARTECH,BE,INE864I01014
-Mazagoan Dock Shipbuilders Ltd.,Capital Goods,MAZDOCK,EQ,INE249Z01020
-Mishra Dhatu Nigam Ltd.,Capital Goods,MIDHANI,EQ,INE099Z01011
-Paras Defence and Space Technologies Ltd.,Capital Goods,PARAS,EQ,INE045601023
-Solar Industries India Ltd.,Chemicals,SOLARINDS,EQ,INE343H01029
-Zen Technologies Ltd.,Capital Goods,ZENTEC,EQ,INE251B01027
+ <!DOCTYPE html> <html> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" /> <meta http-equiv="X-UA-Compatible" content="IE=edge" /> <link rel="icon" href="/assets/images/For_Favicon.ico" type="image/gif" sizes="16x16"> <title>
+	NIFTY Indices
+</title> <link href="https://fonts.googleapis.com/css?family=Work+Sans:200,300,400,500,600,700" rel="stylesheet" /> <link href="https://liveindexsa.niftyindices.com/assets/css/bootstrap.min.css" rel="stylesheet" /> <link href="https://liveindexsa.niftyindices.com/assets/css/header.css" rel="stylesheet" /> <link href="https://liveindexsa.niftyindices.com/assets/css/header 1.css" rel="stylesheet" /> <link rel="stylesheet" href="https://liveindexsa.niftyindices.com/assets/css/styles.css" /> <link rel="stylesheet" href="https://liveindexsa.niftyindices.com/assets/css/developer.css" /> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> <script src="/assets/js/jquery-3.7.1.min.js"></script> <link href="https://liveindexsa.niftyindices.com/assets/css/jquery.mCustomScrollbar.css" media="all" rel="stylesheet" type="text/css" /><script type="text/javascript">
+ $(document).ready(function() {
+
+                                        Nifty50home();
+                                        setInterval(Nifty50home, 120000);
+                                    });
+</script><meta name="Generator" content="Sitefinity 14.4.8100.0 DX" /><link rel="canonical" href="https://niftyindices.com" /><meta name="description" content="NSE Indices Limited (formerly known as India Index Services &amp; Products Limited - IISL) is the largest index and index service provider from India." /></head> <body class="home"> <form id="form1"> <div class="wrapper"> <header ID="header"> 
+
+
+
+
+
+
+
+
+
+
+
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="sf_cols secondaryNav hidden-xs"><div class="sf_colsOut" data-placeholder-label="secondaryNav hidden-xs"><div id="header_T6A11B4E7002_Col00" class="sf_colsIn sf_1col_1in_100"><div class="row"><div class="col-sm-4 tagline"><p><em class="flag"></em><span>An investment called India</span></p></div><div class="col-sm-8"><div class="navbar-collapse" id="navbarNavRight"><ul class="nav navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="/about-us">ABOUT US</a>
+ </li><li class="nav-item"><a class="nav-link" href="/media" data-sf-ec-immutable="">MEDIA</a>
+ </li><li class="nav-item"><a class="nav-link" href="/contact-us" data-sf-ec-immutable="">CONTACT US</a>
+ </li><li class="nav-item"><a class="nav-link" href="/careers" data-sf-ec-immutable="">CAREERS</a>
+ </li><li class="nav-item"><a class="nav-link" href="https://www.connect2nse.com/iislNet/" rel="nofollow" target="_blank" data-sf-ec-immutable="">LOGIN</a>
+ </li><li class="nav-item bookmarkLi"><a class="nav-link" href="#" title="bookmark this page" rel="sidebar" data-sf-ec-immutable=""><span></span></a>
+ </li></ul></div></div></div></div></div></div></div>
+</div><div id="HeaderContent_T187F5A22009_Col00" class="sf_colsIn sf_cols navbar navbar-default primaryNav yamm" data-sf-element="Container" data-placeholder-label="sf_cols navbar navbar-default primaryNav yamm"><div id="HeaderContent_T187F5A22010_Col00" class="sf_colsIn sf_colsOut container-fluid" data-sf-element="Container" data-placeholder-label="sf_colsOut container-fluid"><div id="HeaderContent_T187F5A22012_Col00" class="sf_colsIn sf_colsIn sf_1col_1in_100 navbar navbar-expand-lg navbar-light bg-white container" data-sf-element="Container" data-placeholder-label="sf_colsIn sf_1col_1in_100">
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="navbar-header"><div class="searchOuterSm"><div class="search-box"><span class="search-btn"></span></div></div><button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false"><span class="sr-only">Toggle navigation</span>
+ <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><h1><a class="navbar-brand" href="/home"><img alt="Logo" src="https://liveindexsa.niftyindices.com/assets/images/NseIndia.png" width="102" data-sf-ec-immutable="" /></a>
+ </h1></div><div id="searchmobile"><input name="searchTextBox" type="text" class="sfsearchmobile" placeholder="What are you looking for?" /></div><div class="collapse navbar-collapse" id="mainNavbar"><div class="d-flex justify-content-between w-100 "><ul class="navbar-nav ms-auto "><li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="marketDataDropdown" data-bs-toggle="dropdown" role="button" aria-expanded="false" data-sf-ec-immutable="">MARKET DATA
+                </a>
+ <ul class="dropdown-menu" aria-labelledby="marketDataDropdown"><li><a href="javascript:void(0);" class="dropdown-item redirectIndexWatch" data-sf-ec-immutable="">Live Indices Watch</a></li><li><a href="javascript:void(0);" class="dropdown-item redirectStockWatch" data-sf-ec-immutable="">Equity Stock Watch</a></li><li><a href="javascript:void(0);" class="dropdown-item redirectIndexMovers" data-sf-ec-immutable="">Index Movers</a></li><li><a href="javascript:void(0);" class="dropdown-item redirectEtf" data-sf-ec-immutable="">Exchange Traded Funds</a></li><li><a href="/market-data/advanced-charting" class="dropdown-item">Advanced Charting</a></li><li><a href="/market-data/return-profile" class="dropdown-item">Return Profile</a></li></ul></li><li class="dropdown yamm-fw"><a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle active" data-sf-ec-immutable="">INDICES </a>
+ <ul class="dropdown-menu mCustomScrollbar" style="height:500px;"><li class="grid-demo"><div class="row tab-v3"><div class="col-md-4 col-sm-5"><ul class="nav nav-pills nav-stacked"><p class="hdng">Equity</p><li class="defaultli  active"><a href="#home-2" aria-controls="home-2" aria-expanded="true" data-sf-ec-immutable="">BROAD BASED INDICES</a></li><li><a href="#profile-2" aria-controls="profile-2" aria-expanded="false" data-sf-ec-immutable="">SECTORAL INDICES</a></li><li><a href="#messages-2" aria-controls="messages-2" data-sf-ec-immutable="">THEMATIC INDICES</a></li><li><a href="#settings-2" aria-controls="settings-2" data-sf-ec-immutable="">STRATEGY INDICES</a></li><br /><p class="hdng">Fixed Income</p><li><a href="#settings-3" aria-controls="settings-3" data-sf-ec-immutable="">G-SEC INDICES</a></li><li><a href="#settings-14" id="sgbindices" aria-controls="settings-14" data-sf-ec-immutable="">SOVEREIGN GREEN BOND INDICES</a></li><li><a href="#settings-6" aria-controls="settings-6" data-sf-ec-immutable="">SDL INDICES</a></li><li><a href="#settings-4" aria-controls="settings-4" data-sf-ec-immutable="">CORPORATE BOND INDICES</a></li><li><a href="#settings-13" aria-controls="settings-13" data-sf-ec-immutable="">Municipal Bond Indices</a></li><li><a href="#settings-5" aria-controls="settings-5" data-sf-ec-immutable="">MONEY MARKET INDICES</a></li><li><a href="#settings-11" aria-controls="settings-11" data-sf-ec-immutable="">Target Maturity Indices</a></li><li><a href="#settings-10" aria-controls="settings-10" data-sf-ec-immutable="">Fixed Income Aggregates</a></li><li><a href="#settings-12" aria-controls="settings-12" data-sf-ec-immutable="">PRC Indices</a></li><br /><p class="hdng">Multi Asset/Hybrid</p><li><a href="#settings-9" aria-controls="settings-9" data-sf-ec-immutable="">HYBRID </a>
+ </li><li><a href="#settings-16" aria-controls="settings-16" data-sf-ec-immutable="">Multi Asset </a>
+ </li><br /><p class="hdng">Alternative Investment Fund (AIF)</p><li><a href="/aif-benchmark-report">AIF Benchmark Report </a>
+ </li><!--  <p class="hdng">&nbsp;</p>-->
+ <!--<li> <a href="#settings-4"  data-sf-ec-immutable="">CUSTOMISED INDICES</a></li>-->
+ </ul></div><div class="col-md-8 col-sm-7 hidden-xs"><div class="tab-content"><div class="tab-pane active show in defaultcont" id="home-2"><div class="row"><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/broad-based-indices/nifty--50">NIFTY 50</a></li><li><a href="/indices/equity/broad-based-indices/nifty-next-50">NIFTY NEXT 50</a></li><li><a href="/indices/equity/broad-based-indices/nifty-100">NIFTY 100</a></li><li><a href="/indices/equity/broad-based-indices/nifty-200">NIFTY 200</a></li><li><a href="/indices/equity/broad-based-indices/nifty-total-market">Nifty Total Market</a></li><li><a href="/indices/equity/broad-based-indices/nifty-500">NIFTY 500</a></li><li><a href="/indices/equity/broad-based-indices/nifty500-multicap-50-25-25-index">NIFTY500 MULTICAP 50:25:25</a></li><li><a href="/indices/equity/broad-based-indices/nifty500-large-midsmall-equal-cap-weighted">Nifty500 LargeMidSmall Equal-Cap Weighted </a>
+ </li><!-- <li><a href="/indices/equity/broad-based-indices/nifty500-largemidsmall-equal-cap-weighted" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]D820B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty500 LargeMidSmall Equal-Cap Weighted</a></li> -->
+ <li><a href="/indices/equity/broad-based-indices/nifty-midcap-150">NIFTY MIDCAP 150</a></li><li><a href="/indices/equity/broad-based-indices/nifty-midcap-50">NIFTY MIDCAP 50</a></li><!--<li><a href="/indices/equity/broad-based-indices/nifty-full-midcap-100" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c64cc8" data-sf-ec-immutable="">NIFTY FULL MIDCAP 100</a></li>-->
+ <li><a href="/indices/equity/broad-based-indices/nifty-midcap-select-index">Nifty Midcap Select</a></li><li><a href="/indices/equity/broad-based-indices/nifty-midcap-100">NIFTY Midcap 100</a></li><li><a href="/indices/equity/broad-based-indices/nifty-smallcap-500">NIFTY Smallcap 500</a></li></ul></div><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/broad-based-indices/niftysmallcap250">NIFTY SMALL CAP 250</a></li><li><a href="/indices/equity/broad-based-indices/niftysmallcap50">NIFTY SMALL CAP 50</a> </li><!--<li><a href="/indices/equity/broad-based-indices/nifty-full-smallcap100" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c65196" data-sf-ec-immutable="">NIFTY FULL SMALL CAP 100</a> </li>-->
+ <li><a href="/indices/equity/broad-based-indices/nifty-smallcap-100">NIFTY Smallcap 100</a> </li><li><a href="/indices/equity/broad-based-indices/nifty-microcap-250">Nifty Microcap 250</a> </li><li><a href="/indices/equity/broad-based-indices/nifty-largemidcap-250">NIFTY LargeMidcap 250</a> </li><li><a href="/indices/equity/broad-based-indices/nifty-midsmallcap-400">NIFTY MIDSMALLCAP 400</a> </li><li><a href="/indices/equity/broad-based-indices/nifty-midsmallcap400-50-50">NIFTY MIDSMALLCAP400 50:50</a> </li><li><a href="/indices/equity/broad-based-indices/nifty-india-fpi-150">Nifty India FPI 150</a></li><!--<li><a href="/indices/equity/broad-based-indices/India-Vix" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c6550b" data-sf-ec-immutable=""> INDIA VIX</a> </li>-->
+ </ul></div></div></div><div class="tab-pane " id="profile-2"><div class="row"><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/sectoral-indices/nifty-auto">NIFTY AUTO</a></li><li><a href="/indices/equity/sectoral-indices/nifty-bank">NIFTY BANK</a></li><li><a href="/indices/equity/sectoral-indices/nifty-capital-goods">NIFTY CAPITAL GOODS</a></li><li><a href="/indices/equity/sectoral-indices/nifty-cement">NIFTY CEMENT</a></li><li><a href="/indices/equity/sectoral-indices/nifty-chemicals">NIFTY CHEMICALS</a>
+ </li><li><a href="/indices/equity/sectoral-indices/nifty-commercial---transport-services">NIFTY COMMERCIAL &amp; TRANSPORT SERVICES</a></li><li><a href="/indices/equity/sectoral-indices/nifty-construction">NIFTY CONSTRUCTION</a></li><li><a href="/indices/equity/sectoral-indices/nifty-consumer-durables-index">NIFTY CONSUMER DURABLES</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-consumer-services">NIFTY CONSUMER SERVICES</a></li><li><a href="/indices/equity/sectoral-indices/nifty-financial-services">NIFTY FINANCIAL SERVICES</a></li><li><a href="/indices/equity/sectoral-indices/nifty-financial-services-25-50-index">NIFTY FINANCIAL SERVICES 25/50</a></li><li><a href="/indices/equity/sectoral-indices/nifty-financial--services-ex-bank">Nifty Financial Services Ex Bank</a>
+ </li><!--  <li><a href="/indices/equity/sectoral-indices/nifty-financial-services-ex-bank" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2A3FB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Financial Services Ex Bank</a></li> -->
+ <li><a href="/indices/equity/sectoral-indices/nifty-fmcg">NIFTY FMCG</a></li><li><a href="/indices/equity/sectoral-indices/nifty-healthcare-index">Nifty HEALTHCARE</a></li><li><a href="/indices/equity/sectoral-indices/nifty-hospitals">NIFTY HOSPITALS</a></li><li><a href="/indices/equity/sectoral-indices/nifty-housing-finance">NIFTY HOUSING FINANCE</a></li><li><a href="/indices/equity/sectoral-indices/nifty-insurance">NIFTY INSURANCE</a></li><li><a href="/indices/equity/sectoral-indices/nifty-it">NIFTY IT</a></li><li><a href="/indices/equity/sectoral-indices/nifty-media">NIFTY MEDIA</a></li></ul></div><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/sectoral-indices/nifty-metal">NIFTY METAL</a></li><li><a href="/indices/equity/sectoral-indices/nifty-nbfc">NIFTY NBFC</a></li><li><a href="/indices/equity/sectoral-indices/nifty-oil-and-gas-index">NIFTY OIL AND GAS INDEX</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-pharma">NIFTY PHARMA</a></li><li><a href="/indices/equity/sectoral-indices/nifty-power">NIFTY POWER</a></li><li><a href="/indices/equity/sectoral-indices/nifty-private-bank">NIFTY PRIVATE BANK</a></li><li><a href="/indices/equity/sectoral-indices/nifty-psu-bank">NIFTY PSU BANK</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-realty">NIFTY REALTY</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-reits---realty">Nifty REITS &amp; REALTY</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-retail">NIFTY RETAIL</a></li><li><a href="/indices/equity/sectoral-indices/nifty-telecommunications">NIFTY TELECOMMUNICATIONS</a></li><li><a href="/indices/equity/sectoral-indices/nifty500-healthcare">Nifty500 Healthcare</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-midsmall--financial-services">Nifty MidSmall Financial Services</a>
+ </li><!--  <li><a href="/indices/equity/sectoral-indices/nifty-midsmall-financial-services" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]0349B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty MidSmall Financial Services</a> </li> -->
+ <li><a href="/indices/equity/sectoral-indices/nifty-midsmallhealthcare">Nifty MidSmall Healthcare</a> </li><li><a href="/indices/equity/sectoral-indices/nifty-midsmall--it-telecom">Nifty MidSmall IT &amp; Telecom</a>
+ </li><!-- <li><a href="/indices/equity/sectoral-indices/nifty-midsmall-it-telecom" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]FF50B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty MidSmall IT &amp; Telecom</a> </li> -->
+ </ul></div></div></div><div class="tab-pane " id="messages-2"><div class="row"><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/thematic-indices/nifty-india-corporate-group-index---aditya-birla-group">NIFTY INDIA CORPORATE GROUP INDEX - ADITYA BIRLA GROUP</a></li><!-- <li><a href="/indices/equity/thematic-indices/nifty-capital-markets" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]41A8B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Capital Markets</a></li>-->
+ <li><a href="/indices/equity/thematic-indices/nifty-capital-markets">Nifty Capital Markets</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-commodities">NIFTY COMMODITIES</a></li><li><a href="/indices/equity/thematic-indices/nifty-conglomerate-50">NIFTY CONGLOMERATE 50</a></li><li><a href="/indices/equity/thematic-indices/nifty-core--housing">Nifty Core Housing</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-core-housing" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]B0AAB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Core Housing</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty-cpse">NIFTY CPSE</a></li><li><a href="/indices/equity/thematic-indices/nifty-energy">NIFTY ENERGY</a></li><li><a href="/indices/equity/Thematic-indices/nifty-ev-new--age-automotive">Nifty EV &amp; New Age Automotive</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-ev-new-age-automotive" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]20ADB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty EV &amp; New Age Automotive</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty--housing">Nifty Housing</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-housing" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]C8AFB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Housing</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty100-esg">NIFTY100 ESG </a></li><li><a href="/indices/equity/thematic-indices/nifty-100-enhanced-esg">NIFTY100 Enhanced ESG </a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty100-enhanced-esg" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]B069B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY100 Enhanced ESG</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty100-esg-sector-leaders">Nifty100 ESG Sector Leaders </a></li><li><a href="/indices/equity/thematic-indices/nifty-india-consumption">NIFTY INDIA CONSUMPTION</a></li><li><a href="/indices/equity/thematic-indices/nifty-india-defence">Nifty India Defence</a></li><li><a href="/indices/equity/thematic-indices/nifty-india-digital">Nifty India Digital</a></li><li><a href="/indices/equity/thematic-indices/nifty-india-infrastructure-logistics">Nifty India Infrastructure &amp; Logistics</a></li><li><a href="/indices/equity/thematic-indices/nifty-india-internet">Nifty India Internet</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-india-manufacturing">Nifty India Manufacturing</a></li><!-- <li><a href="/indices/equity/thematic-indices/nifty-india-new-age-consumption" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]00DAB7EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY INDIA NEW AGE CONSUMPTION</a></li>-->
+ <li><a href="/indices/equity/Thematic-indices/nifty-india-new--age-consumption">NIFTY INDIA NEW AGE CONSUMPTION</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-india-railways-psu">Nifty India Railways PSU</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-india-tourism">NIFTY INDIA TOURISM</a></li><!-- <li><a href="/indices/equity/thematic-indices/nifty-india-select-5-corporate-groups-(maatr)" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]7BDCB7EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY INDIA SELECT 5 CORPORATE GROUPS (MAATR)</a></li>-->
+ <li><a href="/indices/equity/thematic-indices/nifty-india-select--5-corporate-groups-(maatr)">NIFTY INDIA SELECT 5 CORPORATE GROUPS (MAATR)</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-infrastructure">NIFTY INFRASTRUCTURE</a></li><li><a href="/indices/equity/thematic-indices/nifty-india-corporate-group-index---mahindra-group">NIFTY INDIA CORPORATE GROUP INDEX - MAHINDRA GROUP</a></li><!--   <li><a href="/indices/equity/thematic-indices/nifty-ipo" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]19C6B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY IPO</a> </li>-->
+ <!-- <li><a href="/indices/equity/thematic-indices/nifty-mnc" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]8A4DB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY MNC</a></li> -->
+ </ul></div><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/thematic-indices/nifty--ipo">NIFTY IPO</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-midcap-liquid-15">NIFTY MIDCAP LIQUID 15</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-mid-small-india-consumption">Nifty MidSmall India Consumption</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-midsmall-india-consumption" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]E3C8B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty MidSmall India Consumption</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty-mnc">NIFTY MNC</a></li><!-- <li><a href="/indices/equity/thematic-indices/nifty-mobility" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]5BCCB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Mobility</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty--mobility">Nifty Mobility</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-pse">NIFTY PSE</a></li><li><a href="/indices/equity/thematic-indices/nifty-reits-invits">Nifty REITs &amp; InvITs</a></li><!--<li><a href="/indices/equity/thematic-indices/nifty-rural" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]0ED5B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Rural</a></li>-->
+ <!-- <li><a href="/indices/equity/thematic-indices/nifty-non-cyclical-consumer" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]3FCFB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Non-Cyclical Consumer Index</a></li> -->
+ <li><a href="/indices/equity/Thematic-indices/nifty--rural">Nifty Rural</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-non--cyclical-consumer">Nifty Non-Cyclical Consumer Index</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-services-sector">NIFTY SERVICES SECTOR</a></li><li><a href="/indices/equity/thematic-indices/nifty-shariah25">NIFTY SHARIAH 25</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-small-finance-banks---microfinance-institutions">NIFTY SMALL FINANCE BANKS &amp; MICROFINANCE INSTITUTIONS</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-sugar---ethanol">NIFTY SUGAR &amp; ETHANOL</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty-india-corporate-group-index---tata-group">NIFTY INDIA CORPORATE GROUP INDEX - TATA GROUP</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-shariah-25" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]D942B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY SHARIAH 25</a> </li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty-india-corporate-group-index---tata-group-25-cap">NIFTY INDIA CORPORATE GROUP INDEX - TATA GROUP 25% CAP</a> </li><li><a href="/indices/equity/Thematic-indices/nifty--transportation-logistics">Nifty Transportation &amp; Logistics</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-transportation-logistics" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]B6D7B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Transportation &amp; Logistics</a> </li> -->
+ <!-- <li><a href="/indices/equity/thematic-indices/nifty-tata-group" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]4252B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY TATA GROUP</a></li> -->
+ <!--  <li><a href="/indices/equity/thematic-indices/nifty-tata-group-25-cap" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]365EB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY TATA GROUP 25% CAP</a></li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty-100-liquid-15">NIFTY100 LIQUID 15</a></li><li><a href="/indices/equity/Thematic-indices/nifty50-shariah">NIFTY50 SHARIAH</a>
+ </li><li><a href="/indices/equity/Thematic-indices/nifty500-shariah">NIFTY500 SHARIAH</a>
+ </li><!-- <li><a href="/indices/equity/thematic-indices/nifty-50-shariah" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]F99EB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY50 SHARIAH</a> </li>
+                                                <li><a href="/indices/equity/thematic-indices/nifty-500-shariah" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]3D4CB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY500 SHARIAH</a> </li> -->
+ <li><a href="/indices/equity/thematic-indices/nifty500-multicap-india-manufacturing-503020">NIFTY500 MULTICAP INDIA MANUFATURING 50:30:20</a>
+ </li><li><a href="/indices/equity/thematic-indices/nifty500-multicap-infrastructure-503020">NIFTY500 MULTICAP INFRASTRUCTURE 50:30:20</a></li><li><a href="/indices/equity/thematic-indices/nifty-sme-emerge">NIFTY SME EMERGE</a> </li><li><a href="/indices/equity/thematic-indices/nifty-waves">NIFTY Waves</a> </li><!--   <li><a href="/indices/equity/thematic-indices/nifty100-esg" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]6B66B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY100 ESG </a> </li>
+                                                <li><a href="/indices/equity/thematic-indices/nifty100-enhanced-esg" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]B069B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY100 Enhanced ESG </a> </li> -->
+ </ul></div></div></div><div class="tab-pane " id="settings-2"><div class="row"><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><li><a href="/indices/equity/strategy-indices/nifty-100-equal-weight">NIFTY 100 EQUAL WEIGHT</a></li><li><a href="/indices/equity/strategy-indices/nifty-100-low-volatility">NIFTY 100 LOW VOLATILITY 30</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-arbitrage">NIFTY 50 ARBITRAGE</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-futures-pr">NIFTY 50 FUTURES PR</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-futures-tr">NIFTY 50 FUTURES TR</a></li><li><a href="/indices/equity/strategy-indices/nifty200-momentum-30">NIFTY200 MOMENTUM 30</a></li><li><a href="/indices/equity/strategy-indices/nifty200-alpha-30">NIFTY200 ALPHA 30</a></li><li><a href="/indices/equity/strategy-indices/nifty100-alpha30">NIFTY100 ALPHA 30</a>
+ </li><!--   <li><a href="/indices/equity/strategy-indices/nifty100-alpha-30" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]C9DFB7EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY100 ALPHA 30</a></li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty-alpha-50">NIFTY ALPHA 50</a></li><li><a href="/indices/equity/strategy-indices/nifty-alpha-low-volatility-30">NIFTY ALPHA LOW VOLATILITY 30</a></li><li><a href="/indices/equity/strategy-indices/nifty-alpha-quality-low-volatility30">NIFTY ALPHA QUALITY LOW VOLATILITY 30</a>
+ </li><!-- <li><a href="Item with ID: 'F46AB4EF-F4AE-6B1D-9793-FF02002CCACB' was not found!"  data-sf-ec-immutable="">NIFTY ALPHA QUALITY LOW VOLATILITY 30</a></li> -->
+ <!--  <li><a href="/indices/equity/strategy-indices/nifty-alpha-quality-value-low-volatility-30" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]AF80B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY ALPHA QUALITY VALUE LOW VOLATILITY 30</a></li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty-alpha-quality-value-low-volatility30">NIFTY ALPHA QUALITY VALUE LOW VOLATILITY 30</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-dividend-opportunities-50">NIFTY DIVIDEND OPPORTUNITIES 50</a></li><li><a href="/indices/equity/strategy-indices/nifty-growth-sectors-15">NIFTY GROWTH SECTORS 15</a> </li><li><a href="/indices/equity/strategy-indices/nifty-high-beta50">NIFTY HIGH BETA 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-low-volatility50">NIFTY LOW VOLATILITY 50</a>
+ </li><!-- <li><a href="/indices/equity/strategy-indices/nifty-high-beta-50" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]386FB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY HIGH BETA 50</a></li> -->
+ <!--  <li><a href="/indices/equity/strategy-indices/nifty-low-volatility-50" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]05E1B5EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY LOW VOLATILITY 50</a></li> --><!--   <li><a href="/indices/equity/strategy-indices/nifty-top-10-equal-weight" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]7E8CB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY TOP 10 EQUAL WEIGHT</a></li>--><!-- <li><a href="/indices/equity/strategy-indices/nifty-top-15-equal-weight"  data-sf-ec-immutable="">NIFTY TOP 15 EQUAL WEIGHT</a></li> -->
+ <!-- <li><a href="/indices/equity/strategy-indices/nifty-top-20-equal-weight"  data-sf-ec-immutable="">NIFTY TOP 10 EQUAL WEIGHT</a></li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty-top-10-equal-weight">NIFTY TOP 10 EQUAL WEIGHT</a></li><li><a href="/indices/equity/strategy-indices/nifty-top15-equal-weight">NIFTY TOP 15 EQUAL WEIGHT</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-top20-equal-weight">NIFTY TOP 20 EQUAL WEIGHT</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty100-quality-30">NIFTY100 QUALITY 30</a></li><li><a href="/indices/equity/strategy-indices/nifty-midcap150-momentum-50">NIFTY Midcap150 Momentum 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty500-flexicap-quality-30">Nifty500 Flexicap Quality 30</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty500-low--volatility-50">NIFTY500 LOW VOLATILITY 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty500--momentum--50">NIFTY500 MOMENTUM 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty500--quality-50">NIFTY500 QUALITY 50</a>
+ </li><!-- <li><a href="/indices/equity/strategy-indices/nifty-midcap150-momentum-50"  data-sf-ec-immutable="">NIFTY Midcap150 Momentum 50</a></li> -->
+ <!-- <li><a href="/indices/equity/strategy-indices/nifty500--momentum--50"  data-sf-ec-immutable="">NIFTY500 MOMENTUM 50</a></li> -->
+ <!--<li><a href="/indices/equity/strategic-indices/nifty-50-futures" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c67e2f" data-sf-ec-immutable="">NIFTY 50 FUTURES</a></li>-->
+ </ul></div><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu"><!--  <li><a href="/indices/equity/strategy-indices/nifty100-quality-30" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]D05BB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY100 QUALITY 30</a> </li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty500-multifactor--mqvlv-50" class="drop-capital">NIFTY500 MULTIFACTOR MQVLv 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-midcap150-quality-50">NIFTY Midcap150 Quality 50</a> </li><li><a href="/indices/equity/strategy-indices/nifty-smallcap250-quality50">Nifty Smallcap250 Quality 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-total-market-momentum-quality-50">Nifty Total Market Momentum Quality 50</a>
+ </li><!--  <li><a href="/indices/equity/strategy-indices/nifty-smallcap250-quality-50" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]1F89B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">Nifty Smallcap250 Quality 50</a> </li> --><!-- <li><a href="/indices/equity/strategy-indices/nifty500-multicap-momentum-quality-50" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2874B6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY500 MULTICAP MOMENTUM QUALITY 50</a> </li>-->
+ <li><a href="/indices/equity/strategy-indices/nifty500-multicap-momentum-quality50">NIFTY500 MULTICAP MOMENTUM QUALITY 50</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty-midsmallcap400-momentum-quality-100">Nifty MidSmallcap400 Momentum Quality 100</a> </li><li><a href="/indices/equity/strategy-indices/nifty-smallcap250-momentum-quality-100">Nifty Smallcap250 Momentum Quality 100</a> </li><li><a href="/indices/equity/strategy-indices/nifty-quality-low-volatility30">NIFTY QUALITY LOW VOLATILITY 30</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-dividend-points">NIFTY50 DIVIDEND POINTS</a></li><li><a href="/indices/equity/strategy-indices/nifty50-equal-weight">NIFTY50 EQUAL WEIGHT</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-usd">NIFTY50 USD</a></li><li><a href="/indices/equity/strategy-indices/nifty-50-pr-1x-inverse">NIFTY50 PR 1X INVERSE</a> </li><li><a href="/indices/equity/strategy-indices/nifty-50-pr-2x-leverage">NIFTY50 PR 2X LEVERAGE</a> </li><li><a href="/indices/equity/strategy-indices/nifty-50-tr-1x-inverse">NIFTY50 TR 1X INVERSE</a> </li><li><a href="/indices/equity/strategy-indices/nifty-50-tr-2x-leverage">NIFTY50 TR 2X LEVERAGE</a> </li><!--   <li><a href="/indices/equity/strategy-indices/nifty-50-usd" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]5B7BB4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY50 USD</a></li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty-50-value-20">NIFTY50 VALUE 20</a> </li><li><a href="/indices/equity/strategy-indices/nifty200-value30">Nifty200 Value 30</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty500-value50">NIFTY500 VALUE 50</a>
+ </li><!-- <li><a href="/indices/equity/strategy-indices/nifty500-value-50" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]9241B4EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY500 VALUE 50</a> </li> -->
+ <!--  <li><a href="/indices/equity/strategy-indices/nifty500-equal-weight" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]D36EB6EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">NIFTY500 EQUAL WEIGHT</a> </li> -->
+ <li><a href="/indices/equity/strategy-indices/nifty500--equal--weight">NIFTY500 EQUAL WEIGHT</a>
+ </li><li><a href="/indices/equity/strategy-indices/nifty200-quality-30">NIFTY200 Quality 30</a> </li><li><a href="/indices/equity/strategy-indices/nifty50-short-duration-debt-dynamic-p-b">NIFTY50 &amp; Short Duration Debt &ndash; Dynamic P/B</a> </li><li><a href="/indices/equity/strategy-indices/nifty50-short-duration-debt-dynamic-p-e">NIFTY50 &amp; Short Duration Debt &ndash; Dynamic P/E</a> </li><li><a href="/indices/equity/strategy-indices/nifty-equity-savings">NIFTY Equity Savings</a> </li></ul></div></div></div><div class="tab-pane " id="settings-10"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/fixed-income/fixed-income-aggregate-index-series/nifty-fixed-income-aggregate-indices">NIFTY Fixed Income Aggregate Indices</a></li></ul></div><div class="col-md-6 col-sm-6">&nbsp;</div></div></div><div class="tab-pane " id="settings-12"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/fixed-income/prc-indices/nifty-fixed-income-prc-indices">Nifty Fixed Income PRC Indices</a></li></ul></div><div class="col-md-6 col-sm-6">&nbsp;</div></div></div><div class="tab-pane " id="settings-13"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/fixed-income/municipal-bond-indices/nifty-india-municipal-bond">Nifty India Municipal Bond</a></li></ul></div><div class="col-md-6 col-sm-6">&nbsp;</div></div></div><div class="tab-pane " id="settings-14"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/fixed-income/sovereign-green-bond-indices/nifty-india-sovereign-green-bond-jan-2033">Nifty India Sovereign Green Bond Jan 2033</a></li><li><a href="/indices/fixed-income/sovereign-green-bond-indices/nifty-india-sovereign-green-bond-jan-2028">Nifty India Sovereign Green Bond Jan 2028</a></li></ul></div><div class="col-md-6 col-sm-6">&nbsp;</div></div></div><div class="tab-pane  tabPaneMainBox" id="settings-3"><ul class="tpanetabSection"><li class="tpaneLink  current"><a href="#" data-sf-ec-immutable="">Duration</a></li><li class="tpaneLink "><a href="#" data-sf-ec-immutable="">Maturity</a></li></ul><div class="navtabContentMain"><ul class="tbContent current"><li><a href="/indices/fixed-income/gsec-indices/nifty-g-sec-indices">NIFTY G-SEC Indices</a></li></ul><ul class="tbContent"><li><a href="/indices/fixed-income/gsec-indices/nifty-8-13-yr-gsec">NIFTY 8-13 YR GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-10-yr-benchmark-gsec">NIFTY 10 YR BENCHMARK GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-10-yr-benchmark-gsec-(clean-price)">NIFTY 10 YR BENCHMARK GSEC (CLEAN PRICE)</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-4-8-yr-gsec">NIFTY 4-8 YR GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-11-15-yr-gsec">NIFTY 11-15 YR GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-15-yr-and-above-gsec">NIFTY 15 YR AND ABOVE GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-composite-gsec">NIFTY COMPOSITE GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-5-yr-benchmark-gsec">NIFTY 5 YR BENCHMARK GSEC</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-india-government-fully-accessible-route-(far)-select-7-bonds-index-(inr)">Nifty India Government Fully Accessible Route (FAR) Select 7 Bonds (INR)</a></li><li><a href="/indices/fixed-income/gsec-indices/nifty-india-government-fully-accessible-route-(far)-select-7-bonds-index-(usd)">Nifty India Government Fully Accessible Route (FAR) Select 7 Bonds (USD)</a></li></ul></div><!--<div class="col-md-6 col-sm-6">
+                                    </div>-->
+ </div><div class="tab-pane " id="settings-9"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-composite-debt-70-30-indices">NIFTY 50 Hybrid Composite Debt 70:30 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-composite-debt-50-50-index">NIFTY 50 Hybrid Composite Debt 50:50 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-composite-debt-15-85-index">NIFTY 50 Hybrid Composite Debt 15:85 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-composite-debt-65-35-index">NIFTY 50 Hybrid Composite Debt 65:35 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-short-duration-debt-40-60-index">NIFTY 50 Hybrid Short Duration Debt 40:60 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-50-hybrid-short-duration-debt-25-75-index">NIFTY 50 Hybrid Short Duration Debt 25:75 Index </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-aqlv-30-plus-5yr-g-sec-70-30-index">Nifty AQLV 30 Plus 5yr G-Sec 70:30 </a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-largemidcap250-plus-8-13-yr-g-sec-70-30">Nifty LargeMidcap250 Plus 8-13 yr G-Sec 70:30</a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty-midcap150-plus-8-13-yr-g-sec-70-30">Nifty Midcap150 Plus 8-13 yr G-Sec 70:30</a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty200-momentum-30-plus-8-13-yr-g-sec-75-25">Nifty200 Momentum 30 Plus 8-13 yr G-Sec 75:25</a></li><li><a href="/indices/multi-asset/hybrid-indices/nifty200-momentum-30-plus-8-13-yr-g-sec-50-50">Nifty200 Momentum 30 Plus 8-13 yr G-Sec 50:50</a></li><!-- <li><a href="/indices/multi-asset/hybrid-indices/nifty-aqlv-30-plus-5yr-g-sec-70-30-index"  data-sf-ec-immutable="">Nifty AQLV 30 Plus 5yr G-Sec 70:30 </a></li> -->
+ </ul></div><div class="col-md-6 col-sm-6">&nbsp;</div></div></div><div class="tab-pane " id="settings-16"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/multi-asset/multi-asset-indices/nifty-multi-asset-equity-arbitrage-reits-invits-(50-40-10)">nifty multi asset &ndash; equity : arbitrage : reits/invits (50:40:10) </a>
+ </li><li><a href="/indices/multi-asset/multi-asset-indices/nifty-multi-asset-equity-debt-arbitrage-reits-invits-(50-20-20-10)">nifty multi asset &ndash; equity : debt : arbitrage : reits/invits (50:20:20:10) </a>
+ </li></ul></div></div></div><div class="tab-pane  tabPaneMainBox" id="settings-5"><ul class="thirdNavTab"><li><a href="/indices/fixed-income/money-market-indices/certificate-of-deposit-indices">Certificate of Deposit Indices</a></li><li><a href="/indices/fixed-income/money-market-indices/commercial-papers-indices">Commercial Papers Indices</a></li><li><a href="/indices/fixed-income/money-market-indices/t-bills-indices">T-Bills Index Series</a></li><li><a href="/indices/fixed-income/money-market-indices/nifty-1d-rate">NIFTY 1D RATE</a></li><li><a href="/indices/fixed-income/money-market-indices/nifty-financial-services-3-to-6-months-debt">Nifty Financial Services 3 to 6 Months Debt</a></li><li><a href="/indices/fixed-income/money-market-indices/nifty-financial-services-9-to-12-months-debt">Nifty Financial Services 9 to 12 Months Debt</a></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><a href="#" data-sf-ec-immutable="">NIFTY 1 Month CD Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 2 Month CD Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 3 Month CD Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 6 Month CD Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 1 Year CD Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY All Maturity CD Index</a> </li></ul><ul class="thirdNavContent mCustomScrollbar"><li><a href="#" data-sf-ec-immutable="">NIFTY 1 Month CP Index </a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 2 Month CP Index </a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 3 Month CP Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 6 Month CP Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 1 Year CP Index</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY All Maturity CP Index</a> </li></ul><ul class="thirdNavContent mCustomScrollbar"><li><a href="#" data-sf-ec-immutable="">NIFTY 30 Day T-Bill</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 60 Day T-Bill</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 91 Day T-Bill </a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 182 Day T-Bill</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY 1 Year T-Bill</a> </li><li><a href="#" data-sf-ec-immutable="">NIFTY All Maturity T-Bill</a> </li></ul></div><div class="tab-pane " id="settings-6"><div class="row"><div class="col-md-7 col-sm-7"><ul class="tabinsaidmenu"><li><a href="/indices/fixed-income/sdl-indices/nifty-10-year-sdl-index">NIFTY 10 Year SDL </a></li><li><a href="/indices/fixed-income/sdl-indices/nifty-5-year-sdl">NIFTY 5 Year SDL</a></li><li><a href="/indices/fixed-income/sdl-indices/nifty-3-year-sdl">NIFTY 3 Year SDL</a></li></ul></div></div></div><div class="tab-pane  tabPaneMainBox" id="settings-4"><ul class="thirdNavTab"><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-aaa-corporate-bond-indices">NIFTY AAA Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-aa-category-corporate-bond-indices">NIFTY AA Category Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-aaa-corporate-bond-indices/nifty-aa-corporate-bond-indices">NIFTY AA+ Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-aa--corporate-bond-indices">NIFTY AA Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-aa---corporate-bond-indices">NIFTY AA- Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-a-corporate-bond-indices">NIFTY A Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices/nifty-banking-psu-bond-indices">NIFTY Banking &amp; PSU Bond Indices</a></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!-- NIFTY AAA Corporate Bond Indices-->
+ <a href="#" data-sf-ec-immutable="">NIFTY AAA Ultra Short Duration Bond </a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AAA All Duration Bond</a>
+ </li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--NIFTY AA Category Corporate Bond Indices-->
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Category Ultra Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Category Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Category Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Category Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY AA Category Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Category Long Duration Bond</a>
+ </li><li></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--   NIFTY AA+ Corporate Bond Indices -->
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA+ Ultra Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA+ Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY AA+ Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA+ Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA+ Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY AA+ Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA+ All Duration Bond</a>
+ </li><li></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--   NIFTY AA Corporate Bond Indices -->
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Ultra Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA Long Duration Bond</a>
+ </li><li></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--  NIFTY AA- Corporate Bond Indices -->
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Ultra Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY AA- Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY AA- Long Duration Bond</a>
+ </li><li></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--  NIFTY A Corporate Bond Indices -->
+ <a href="#" data-sf-ec-immutable=""> NIFTY A Short-Term Bond Index</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY A Long-Term Bond Index</a>
+ </li><li></li></ul><ul class="thirdNavContent mCustomScrollbar"><li><!--  NIFTY Banking &amp; PSU Bond Indices -->
+ <a href="#" data-sf-ec-immutable=""> NIFTY Banking &amp; PSU Ultra Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY Banking &amp; PSU Low Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY Banking &amp; PSU Short Duration Bond</a>
+ <a href="#" data-sf-ec-immutable=""> NIFTY Banking &amp; PSU Medium Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY Banking &amp; PSU Medium to Long Duration Bond</a>
+ <a href="#" data-sf-ec-immutable="">NIFTY Banking &amp; PSU Long Duration Bond</a>
+ </li><li></li></ul></div><!--<div class="tab-pane fade in" id="settings-4">-->
+ <!--<h4>Heading Sample 6</h4>-->
+ <!--</div> -->
+ <div class="tab-pane " id="settings-11"><div class="row"><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu targetOuter"><li class="bharatWrapp"><a href="#" data-sf-ec-immutable="">Nifty BHARAT Bond Index Series</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index-april-2023">Nifty BHARAT Bond Index - April 2023</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index-april-2025">Nifty BHARAT Bond Index - April 2025</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index---april--2030">Nifty BHARAT Bond Index - April 2030</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index---april--2031">Nifty BHARAT Bond Index - April 2031</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index-april--2032">Nifty BHARAT Bond Index - April 2032</a>
+ </li><li class="niftyBox"><a href="/indices/fixed-income/target-maturity-index/nifty-bharat-bond-index---april--2033">Nifty BHARAT Bond Index - April 2033</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-financial-services-bond-mar-2028">NIFTY AAA FINANCIAL SERVICES BOND MAR 2028</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-bond-jun-2025-htm">Nifty AAA Bond Jun 2025 HTM</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-jun-2036-index">Nifty G-Sec Jun 2036 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-jul-2033">Nifty G-Sec Jul 2033 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-sep-2032-index">Nifty G-Sec Sep 2032 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-jul-2031-index">Nifty G-Sec Jul 2031 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-dec-2030-index">Nifty G-Sec Dec 2030</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-dec-2029-index">Nifty G-Sec Dec 2029</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-may-2029">Nifty G-Sec May 2029</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-apr-2029">Nifty G-Sec Apr 2029</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-oct-2028">Nifty G-Sec Oct 2028 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-sep-2027-index">Nifty G-Sec Sep 2027 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-jul-2027">Nifty G-Sec Jul 2027</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-jun-2027-index">Nifty G-Sec Jun 2027
+                                                        </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-dec-2026-index">Nifty G-Sec Dec 2026 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-jul-2033-index">Nifty SDL Jul 2033 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-apr-2032-top-12-equal-weight-index">Nifty SDL Apr 2032 Top 12 Equal Weight</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-apr-2031-top-20-equal-weight-htm">Nifty SDL Apr 2031 Top 20 Equal Weight HTM</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-dec-2028-index">Nifty SDL Dec 2028 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-jul-2028">Nifty SDL Jul 2028 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-june-2028">Nifty SDL June 2028</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-sep-2027-index">Nifty SDL Sep 2027
+                                                        </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-jun-2027-index">Nifty SDL Jun 2027
+                                                        </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-apr-2027-top-12-equal-weight-index">Nifty SDL Apr 2027 Top 12 Equal Weight </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-apr-2027-index">Nifty SDL Apr 2027</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-dec-2026-index">Nifty SDL Dec 2026</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-oct-2026">Nifty SDL Oct 2026</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-sep-2026-index">Nifty SDL Sep 2026 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-sep-2026-v1-index">Nifty SDL Sep 2026 V1 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-jul-2026-index">Nifty SDL Jul 2026 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-apr-2026-top-20-equal-weight-index">Nifty SDL Apr 2026 Top 20 Equal Weight </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-sep-2025-index">Nifty SDL Sep 2025</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-bond-plus-g-sec-mar-2035-30-70">Nifty AAA Bond Plus G-Sec Mar 2035 30:70</a>
+ </li></ul></div><div class="col-md-6 col-sm-6"><ul class="tabinsaidmenu targetOuter"><!-- <li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-financial-services-bond-plus-g-sec-apr-2028-90-10" data-sf-ec-immutable="">NIFTY AAA FINANCIAL SERVICES BOND PLUS G-SEC APR 2028 90:10
+                                                    </a></li>
+                                                <li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-financial-services-bond-plus-g-sec-apr-2027-90-10" data-sf-ec-immutable="">NIFTY AAA FINANCIAL SERVICES BOND PLUS G-SEC APR 2027 90:10
+                                                    </a></li>
+                                                <li></li> -->
+ <li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-financial-services-bond-plus-g-sec-apr-2028-90-10">Nifty AAA Financial Services Bond Plus G-Sec Apr 2028 90:10</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-financial-services-bond-plus-g-sec-apr-2027-90-10">Nifty AAA Financial Services Bond Plus G-Sec Apr 2027 90:10</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-jun-2029-70-30-index">Nifty SDL Plus G-Sec Jun 2029 70:30</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-jun-2029-70-30-index">Nifty SDL Plus G-Sec Jun 2029 70:30</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-jun-2028-30-70-index">Nifty SDL Plus G-Sec Jun 2028 30:70 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-jun-2028-70-30-index">Nifty SDL Plus G-Sec Jun 2028 70:30 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-sep-2027-50-50-index">Nifty SDL Plus G-Sec Sep 2027 50:50 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-g-sec-june-2027-40-60">Nifty SDL Plus G-Sec June 2027 40:60</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-aaa-psu-bond-jul-2033-60-40-index">Nifty SDL Plus AAA PSU Bond Jul 2033 60:40 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-bond-plus-sdl-apr-2031-70-30-index">Nifty AAA Bond Plus SDL Apr 2031 70:30 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-aaa-psu-bond-jul-2028-60-40-index">Nifty SDL Plus AAA PSU Bond Jul 2028 60:40</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-aaa-psu-bond-apr-2028-75-25">Nifty SDL Plus AAA PSU Bond Apr 2028 75:25</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-aaa-psu-bond-dec-2027-60-40-index">Nifty SDL Plus AAA PSU Bond Dec 2027 60:40
+                                                        </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-psu-bond-plus-sdl-sep-2027-40-60-index">Nifty PSU Bond Plus SDL Sep 2027 40:60 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-cpse-bond-plus-sdl-apr-2027-60-40-index">Nifty AAA CPSE Bond Plus SDL Apr 2027 60:40
+                                                        </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-g-sec-dec-2050-index/nifty-psu-bond-plus-sdl-apr-2027-50-50-index">Nifty PSU Bond Plus SDL Apr 2027 50:50 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-psu-bond-sep-2026-60-40-index">Nifty SDL Plus PSU Bond Sep 2026 60:40 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-cpse-bond-plus-sdl-sep-2026-50-50-index">Nifty CPSE Bond Plus SDL Sep 2026 50:50 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-psu-bond-plus-sdl-sep-2026-50-50-index">Nifty AAA PSU Bond Plus SDL Sep 2026 50:50 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-sdl-plus-aaa-psu-bond-apr-2026-75-25-index">Nifty SDL Plus AAA PSU Bond Apr 2026 75:25 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-bond-plus-sdl-apr-2026-70-30-index">Nifty AAA Bond Plus SDL Apr 2026 70:30 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-psu-bond-plus-sdl-apr-2026-50-50-index">Nifty PSU Bond Plus SDL Apr 2026 50:50 </a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-psu-bond-plus-sdl-apr-2026-50-50-index">Nifty AAA PSU Bond Plus SDL Apr 2026 50:50</a>
+ </li><!-- <li>
+            <a href="/indices/fixed-income/target-maturity-index/nifty-aaa-psu-bond-plus-sdl-apr-2026-50-50-index"  data-sf-ec-immutable="">Nifty AAA PSU Bond Plus SDL Apr 2026 50:50 </a>
+            </li> -->
+ <li><a href="/indices/fixed-income/target-maturity-index/nifty-aaa-bond-plus-sdl-apr-2026-50-50-index">Nifty AAA Bond Plus SDL Apr 2026 50:50</a>
+ </li><li><a href="/indices/fixed-income/target-maturity-index/nifty-cpse-bond-plus-sdl-sep-2024-50-50-index">Nifty CPSE Bond Plus SDL Sep 2024 50:50 </a>
+ </li></ul></div></div></div></div></div></div></li></ul></li><li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="offeringsDropdown" data-bs-toggle="dropdown" role="button" aria-expanded="false" data-sf-ec-immutable="">OFFERINGS
+ </a>
+ <ul class="dropdown-menu" aria-labelledby="offeringsDropdown"><li><a href="/offerings/index-licensing" class="dropdown-item">Index Licensing</a></li><li><a href="/offerings/data-subscription" class="dropdown-item">Data Subscription</a></li><li><a href="/offerings/index-customization" class="dropdown-item">Index Customisation </a></li></ul></li><li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="reportsDropdown" data-bs-toggle="dropdown" role="button" aria-expanded="false" data-sf-ec-immutable="">REPORTS
+ </a>
+ <ul class="dropdown-menu" aria-labelledby="reportsDropdown"><li><a href="/reports/daily-reports" class="dropdown-item">Daily Reports</a></li><li><a href="/reports/monthly-reports" class="dropdown-item">Monthly Reports</a></li><li><a href="/reports/historical-data" class="dropdown-item">Historical Data</a></li><li><a href="/reports/index-factsheet" class="dropdown-item">Index Factsheet</a></li><li><a href="/reports/index-dashboard" class="dropdown-item">Index Dashboard</a></li><li><a href="/reports/benchmark-riskometer" class="dropdown-item">Benchmark Riskometer</a></li><li><a class="dropdown-item" href="/BenchmarkCodes/nifty_indices_benchmark_codes.pdf" target="_blank" data-sf-ec-immutable="">Benchmark Codes</a></li><li><a href="/reports/research-paper" class="dropdown-item">Research Paper</a></li><li><a href="/reports/market-consultation" class="dropdown-item">Market Consultation</a></li><li><a class="dropdown-item" href="https://www.connect2nse.com/iislNet/" target="_blank" data-sf-ec-immutable="">EOD Index File</a></li></ul></li><li class="nav-item dropdown resourceDD"><a href="#" class="nav-link dropdown-toggle" id="resourcesDropdown" data-bs-toggle="dropdown" role="button" aria-expanded="false" data-sf-ec-immutable="">RESOURCES
+ </a>
+ <ul class="dropdown-menu" aria-labelledby="resourcesDropdown"><li><a href="/resources/holiday-calendar" class="dropdown-item">Holiday Calendar</a></li><li><a href="/resources/authorized-data-vendors" class="dropdown-item">Authorised Data Vendors</a></li><li><a href="/resources/index-rebalancing-schedule" class="dropdown-item">Index Reconstitution Calendar</a></li><li><a href="/resources/index-methodology" class="dropdown-item">Index Methodology</a></li><li><a href="/resources/industry-classification" class="dropdown-item">Industry Classification</a></li><li><a href="/resources/investible-weight-factors" class="dropdown-item">Investible Weight Factors</a></li><li><a href="/resources/iosco-compliance" class="dropdown-item">IOSCO Compliance</a></li><!-- Submenu: Index Concepts -->
+ <li class="dropdown-submenu position-relative"><a href="#" class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown" data-sf-ec-immutable="">Index Concepts
+                        </a>
+ <ul class="dropdown-menu"><li><a href="/resources/index-concepts/impact-cost" class="dropdown-item">Impact Cost</a></li><li><a href="/resources/index-concepts/total-return-index" class="dropdown-item">Total Return Index</a></li><li><a href="/resources/index-concepts/beta" class="dropdown-item">Beta</a></li><li><a href="/docs/default-source/tracking-error/trackingerror.pdf?sfvrsn=7e449b34_2" class="dropdown-item" target="_blank">Tracking Error</a></li><li><a href="/resources/index-concepts/price-earnings-ratio" class="dropdown-item">Price Earnings Ratio</a></li><li><a href="/resources/index-concepts/price-to-book-value" class="dropdown-item">Price to Book Value</a></li><li><a href="/resources/index-concepts/dividend-yield" class="dropdown-item">Dividend Yield %</a></li><li><a href="/resources/index-concepts/faqs" class="dropdown-item">FAQs</a></li></ul></li></ul></li><span id="searchTextBox" style="display:none;"><img alt="" src="
+    /assets/images/search-icon.png" class="searchicn searchpf" data-sf-ec-immutable="" /><input name="searchTextBox" type="text" class="sfsearch" placeholder="What are you looking for?" /></span>
+ <span id="sfsearchSubWrap" class="d-inline-block">
+ <img src="/assets/images/search-icon.png" class="searchicn img-fluid" alt="Search Icon" data-sf-ec-immutable="" /></span>
+ <li class="moblink"><a href="/about-us" class="hidden-lg hidden-md hidden-sm">ABOUT US</a>
+ </li><li class="moblink"><a href="/media" class="hidden-lg hidden-md hidden-sm">MEDIA</a>
+ </li><li class="moblink"><a href="/contact-us" class="hidden-lg hidden-md hidden-sm">CONTACT US</a></li><li class="moblink"><a href="/careers" class="hidden-lg hidden-md hidden-sm">CAREERS</a></li><li class="moblink"><a href="https://www.connect2nse.com/iislNet/" class="hidden-lg hidden-md hidden-sm" data-sf-ec-immutable="">LOGIN</a></li></ul></div></div><div class="nifty50 d-flex align-items-center gap-2 nifdata"><ul class="list-inline"><li class="nifty50img" style="display:inline-block;"><img alt="" src="https://liveindexsa.niftyindices.com/assets/images/nifty50.png" data-sf-ec-immutable="" /></li><li class="nifty50img"><p id="nifty50Val" class="niftyvalue">25,205.20</p><span id="nifty50Changeval" class="greenvalue">100.95</span><span id="nifty50Pchangeval" class="greenpercentage">0.40%</span>
+ </li></ul></div></div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+
+ </header> <div class="sf_cols"> <div class="sf_colsOut mainSection" data-placeholder-label="mainSection" class="sf_colsIn sf_1col_1in_100"> <div ID="mainInner"> 
+<div id="MainContent_C039_Col00" class="sf_colsIn bannerBlock" data-sf-element="Container" data-placeholder-label="bannerBlock">
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="container iislInfo"><div class="row"><div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 "><h1>NSE Indices Limited is the largest Index provider of India</h1></div><div class="col-lg-6 col-md-6 col-sm-12 col-xs-12"><p>Managing the largest number of Indian indices under the Nifty brand, 201 Passive Funds (ETFs and Index Funds) tracking Nifty indices in India and 13 Passive Funds (ETFs and index Funds) tracking Nifty indices in other global markets.</p><p>Nifty based derivative products are traded in exchanges like NSE and NSE International Exchange IFSC Limited (NSE IX).</p></div></div></div></div>
+</div>
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="container-fluid"><div class="row row-no-padding"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><div class="homebanner_graph bannerCarousel owl-carousel owl-theme"><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/nse-indices-website-(1).png"></source><source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/nifty-indices-website_1162x663-pixel.jpg?sfvrsn=ec006735_1"></source><img src="/images/default-source/updated_banner/nifty-indices-website_1162x663-pixel.jpg?sfvrsn=ec006735_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-50-mobile.jpg"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/nifty50.jpg"></source><img src="/images/default-source/banners/nifty50.jpg?sfvrsn=9a70de39_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-bank-mobile2bbdf74c99bc6f449e1fff0200847f3c.jpg"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/nifty-bankc7e2f74c99bc6f449e1fff0200847f3c.jpg"></source><img src="/images/default-source/banners/nifty-bankc7e2f74c99bc6f449e1fff0200847f3c.jpg?sfvrsn=9870de39_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-small-finance-banks-microfinance-institutions-banners-438x768-pixel_smallcap500-01.jpg?sfvrsn=55916635_1"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/nifty-small-finance-banks-microfinance-institutions-banners-1162x663-pixel_smallcap500-01.jpg?sfvrsn=51916635_1"></source><img src="/images/default-source/banners/nifty-small-finance-banks-microfinance-institutions-banners-1162x663-pixel_smallcap500-01.jpg?sfvrsn=51916635_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-sugar-ethanol-banners-438x768-pixel_smallcap500-01.jpg?sfvrsn=53916635_1"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/nifty-sugar-ethanol-banners-1162x663-pixel_smallcap500-01.jpg?sfvrsn=5f916635_1" alt="Nifty Sugar & Ethanol Banners 1162x663 Pixel_Smallcap500-01"></source><img src="/images/default-source/banners/nifty-sugar-ethanol-banners-1162x663-pixel_smallcap500-01.jpg?sfvrsn=5f916635_1" style="height:auto;" alt="Nifty Sugar & Ethanol Banners 1162x663 Pixel_Smallcap500-01" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/banners-438x768-pixel_11_index.jpg?sfvrsn=51926635_1"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/banners-1162x663-pixel_11_index.jpg?sfvrsn=50926635_1"></source><img src="/images/default-source/banners/banners-1162x663-pixel_11_index.jpg?sfvrsn=50926635_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><div class="bannerItem"><picture><source media="(max-width: 767px)" srcset="/images/default-source/banners/banners-438x768-pixel_3_hybrid_indices.jpg?sfvrsn=a926635_1"></source><source media="(min-width: 768px)" srcset="/images/default-source/banners/banners-1162x663-pixel_3_hybrid_indices.jpg?sfvrsn=9926635_1"></source><img src="/images/default-source/banners/banners-1162x663-pixel_3_hybrid_indices.jpg?sfvrsn=9926635_1" style="height:auto;" alt="banner images" /></picture>
+ <div class="overlayWhite"></div></div><!-- <div class="bannerItem"> -->
+ <!-- <picture> -->
+ <!-- <source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-reits-realty-438x768.jpg?sfvrsn=9f786735_1"> -->
+ <!-- </source> -->
+ <!-- <source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/banners-nifty-reits---realty-1162x663-pixel.jpg?sfvrsn=da006735_1"> -->
+ <!-- </source><img src="/images/default-source/updated_banner/banners-nifty-reits---realty-1162x663-pixel.jpg?sfvrsn=da006735_1" style="height:auto;" alt="banner images" sfref="[images%7COpenAccessDataProvider]bcbc084d-99bc-6f44-9e1f-ff0200847f3c" data-sf-ec-immutable="" />-->
+ <!-- </picture> -->
+ <!-- <div class="overlayWhite"></div> -->
+ <!-- </div><!-- <div class="bannerItem"> --> --&gt;
+                <!-- <picture> -->
+ <!-- <source media="(max-width: 767px)" srcset="/images/default-source/banners/nifty-cement_banners-438x768.jpg?sfvrsn=e71b6735_1"> -->
+ <!-- </source> -->
+ <!-- <source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/banners-nifty_cement-1162x663-pixel_.jpg?sfvrsn=d8006735_1"> -->
+ <!-- </source><img src="/images/default-source/updated_banner/banners-nifty_cement-1162x663-pixel_.jpg?sfvrsn=d8006735_1" style="height:auto;" alt="banner images" sfref="[images%7COpenAccessDataProvider]bebc084d-99bc-6f44-9e1f-ff0200847f3c" data-sf-ec-immutable="" />-->
+ <!-- </picture> -->
+ <!-- <div class="overlayWhite"></div> -->
+ <!-- </div> -->
+ <!-- <div class="bannerItem"> -->
+ <!-- <picture> -->
+ <!-- <source media="(max-width: 767px)" srcset="/images/default-source/banners//images/default-source/banners/banners-438x768-pixel_largemidcap250813-01.jpg?sfvrsn=bf236735_1"> -->
+ <!-- </source> -->
+ <!-- <source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/banners-nifty_largemidcap250-1162x663-pixel.jpg?sfvrsn=d9006735_1"> -->
+ <!-- </source><img src="/images/default-source/updated_banner/banners-nifty_largemidcap250-1162x663-pixel.jpg?sfvrsn=d9006735_1" style="height:auto;" alt="banner images" sfref="[images%7COpenAccessDataProvider]bfbc084d-99bc-6f44-9e1f-ff0200847f3c" data-sf-ec-immutable="" />-->
+ <!-- </picture> -->
+ <!-- <div class="overlayWhite"></div> -->
+ <!-- </div> -->
+ <!-- <div class="bannerItem"> -->
+ <!-- <picture> -->
+ <!-- <source media="(max-width: 767px)" srcset="/images/default-source/banners/banners-438x768-pixel_midsmallcap400-01.jpg?sfvrsn=4216735_1"> -->
+ <!-- </source> -->
+ <!-- <source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/banners-midsmallcap400-50-50-1162x663-pixel.jpg?sfvrsn=db006735_1"> -->
+ <!-- </source><img src="/images/default-source/updated_banner/banners-midsmallcap400-50-50-1162x663-pixel.jpg?sfvrsn=db006735_1" style="height:auto;" alt="banner images" sfref="[images%7COpenAccessDataProvider]bdbc084d-99bc-6f44-9e1f-ff0200847f3c" data-sf-ec-immutable="" />-->
+ <!-- </picture> -->
+ <!-- <div class="overlayWhite"></div> -->
+ <!-- </div> -->
+ <!-- <div class="bannerItem">
+                    <picture>
+                        <source media="(max-width: 767px)" srcset="/images/default-source/banners/banners-438x768-pixel_smallcap500-01.jpg?sfvrsn=d52e6735_1">
+                        </source>
+                        <source media="(min-width: 768px)" srcset="/images/default-source/updated_banner/banners-smallcap500-1162x663-pixel.jpg?sfvrsn=88006735_1">
+                        </source><img src="/images/default-source/updated_banner/banners-smallcap500-1162x663-pixel.jpg?sfvrsn=88006735_1" style="height:auto;" class="sf-immutable-selected" alt="banner images" sfref="[images%7COpenAccessDataProvider]eebc084d-99bc-6f44-9e1f-ff0200847f3c" data-sf-ec-immutable="" /></picture>
+                    <div class="overlayWhite"></div>
+                </div> -->
+ </div><div class="bannerTextHolder"><div class="container"><!--<div class="owlCopy"><p>
+                                                                                                                                                                                                                                                                                                Seasons Greetings &amp; Happy New Year 2018.</p></div>-->
+ <!--<div class="owlCopy"></div>-->
+ <!--<div class="owlCopy"></div>-->
+ <!--<div class="owlCopy"></div>-->
+ <div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy">&nbsp;</div><div class="owlCopy"><p>Tracks 50 largest &amp; liquid companies reflecting overall market conditions and accounts for 63% of total free-float market capitalization of securities listed on NSE</p></div><!--<div class="owlCopy"><p>Tracks the performance of a portfolio of State Development Loans (SDLs) with residual maturity of about 10 years.</p></div>-->
+ <!--<div class="owlCopy"></div>-->
+ <div class="owlCopy"><p>NIFTY50 Equal Weight index &ndash; An alternate weighing strategy to NIFTY 50 index</p></div><!--<div class="owlCopy"></div>-->
+ <!--<p>NIFTY SME EMERGE Index is designed to reflect the performance of a portfolio of eligible small and medium enterprises that are listed on NSE EMERGE platform.</p>-->
+ <div class="owlCopy"><!--<h1>NIFTY 50</h1>-->
+ <!--<a href="#" data-sf-ec-immutable=""><span></span></a>-->
+ </div><!--<div class="owlCopy"></div>-->
+ <div class="owlCopy"><h1>NIFTY Bank</h1><p>Tracks the performance of Indian banking sector and comprises of 12 largest and liquid banking securities.</p><!--<a href="#" data-sf-ec-immutable=""><span></span></a>-->
+ </div><div class="owlCopy"><p>NIFTY Multi-Factor based indices - The best of two worlds: Active and Passive styles.</p><!--<a href="#" data-sf-ec-immutable=""><span></span></a>-->
+ </div><!--<div class="owlCopy"></div>-->
+ <!--<div class="owlCopy"><h1>NIFTY 50</h1></div></div>
+                                                                                                                                                                                                                                                                                                --&gt;
+                                                                                                                                                                                                                                                                                                </div></div></div></div>-->
+ </div></div></div></div></div></div>
+</div>
+</div>
+<div id="MainContent_C044_Col00" class="sf_colsIn indices_ticker" data-sf-element="Container" data-placeholder-label="indices_ticker"><div id="MainContent_C056_Col00" class="sf_colsIn container-fluid container" data-sf-element="Container" data-placeholder-label="container-fluid container">
+
+<script type="text/javascript">
+
+     //createTickerData();
+
+</script>
+
+<input type="hidden" id="removeind" class="removeind" value="<%=this.SetoffilineIndexname%>" />
+<div class="ticker-wrap" >
+    <div class="tickerContainer"></div>
+</div>
+
+</div>
+
+</div>
+<div id="MainContent_C046_Col00" class="sf_colsIn worldOfIndicesBlock" data-sf-element="Container" data-placeholder-label="worldOfIndicesBlock">
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-lg-4">
+            <div class="indicescontent">
+                <h1>Explore our World of Indices</h1>
+                <p>
+                    NIFTY indices are now just a click away…<br />
+                    To know more, click on desired index category<br />
+                </p>
+            </div>
+        </div>
+        <div class="col-lg-7 col-xs-11 col-sm-offset-1">
+            <div id="vis" class="chart">
+                <div class="price"></div>
+            </div>
+            <!-- <p class="text-center">Click on the sectors to explore.</p> -->
+        </div>
+    </div>
+</div>
+
+</div>
+<div id="MainContent_C048_Col00" class="sf_colsIn mapWrapperBlock" data-sf-element="Container" data-placeholder-label="mapWrapperBlock"><div id="MainContent_C055_Col00" class="sf_colsIn container-fluid offring-wrap" data-sf-element="Container" data-placeholder-label="container-fluid"><div id="MainContent_C049_Col00" class="sf_colsIn row row-no-padding" data-sf-element="Container" data-placeholder-label="row row-no-padding">
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="sf-Long-text offering-reort"><div class="col-12 col-sm-6 col-md-7 col-lg-7  blue"><div class="offeringReportsBlock" style="height:398px;"><h3><a href="#" data-sf-ec-immutable="">Our Offerings</a></h3><ul><li><a href="/offerings/index-licensing">Index Licensing</a></li><li><a href="/offerings/data-subscription">Data Subscription</a></li><li><a href="/offerings/index-customization">Customized Indices</a></li></ul></div><div class="offeringReportsBlock darkBlue" style="height:398px;"><h3><a href="#" data-sf-ec-immutable="">Reports</a></h3><ul><li><a href="/reports/daily-reports">Daily Report</a></li><li><a href="/reports/monthly-reports">Monthly Report</a></li><li><a href="https://www.connect2nse.com/iislNet/" data-sf-ec-immutable="">End-of-day Index File</a></li></ul></div></div><div class="col-12 col-sm-6 col-md-5 col-lg-5 mapBG"><h3 class="globeTitle"><a href="#" data-sf-ec-immutable="">OUR PRESENCE</a></h3><div class="mapWrapper"><div class="globe">&nbsp;</div></div></div></div></div>
+</div>
+<div >
+    <div class="sfContentBlock sf-Long-text" ><!--<div class="col-lg-5 col-md-5 col-sm-6 mapBG">
+    <h3 class="globeTitle"><a href="#" data-sf-ec-immutable="">OUR PRESENCE</a></h3>
+    <div class="mapWrapper">
+        <div class="globe">&nbsp;</div>
+    </div>
+</div>--></div>
+</div>
+</div>
+
+</div>
+
+</div>
+<div id="MainContent_C052_Col00" class="sf_colsIn joinReachUs" data-sf-element="Container" data-placeholder-label="joinReachUs"><div id="MainContent_C053_Col00" class="sf_colsIn row" data-sf-element="Container" data-placeholder-label="row">
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+<div class="reach_us">
+<h3>Reach US</h3>
+<p><strong>NSE Indices Limited&nbsp;</strong><br />
+Exchange Plaza, C-1, Block G, BKC,
+Bandra (East), Mumbai 400 051, India </p>
+<p>T: +91-22-2659 8386  |  F: +91-22-2659 8120  |  E: <a id="email" href="mailto:indices@nse.co.in">indices@nse.co.in</a></p>
+</div>
+</div></div>
+</div>
+</div>
+
+</div>
+ </div> </div> </div> <footer ID="footer"> 
+
+<div >
+    <div class="sfContentBlock sf-Long-text" ><div class="primaryFooter"><div class="container" data-placeholder-label="primaryFooter"><div id="footer_T4EA42203012_Col00" class="sf_colsIn sf_1col_1in_100"><div><div class="row"><div class="col-xs-12 mobile_no_pad"><ul class="footerLinks"><li class="subLinksfooter has_nav"><h3>Market Data</h3><ul><li><a href="javascript:void(0);" class="redirectIndexWatch" data-sf-ec-immutable="">Live Indices Watch</a></li><li><a href="javascript:void(0);" class="redirectStockWatch" data-sf-ec-immutable="">Equity Stock Watch </a><a href="#" data-sf-ec-immutable=""> </a></li><li><a href="javascript:void(0);" class="redirectIndexMovers" data-sf-ec-immutable="">Index Movers</a></li><li><a href="javascript:void(0);" class="redirectEtf" data-sf-ec-immutable="">Exchange Traded Funds </a></li><li><a href="/market-data/advanced-charting">Advanced Charting </a></li><li><a href="/market-data/return-profile">Return Profile</a></li></ul></li><li class="subLinksfooter has_nav"><h3>Indices</h3><ul><li><a href="/indices/equity/broad-based-indices">Broad based Indices</a></li><li><a href="/indices/equity/sectoral-indices">Sectoral Indices</a></li><li><a href="/indices/equity/thematic-indices">Thematic Indices</a></li><li><a href="/indices/equity/strategy-indices">Strategy Indices</a></li><li><a href="/indices/fixed-income/gsec-indices">G-SEC Indices</a></li><li><a href="/indices/fixed-income/sovereign-green-bond-indices">Sovereign Green Bond Indices</a></li><li><a href="/indices/fixed-income/sdl-indices">SDL Indices</a></li><li><a href="/indices/fixed-income/corporate-bond-indices">Corporate Bond Indices</a></li><li><a href="/indices/fixed-income/municipal-bond-indices">Municipal Bond Indices</a></li><li><a href="/indices/fixed-income/money-market-indices">Money Market Indices</a></li><li><a href="/indices/fixed-income/target-maturity-index">Target Maturity Indices</a></li><li><a href="/indices/fixed-income/fixed-income-aggregate-index-series">Fixed Income Aggregates</a></li><li><a href="/indices/multi-asset/multi-asset-indices">Multi Asset</a></li></ul></li><li class="subLinksfooter has_nav"><h3>Offerings</h3><ul><li><a href="/offerings/index-licensing">Index Licensing</a></li><li><a href="/offerings/data-subscription">Data Subscription</a></li><li><a href="/offerings/index-customization">Index Customisation</a></li><!-- <li><a href="#" data-sf-ec-immutable="">Index Funds</a></li> -->
+ <!--<li><a href="/market-data/exchange-traded-funds" data-sf-ec-immutable="">Exchange Traded Funds</a></li>-->
+ <!-- <li><a href="/resources/authorized-data-vendors" data-sf-ec-immutable="">Authorised Data Vendors</a></li>-->
+ </ul></li><li class="subLinksfooter has_nav"><h3>Reports</h3><ul><li><a href="/reports/daily-reports">Daily Reports</a></li><li><a href="/reports/monthly-reports">Monthly Report</a></li><li><a href="/reports/historical-data">Historical Data </a></li><li><a href="/reports/index-factsheet">Index Factsheet</a></li><li><a href="/reports/index-dashboard">Index Dashboard</a></li><li><a href="/reports/benchmark-riskometer">Benchmark Riskometer</a></li><li><a href="/BenchmarkCodes/nifty_indices_benchmark_codes.pdf" target="_blank" data-sf-ec-immutable="">Benchmark Codes</a></li><!-- <li><a href="/reports/etf-and-index-fund-dashboard" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]5AB9B7EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">ETF and Index Fund Dashboard</a></li> -->
+ <li><a href="/reports/research-paper">Research Paper</a></li><li><a href="/reports/market-consultation">Market Consultation</a></li><li><a href="https://www.connect2nse.com/iislNet/" data-sf-ec-immutable="">EOD Index File</a></li></ul></li><li class="subLinksfooter has_nav"><h3>Resources</h3><ul><li><a href="/resources/holiday-calendar">Holiday Calendar</a></li><li><a href="/resources/authorized-data-vendors">Authorised Data Vendors</a></li><!--   <li><a href="/resources/index-rebalancing-schedule" data-sf-ec-immutable="">Index Rebalancing Schedule</a></li>-->
+ <li><a href="/resources/index-methodology">Index Methodology</a></li><li><a href="/resources/industry-classification">Industry Classification</a></li><!-- <li><a href="/resources/corporate-action-document" data-sf-ec-immutable="">Corporation Action Documents</a></li>-->
+ <li><a href="/resources/investible-weight-factors">Investible Weight Factors</a></li><li><a href="/resources/iosco-compliance">IOSCO Compliance</a></li><li><a href="/resources/index-concepts">Index Concepts</a>
+ <!--<li><a href="/docs/default-source/tracking-error/trackingerror.pdf" title="Tracking Error" target="_blank" data-sf-ec-immutable="">Tracking Error</a></li>-->
+ <!-- <li><a href="/resources/index-concepts/impact-cost" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c6920f" data-sf-ec-immutable="">Impact Cost</a></li>-->
+ <!-- <li><a href="/resources/index-concepts/total-return-index" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c69455" data-sf-ec-immutable="">Total Return Index</a></li> -->
+ <!-- <li><a href="/resources/index-concepts/beta" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c6955f" data-sf-ec-immutable="">Beta</a></li> -->
+ <!-- <li><a href="/resources/index-concepts/faqs" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]2b0000ff-5156-67b5-a906-0c75c2c6cb3b" data-sf-ec-immutable="">FAQs</a></li>-->
+ <!-- <li><a href="#" data-sf-ec-immutable="">Tutorials</a></li>-->
+ </li><!-- <li><a href="/resources/e-payment-to-nse-indices" sfref="[f669d9a7-009d-4d83-ddaa-000000000002]3CCDB7EF-F4AE-6B1D-9793-FF02002CCACB" data-sf-ec-immutable="">E-Payment to NSE Indices</a></li> -->
+ </ul></li><li><h3><a href="/about-us">About Us</a></h3><h3><a href="/media">Media</a></h3><h3><a href="/contact-us">Contact Us</a></h3><h3><a href="/careers">Careers</a></h3><h3><a href="/sitemap">Sitemap</a></h3></li></ul></div></div></div></div></div></div><div class="secondaryFooter"><div class="container" data-placeholder-label="secondaryFooter"><div id="footer_T4EA42203011_Col00" class="sf_colsIn sf_1col_1in_100"><div><div class="row"><div class="col-xs-12 col-sm-6 text-start copyright"><span>Copyright &copy; 2018 NSE Indices Limited</span>
+ <a class="textLink" href="/disclaimer">Disclaimer</a>
+ <a class="textLink" href="/terms-of-use">Terms of use</a>
+ </div><div class="col-xs-12 col-sm-6 text-end socialIcons"><ul class="social_links"><li><a href="https://www.facebook.com/NationalStockExchange/" data-sf-ec-immutable=""><span class="fb"></span></a></li><li><a href="https://twitter.com/NSEIndia?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor" data-sf-ec-immutable=""><span class="twitter"></span></a></li><li><a href="https://www.linkedin.com/company/nse-indices-limited/posts/?feedView=all" data-sf-ec-immutable=""><span class="linkedin"></span></a></li><li><a href="https://www.youtube.com/channel/UCjDnt2b8-I7bu4MRF9Uwf-A" data-sf-ec-immutable=""><span class="youtube"></span></a></li></ul></div></div></div></div></div></div></div>
+</div><script type="text/javascript">
+document.body.style.overflowY =
+'scroll'
+;document.body.style.overflowX =
+'hidden'
+;
+</script><script type="text/javascript" src="/assets/js/home.js"></script><script type="text/javascript" src="https://liveindexsa.niftyindices.com/assets/js/jquery.mCustomScrollbar.concat.min.js"></script><script type="text/javascript">
+$(document).ready(function() {
+
+
+  $(".bookmarkLi").click(function() {
+    if (window.sidebar) { // Mozilla Firefox Bookmark
+      window.sidebar.addPanel(location.href,document.title,"");
+    } 
+else if(window.external  && ('AddFavorite' in window.external)) { // IE Favorite
+      window.external.AddFavorite(location.href,document.title);
+ }
+    else if(window.opera && window.print) { // Opera Hotlist
+      this.title=document.title;
+      return true;
+    }
+    else { // webkit - safari/chrome
+      //alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark this page.');
+ 
+    //System.Windows.Forms.SendKeys.Send("^(d)");
+    }  
+
+  });
+
+});
+
+</script> </footer> </div> </form> <script>
+
+   
+
+    function getScript(url, success) {
+        var script = document.createElement('script');
+        var csp_nonce = "jQ29EE24";
+        script.setAttribute("nonce", csp_nonce);
+        script.src = url;
+        var head = document.getElementsByTagName('head')[0],
+            done = false;
+        script.onload = script.onreadystatechange = function () {
+            if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
+                done = true;
+                success();
+                script.onload = script.onreadystatechange = null;
+                head.removeChild(script);
+            }
+        };
+        head.appendChild(script);
+    }
+
+    function success() {
+
+        Modernizr.Detectizr.detect({
+            detectScreen: true
+        });
+    }
+    getScript('https://liveindexsa.niftyindices.com/assets/js/vendor.js', function () {
+        // getScript('/assets/js/vendor.js', function () { });
+        getScript('https://liveindexsa.niftyindices.com/assets/js/loadCSS.js', function () { });
+        getScript('https://liveindexsa.niftyindices.com/assets/js/cssrelpreload.js', function () { });
+        getScript('https://liveindexsa.niftyindices.com/assets/js/onloadCSS.js', function () { });
+        getScript('https://liveindexsa.niftyindices.com/assets/js/global.js', function () { });       
+        /*--getScript('/assets/js/IISLComponet.js', function () {
+            // success();
+        });*/
+    });
+</script> <script  src="https://liveindexsa.niftyindices.com/assets/js/IISLComponet.js"></script> </body> </html>
