@@ -144,12 +144,12 @@ Emkay Tools Ltd.,Capital Goods,ETL,SM,INE0PXC01024
 Encompass Design India Ltd.,Services,ENCOMPAS,SM,INE433T01015
 Energy Mission Machineries (India) Ltd.,Capital Goods,EMMIL,SM,INE0S1L01013
 Enfuse Solutions Ltd.,Information Technology,ENFUSE,SM,INE0S3X01014
-Enser Communications Ltd.,Information Technology,ENSER,ST,INE0R9I01021
+Enser Communications Ltd.,Information Technology,ENSER,SM,INE0R9I01021
 Envirotech Systems Ltd.,Capital Goods,ENVIRO,SM,INE0SUH01015
 Eppeltone Engineers Ltd.,Capital Goods,EEPL,SM,INE11HF01010
-Esconet Technologies Ltd.,Information Technology,ESCONET,ST,INE0RQZ01017
+Esconet Technologies Ltd.,Information Technology,ESCONET,SM,INE0RQZ01017
 Esprit Stones Ltd.,Consumer Durables,ESPRIT,SM,INE0SBP01018
-Essen Speciality Films Ltd.,Consumer Durables,ESFL,ST,INE0ITO01014
+Essen Speciality Films Ltd.,Consumer Durables,ESFL,SM,INE0ITO01014
 Excellent Wires and Packaging Ltd.,Capital Goods,EXCELLENT,ST,INE0Y4801011
 Exim Routes Ltd.,Forest Materials,EXIMROUTES,SM,INE19I001020
 Falcon Technoprojects India Ltd.,Services,FALCONTECH,SM,INE0PQK01013
@@ -174,7 +174,7 @@ Ganga Bath Fittings Ltd.,Consumer Durables,GANGABATH,SM,INE0ZI101018
 Gayatri Rubbers And Chemicals Ltd.,Capital Goods,GRCL,ST,INE0LVM01018
 Giriraj Civil Developers Ltd.,Construction,GIRIRAJ,SM,INE614Z01017
 Global Pet Industries Ltd.,Capital Goods,GLOBALPET,ST,INE0PS501019
-Globesecure Technologies Ltd.,Information Technology,GSTL,ST,INE00WS01056
+Globesecure Technologies Ltd.,Information Technology,GSTL,SM,INE00WS01056
 Goldkart Jewels Ltd.,Consumer Durables,GOLDKART,SM,INE06MH01016
 Goldstar Power Ltd.,Automobile and Auto Components,GOLDSTAR,SM,INE405Y01021
 Goyal Salt Ltd.,Fast Moving Consumer Goods,GOYALSALT,SM,INE0QFE01017
@@ -252,7 +252,7 @@ MILTON INDUSTRIES LTD.,Consumer Durables,MILTON,SM,INE376Y01016
 Macobs Technologies Ltd.,Fast Moving Consumer Goods,MACOBSTECH,SM,INE0R0J01010
 Madhusudan Masala Ltd.,Fast Moving Consumer Goods,MADHUSUDAN,ST,INE0P6701019
 Madhya Pradesh Today Media Ltd.,Media Entertainment & Publication,MPTODAY,SM,INE105Y01019
-Magson Retail And Distribution Ltd.,Consumer Services,MAGSON,ST,INE0O1S01012
+Magson Retail And Distribution Ltd.,Consumer Services,MAGSON,SM,INE0O1S01012
 Mahendra Realtors & Infrastructure Ltd.,Construction,MRIL,ST,INE632Q01018
 Mahickra Chemicals Ltd.,Chemicals,MAHICKRA,SM,INE961Y01015
 Maitreya Medicare Ltd.,Healthcare,MAITREYA,SM,INE0PLQ01011
@@ -263,7 +263,7 @@ Mandeep Auto Industries Ltd.,Automobile and Auto Components,MANDEEP,SM,INE0R3T01
 Mangalam Alloys Ltd.,Capital Goods,MAL,SM,INE00C401011
 Manglam Infra & Engineering Ltd.,Services,MIEL,SM,INE0R3101011
 Manilam Industries India Ltd.,Consumer Durables,MANILAM,SM,INE1ERK01013
-Marc Technocrats Ltd.,Services,MARC,ST,INE0TD401015
+Marc Technocrats Ltd.,Services,MARC,SM,INE0TD401015
 Marco Cables & Conductors Ltd.,Capital Goods,MARCO,SM,INE0QP001012
 Marinetrans India Ltd.,Services,MARINETRAN,SM,INE0P1P01017
 Marushika Technology Ltd.,Information Technology,MARUSHIKA,SM,INE0X7G01013
@@ -304,7 +304,7 @@ Nidan Laboratories And Healthcare Ltd.,Healthcare,NIDAN,SM,INE0J6L01013
 Nirman Agri Genetics Ltd.,Fast Moving Consumer Goods,NIRMAN,SM,INE0OK701014
 OBSC Perfection Ltd.,Automobile and Auto Components,OBSCP,SM,INE0YHV01011
 Omfurn India Ltd.,Consumer Durables,OMFURN,ST,INE338Y01016
-On Door Concepts Ltd.,Consumer Services,ONDOOR,ST,INE00ER01015
+On Door Concepts Ltd.,Consumer Services,ONDOOR,SM,INE00ER01015
 Oneclick Logistics India Ltd.,Services,OLIL,ST,INE0OPS01011
 Onyx Biotec Ltd.,Healthcare,ONYX,ST,INE0WVU01018
 Optivalue Tek Consulting Ltd.,Information Technology,OPTIVALUE,SM,INE15B101011
@@ -319,7 +319,7 @@ Paramatrix Technologies Ltd.,Information Technology,PARAMATRIX,SM,INE0S2W01018
 Paramount Dye Tec Ltd.,Textiles,PARAMOUNT,ST,INE0TG801013
 Paramount Speciality Forgings Ltd.,Capital Goods,PSFL,SM,INE0Q6001012
 Parin Enterprises Ltd.,Consumer Durables,PARIN,SM,INE00U801010
-Parth Electricals & Engineering Ltd.,Capital Goods,PARTH,ST,INE1H7V01011
+Parth Electricals & Engineering Ltd.,Capital Goods,PARTH,SM,INE1H7V01011
 Party Cruisers Ltd.,Consumer Services,PARTYCRUS,SM,INE06ZX01015
 Patil Automation Ltd.,Capital Goods,PATILAUTOM,ST,INE17GV01016
 Pattech Fitwell Tube Components Ltd.,Capital Goods,PATTECH,ST,INE0NZW01014
@@ -434,7 +434,7 @@ Slone Infosystems Ltd.,Information Technology,SLONE,ST,INE0SMA01017
 Smarten Power Systems Ltd.,Capital Goods,SMARTEN,ST,INE14GK01016
 Snehaa Organics Ltd.,Chemicals,SNEHAA,ST,INE1OIC01018
 Solve Plastic Products Ltd.,Capital Goods,BALCO,ST,INE0U0201016
-Sona Machinery Ltd.,Capital Goods,SONAMAC,ST,INE0Q6H01012
+Sona Machinery Ltd.,Capital Goods,SONAMAC,SM,INE0Q6H01012
 Sonu Infratech Ltd.,Construction,SONUINFRA,ST,INE0JZA01018
 Sotac Pharmaceuticals Ltd.,Healthcare,SOTAC,SM,INE0O2D01012
 Sp Refractories Ltd.,Capital Goods,SPRL,SM,INE0JW501011
@@ -445,10 +445,10 @@ Srinibas Pradhan Constructions Ltd.,Construction,SPCON,SM,INE0TPJ01019
 Srivari Spices And Foods Ltd.,Fast Moving Consumer Goods,SSFL,ST,INE0ON201012
 Srivasavi Adhesive Tapes Ltd.,Capital Goods,SRIVASAVI,ST,INE0NPI01014
 Striders Impex Ltd.,Consumer Durables,STRIDERS,SM,INE1XWN01017
-Studio LSD Ltd.,Media Entertainment & Publication,STUDIOLSD,ST,INE17VO01028
+Studio LSD Ltd.,Media Entertainment & Publication,STUDIOLSD,SM,INE17VO01028
 Suba Hotels Ltd.,Consumer Services,SUBAHOTELS,SM,INE0RYR01018
 Sundrex Oil Company Ltd.,Oil Gas & Consumable Fuels,SOCL,ST,INE0CTB01014
-Sungarner Energies Ltd.,Capital Goods,SEL,ST,INE0O3O01017
+Sungarner Energies Ltd.,Capital Goods,SEL,SM,INE0O3O01017
 Sunlite Recycling Industries Ltd.,Capital Goods,SUNLITE,ST,INE0U2N01013
 Sunrest Lifescience Ltd.,Healthcare,SUNREST,SM,INE0PLZ01012
 Suntech Infra Solutions Ltd.,Construction,SUNTECH,ST,INE0SGZ01016
