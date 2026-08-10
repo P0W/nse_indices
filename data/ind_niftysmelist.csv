@@ -36,7 +36,7 @@ Amba Auto Sales and Services Ltd.,Automobile and Auto Components,AMBAAUTO,SM,INE
 Ambani Orgochem Ltd.,Chemicals,AMBANIORGO,SM,INE00C501018
 Ameya Precision Engineers Ltd.,Capital Goods,AMEYA,SM,INE0KT901015
 Amiable Logistics (India) Ltd.,Services,AMIABLE,SM,INE0MTP01013
-Anlon Technology Solutions Ltd.,Services,ANLON,ST,INE0LR101013
+Anlon Technology Solutions Ltd.,Services,ANLON,SM,INE0LR101013
 Annapurna Swadisht Ltd.,Fast Moving Consumer Goods,ANNAPURNA,SM,INE0MGM01017
 Anondita Medicare Ltd.,Fast Moving Consumer Goods,ANONDITA,SM,INE0VTV01012
 Anya Polytech & Fertilizers Ltd.,Chemicals,ANYA,SM,INE0SI601032
@@ -92,7 +92,7 @@ Chamunda Electrical Ltd.,Services,CHAMUNDA,SM,INE11HG01018
 Chandan Healthcare Ltd.,Healthcare,CHANDAN,SM,INE0B2N01016
 Chavda Infra Ltd.,Construction,CHAVDA,SM,INE0PT101017
 Chetana Education Ltd.,Media Entertainment & Publication,CHETANA,ST,INE0U1T01012
-Classic Electrodes (India) Ltd.,Capital Goods,CLASSICEIL,ST,INE0UQ601012
+Classic Electrodes (India) Ltd.,Capital Goods,CLASSICEIL,SM,INE0UQ601012
 Clear Secured Services Ltd.,Services,CSSL,SM,INE1EF801010
 Committed Cargo Care Ltd.,Services,COMMITTED,ST,INE597Z01014
 Connplex Cinemas Ltd.,Media Entertainment & Publication,CONNPLEX,SM,INE0EAS01014
@@ -185,7 +185,7 @@ Greenleaf Envirotech Ltd.,Utilities,GREENLEAF,ST,INE0PLX01017
 Gretex Industries Ltd.,Media Entertainment & Publication,GRETEX,SM,INE985P01012
 Grill Splendour Services Ltd.,Consumer Services,BIRDYS,ST,INE0PC901019
 Grover Jewells Ltd.,Consumer Durables,GJL,ST,INE1TY801010
-Gurunanak Agriculture India Ltd.,Capital Goods,GURUNANAK,ST,INE1CCX01012
+Gurunanak Agriculture India Ltd.,Capital Goods,GURUNANAK,SM,INE1CCX01012
 HP Telecom India Ltd.,Services,HPTL,SM,INE0VA601019
 HRH Next Services Ltd.,Services,HRHNEXT,SM,INE0R3501012
 HVAX Technologies Ltd.,Construction,HVAX,SM,INE0TO501019
@@ -226,7 +226,7 @@ Jyoti Global Plast Ltd.,Capital Goods,JYOTIGLOBL,SM,INE1M3T01017
 K2 Infragen Ltd.,Construction,K2INFRA,ST,INE0DEZ01013
 KHFM Hospitality And Facility Management Services Ltd.,Services,KHFM,SM,INE00UG01014
 KKV Agro Powers Ltd.,Consumer Durables,KKVAPOW,SM,INE239T01016
-KRM Ayurveda Ltd.,Healthcare,KRMAYURVED,ST,INE1MTV01019
+KRM Ayurveda Ltd.,Healthcare,KRMAYURVED,SM,INE1MTV01019
 Kabra Jewels Ltd.,Consumer Durables,KKJEWELS,SM,INE0XOW01017
 Kalana Ispat Ltd.,Capital Goods,KALANA,SM,INE0T0L01014
 Kandarp Digi Smart BPO Ltd.,Services,KANDARP,SM,INE0MOT01016
@@ -286,7 +286,7 @@ Monolithisch India Ltd.,Capital Goods,MONOLITH,SM,INE1DV401010
 Mos Utility Ltd.,Financial Services,MOS,ST,INE0N7S01028
 Moving Media Entertainment Ltd.,Services,MMEL,ST,INE0XM301010
 Moxsh Overseas Educon Ltd.,Consumer Services,MOXSH,SM,INE0N6D01014
-Munish Forge Ltd.,Capital Goods,MUNISH,ST,INE1K8Y01018
+Munish Forge Ltd.,Capital Goods,MUNISH,SM,INE1K8Y01018
 My Mudra Fincorp Ltd.,Financial Services,MYMUDRA,SM,INE0RVQ01016
 N R Vandana Tex Industries Ltd.,Textiles,NRVANDANA,ST,INE104101014
 NIKITA GREENTECH RECYCLING Ltd.,Forest Materials,NIKITA,SM,INE0FLF01015
@@ -302,9 +302,9 @@ Newmalayalam Steel Ltd.,Capital Goods,NMSTEEL,SM,INE0TP801012
 Nidan Laboratories And Healthcare Ltd.,Healthcare,NIDAN,SM,INE0J6L01013
 Nirman Agri Genetics Ltd.,Fast Moving Consumer Goods,NIRMAN,SM,INE0OK701014
 OBSC Perfection Ltd.,Automobile and Auto Components,OBSCP,SM,INE0YHV01011
-Omfurn India Ltd.,Consumer Durables,OMFURN,ST,INE338Y01016
+Omfurn India Ltd.,Consumer Durables,OMFURN,SM,INE338Y01016
 On Door Concepts Ltd.,Consumer Services,ONDOOR,SM,INE00ER01015
-Oneclick Logistics India Ltd.,Services,OLIL,ST,INE0OPS01011
+Oneclick Logistics India Ltd.,Services,OLIL,SM,INE0OPS01011
 Onyx Biotec Ltd.,Healthcare,ONYX,ST,INE0WVU01018
 Optivalue Tek Consulting Ltd.,Information Technology,OPTIVALUE,ST,INE15B101011
 Oriana Power Ltd.,Capital Goods,ORIANA,SM,INE0OUT01019
@@ -426,7 +426,7 @@ Shyam Dhani Industries Ltd.,Fast Moving Consumer Goods,SHYAMDHANI,ST,INE1CRP0101
 Siddhi Cotspin Ltd.,Textiles,SIDDHICOTS,SM,INE0SVO01019
 Siddhika Coatings Ltd.,Consumer Durables,SIDDHIKA,SM,INE0A1E01018
 Signoria Creation Ltd.,Textiles,SIGNORIA,ST,INE0RDE01010
-Silkflex Polymers (India) Ltd.,Chemicals,SILKFLEX,ST,INE0STN01015
+Silkflex Polymers (India) Ltd.,Chemicals,SILKFLEX,SM,INE0STN01015
 Silky Overseas Ltd.,Textiles,SILKY,SM,INE0SN801015
 Simca Advertising Ltd.,Media Entertainment & Publication,SIMCA,SM,INE1K4J01018
 Slone Infosystems Ltd.,Information Technology,SLONE,ST,INE0SMA01017
@@ -473,9 +473,9 @@ Thinking Hats Entertainment Solutions Ltd.,Consumer Services,THESL,ST,INE0SHE010
 Timescan Logistics (India) Ltd.,Services,TIMESCAN,SM,INE0IJY01014
 Transteel Seating Technologies Ltd.,Consumer Durables,TRANSTEEL,SM,INE0NVI01020
 Transwind Infra Ltd.,Construction,TRANSWIND,SM,INE792X01016
-Trident Techlabs Ltd.,Information Technology,TECHLABS,ST,INE0QD201012
+Trident Techlabs Ltd.,Information Technology,TECHLABS,SM,INE0QD201012
 Tridhya Tech Ltd.,Information Technology,TRIDHYA,ST,INE0LWY01029
-Trom Industries Ltd.,Capital Goods,TROM,ST,INE0SYV01018
+Trom Industries Ltd.,Capital Goods,TROM,SM,INE0SYV01018
 Trust Fintech Ltd.,Information Technology,TRUST,SM,INE0SWN01019
 Tunwal E-Motors Ltd.,Automobile and Auto Components,TUNWAL,SM,INE0OXV01027
 Ultra Wiring Connectivity System Ltd.,Automobile and Auto Components,UWCSL,SM,INE00F301010
