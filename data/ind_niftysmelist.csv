@@ -80,7 +80,7 @@ Bulkcorp International Ltd.,Capital Goods,BULKCORP,ST,INE0SZ301012
 C K K Retail Mart Ltd.,Fast Moving Consumer Goods,CKKRETAIL,SM,INE0SMX01019
 C P S Shapers Ltd.,Textiles,CPS,SM,INE0QBU01012
 C2C Advanced Systems Ltd.,Capital Goods,C2C,SM,INE0U7V01015
-Cadsys (India) Ltd.,Services,CADSYS,ST,INE090Y01013
+Cadsys (India) Ltd.,Services,CADSYS,SM,INE090Y01013
 Canarys Automations Ltd.,Information Technology,CANARYS,SM,INE0QG301017
 Cash Ur Drive Marketing Ltd.,Media Entertainment & Publication,CUDML,SM,INE0WL201014
 Cedaar Textile Ltd.,Textiles,CEDAAR,ST,INE11J101017
@@ -96,7 +96,7 @@ Clear Secured Services Ltd.,Services,CSSL,SM,INE1EF801010
 Committed Cargo Care Ltd.,Services,COMMITTED,SM,INE597Z01014
 Connplex Cinemas Ltd.,Media Entertainment & Publication,CONNPLEX,SM,INE0EAS01014
 Continental Seeds and Chemicals Ltd.,Fast Moving Consumer Goods,CONTI,SM,INE340Z01019
-Cool Caps Industries Ltd.,Capital Goods,COOLCAPS,ST,INE0HS001028
+Cool Caps Industries Ltd.,Capital Goods,COOLCAPS,SM,INE0HS001028
 Crayons Advertising Ltd.,Media Entertainment & Publication,CRAYONS,SM,INE0OFK01019
 Creative Graphics Solutions India Ltd.,Capital Goods,CGRAPHICS,SM,INE0R7401011
 Crop Life Science Ltd.,Chemicals,CLSL,ST,INE00NH01017
@@ -161,7 +161,7 @@ Fonebox Retail Ltd.,Consumer Services,FONEBOX,SM,INE0Q4701019
 Forcas Studio Ltd.,Textiles,FORCAS,ST,INE0U2501017
 Forge Auto International Ltd.,Automobile and Auto Components,FORGEAUTO,SM,INE0YKW01013
 Freshara Agro Exports Ltd.,Fast Moving Consumer Goods,FRESHARA,ST,INE0SFW01015
-Frog Innovations Ltd.,Telecommunication,FROG,ST,INE385O01018
+Frog Innovations Ltd.,Telecommunication,FROG,SM,INE385O01018
 GP Eco Solutions India Ltd.,Capital Goods,GPECO,SM,INE0S7E01015
 GRILL SPLENDOUR SERVICES Ltd.,Consumer Services,BIRDYS,SM,INE0PC901019
 GSM Foils Ltd.,Capital Goods,GSMFOILS,SM,INE0SQY01018
@@ -264,7 +264,7 @@ Marc Technocrats Ltd.,Services,MARC,SM,INE0TD401015
 Marco Cables & Conductors Ltd.,Capital Goods,MARCO,SM,INE0QP001012
 Marinetrans India Ltd.,Services,MARINETRAN,ST,INE0P1P01017
 Marushika Technology Ltd.,Information Technology,MARUSHIKA,SM,INE0X7G01013
-Marvel Decor Ltd.,Consumer Durables,MDL,ST,INE575Z01010
+Marvel Decor Ltd.,Consumer Durables,MDL,SM,INE575Z01010
 Mason Infratech Ltd.,Realty,MASON,SM,INE0SH001010
 Master Components Ltd.,Capital Goods,MASTER,SM,INE0OJM01017
 Matrix Geo Solutions Ltd.,Information Technology,MGSL,SM,INE132901013
@@ -287,6 +287,7 @@ Moxsh Overseas Educon Ltd.,Consumer Services,MOXSH,SM,INE0N6D01014
 Munish Forge Ltd.,Capital Goods,MUNISH,SM,INE1K8Y01018
 My Mudra Fincorp Ltd.,Financial Services,MYMUDRA,SM,INE0RVQ01016
 N R Vandana Tex Industries Ltd.,Textiles,NRVANDANA,SM,INE104101014
+NET AVENUE TECHNOLOGIES Ltd.,Consumer Services,CBAZAAR,SM,INE518X01015
 NIKITA GREENTECH RECYCLING Ltd.,Forest Materials,NIKITA,SM,INE0FLF01015
 Naman Industries Proxima Ltd.,Consumer Durables,NAMAN,SM,INE0RJM01010
 Namo eWaste Management Ltd.,Utilities,NAMOEWASTE,ST,INE08NZ01012
@@ -294,7 +295,6 @@ Neelam Linens and Garments (India) Ltd.,Textiles,NEELAM,SM,INE0N1401016
 Neochem Bio Solutions Ltd.,Chemicals,NEOCHEM,SM,INE21UM01018
 Nephro Care India Ltd.,Healthcare,NEPHROCARE,SM,INE0SUN01013
 Neptune Petrochemicals Ltd.,Chemicals,NEPTUNE,SM,INE156901014
-Net Avenue Technologies Ltd.,Consumer Services,CBAZAAR,ST,INE518X01015
 Newjaisa Technologies Ltd.,Information Technology,NEWJAISA,ST,INE0PW501021
 Newmalayalam Steel Ltd.,Capital Goods,NMSTEEL,SM,INE0TP801012
 Nidan Laboratories And Healthcare Ltd.,Healthcare,NIDAN,SM,INE0J6L01013
@@ -308,7 +308,7 @@ Optivalue Tek Consulting Ltd.,Information Technology,OPTIVALUE,ST,INE15B101011
 Oriana Power Ltd.,Capital Goods,ORIANA,SM,INE0OUT01019
 Osel Devices Ltd.,Healthcare,OSELDEVICE,SM,INE0RMF01018
 Owais Metal and Mineral Processing Ltd.,Metals & Mining,OWAIS,ST,INE0R8M01017
-P S Raj Steels Ltd.,Capital Goods,PSRAJ,ST,INE0XUS01020
+P S Raj Steels Ltd.,Capital Goods,PSRAJ,SM,INE0XUS01020
 P. E. Analytics Ltd.,Realty,PROPEQUITY,SM,INE0KN801013
 PARAMOUNT DYE TEC Ltd.,Textiles,PARAMOUNT,SM,INE0TG801013
 PARAMPARA DAIRY DELIGHTS LTD.,Capital Goods,PARAMPARA,SM,INE749Y01014
@@ -368,7 +368,7 @@ Remus Pharmaceuticals Ltd.,Healthcare,REMUS,SM,INE0O5T01011
 Renol Polychem Ltd.,Chemicals,RNPL,SM,INE0VZX01015
 Rex Pipes and Cables Industries Ltd.,Capital Goods,REXPIPES,SM,INE00D001018
 Rexpro Enterprises Ltd.,Consumer Durables,REXPRO,SM,INE113601012
-Richa Info Systems Ltd.,Information Technology,RICHA,ST,INE0J1P01015
+Richa Info Systems Ltd.,Information Technology,RICHA,SM,INE0J1P01015
 Rite Zone Chemcon India Ltd.,Chemicals,RITEZONE,SM,INE0MRA01019
 Rockingdeals Circular Economy Ltd.,Services,ROCKINGDCE,SM,INE0PTR01012
 Rox Hi-Tech Ltd.,Information Technology,ROXHITECH,SM,INE0PDJ01013
@@ -414,7 +414,7 @@ Shree Karni Fabcom Ltd.,Textiles,SHREEKARNI,SM,INE0S4Y01010
 Shree OSFM E-Mobility Ltd.,Services,SHREEOSFM,SM,INE02S501018
 Shree Tirupati Balajee FIBC Ltd.,Capital Goods,TIRUPATI,SM,INE238Y01018
 Shreeji Global FMCG Ltd.,Fast Moving Consumer Goods,SHETHJI,SM,INE1FL101016
-Shri Ahimsa Naturals Ltd.,Fast Moving Consumer Goods,SHRIAHIMSA,ST,INE0DM401012
+Shri Ahimsa Naturals Ltd.,Fast Moving Consumer Goods,SHRIAHIMSA,SM,INE0DM401012
 Shri Hare-Krishna Sponge Iron Ltd.,Metals & Mining,SHKSIL,SM,INE0NON01025
 Shri Kanha Stainless Ltd.,Capital Goods,SHRIKANHA,SM,INE1V4601019
 Shri Techtex Ltd.,Capital Goods,SHRITECH,SM,INE0OMF01015
@@ -498,7 +498,7 @@ Vdeal System Ltd.,Capital Goods,VDEAL,SM,INE0U2M01015
 Veekayem Fashion and Apparels Ltd.,Textiles,VEEKAYEM,SM,INE0KTW01013
 Vels Film International Ltd.,Media Entertainment & Publication,VELS,ST,INE0I3H01019
 Veritaas Advertising Ltd.,Media Entertainment & Publication,VERITAAS,SM,INE0SRI01019
-Vertexplus Technologies Ltd.,Information Technology,VERTEXPLUS,SM,INE0NLB01018
+Vertexplus Technologies Ltd.,Information Technology,VERTEXPLUS,ST,INE0NLB01018
 Viaz Tyres Ltd.,Automobile and Auto Components,VIAZ,SM,INE0MO401019
 Victory Electric Vehicles International Ltd.,Automobile and Auto Components,VICTORYEV,SM,INE0F8901022
 Vigor Plast India Ltd.,Capital Goods,VIGOR,SM,INE1DM601016
