@@ -19,7 +19,7 @@ Accretion Pharmaceuticals Ltd.,Healthcare,ACCPL,ST,INE0T8T01010
 Acetech E-Commerce Ltd.,Consumer Services,ACETEC,SM,INE1J6M01010
 Active Infrastructures Ltd.,Realty,ACTIVEINFR,SM,INE0KLO01025
 Addictive Learning Technology Ltd.,Consumer Services,ADDICTIVE,ST,INE0RDH01021
-Adisoft Technologies Ltd.,Capital Goods,ADISOFT,SM,INE20PL01012
+Adisoft Technologies Ltd.,Capital Goods,ADISOFT,ST,INE20PL01012
 Aditya Ultra Steel Ltd.,Capital Goods,AUSL,SM,INE01YQ01013
 Aeron Composite Ltd.,Capital Goods,AERON,SM,INE0WL801011
 Aesthetik Engineers Ltd.,Construction,AESTHETIK,SM,INE0TSF01011
@@ -27,7 +27,7 @@ Agarwal Float Glass India Ltd.,Capital Goods,AGARWALFT,SM,INE0MLA01012
 Agarwal Toughened Glass India Ltd.,Capital Goods,AGARWALTUF,SM,INE0P8X01016
 Agni Green Power Ltd.,Construction,AGNI,SM,INE0LF301013
 Aimtron Electronics Ltd.,Capital Goods,AIMTRON,SM,INE0RUV01018
-Akanksha Power and Infrastructure Ltd.,Capital Goods,AKANKSHA,SM,INE0PCY01014
+Akanksha Power and Infrastructure Ltd.,Capital Goods,AKANKSHA,ST,INE0PCY01014
 Akiko Global Services Ltd.,Financial Services,AKIKO,SM,INE0PMR01017
 Alcokraft Distilleries Ltd.,Fast Moving Consumer Goods,ALCODIS,SM,INE448V01019
 All E Technologies Ltd.,Information Technology,ALLETEC,SM,INE0M2X01012
@@ -253,10 +253,10 @@ Lead Reclaim And Rubber Products Ltd.,Capital Goods,LRRPL,SM,INE0H4B01011
 M.V.K. Agro Food Product Ltd.,Fast Moving Consumer Goods,MVKAGRO,SM,INE0SGC01015
 MILTON INDUSTRIES LTD.,Consumer Durables,MILTON,SM,INE376Y01016
 Macobs Technologies Ltd.,Fast Moving Consumer Goods,MACOBSTECH,SM,INE0R0J01010
-Madhusudan Masala Ltd.,Fast Moving Consumer Goods,MADHUSUDAN,ST,INE0P6701019
+Madhusudan Masala Ltd.,Fast Moving Consumer Goods,MADHUSUDAN,SM,INE0P6701019
 Madhya Pradesh Today Media Ltd.,Media Entertainment & Publication,MPTODAY,SM,INE105Y01019
 Magson Retail And Distribution Ltd.,Consumer Services,MAGSON,SM,INE0O1S01012
-Mahendra Realtors & Infrastructure Ltd.,Construction,MRIL,ST,INE632Q01018
+Mahendra Realtors & Infrastructure Ltd.,Construction,MRIL,SM,INE632Q01018
 Mahickra Chemicals Ltd.,Chemicals,MAHICKRA,SM,INE961Y01015
 Maitreya Medicare Ltd.,Healthcare,MAITREYA,SM,INE0PLQ01011
 Maks Energy Solutions India Ltd.,Capital Goods,MAKS,SM,INE0CDK01019
@@ -358,7 +358,7 @@ Quality Foils (India) Ltd.,Capital Goods,QFIL,SM,INE0O1M01015
 Quest Laboratories Ltd.,Healthcare,QUESTLAB,SM,INE0TNW01017
 Quicktouch Technologies Ltd.,Services,QUICKTOUCH,SM,INE0K4D01020
 RBM Infracon Ltd.,Oil Gas & Consumable Fuels,RBMINFRA,SM,INE0NA301016
-RFBL Flexi Pack Ltd.,Capital Goods,RFBL,ST,INE0V2V01015
+RFBL Flexi Pack Ltd.,Capital Goods,RFBL,SM,INE0V2V01015
 RNFI Services Ltd.,Financial Services,RNFI,SM,INE0SA001017
 Rachana Infrastructure Ltd.,Construction,RILINFRA,SM,INE02OY01016
 Radiowalla Network Ltd.,Media Entertainment & Publication,RADIOWALLA,ST,INE430U01019
@@ -396,7 +396,7 @@ Sahaj Solar Ltd.,Capital Goods,SAHAJSOLAR,SM,INE0P4701011
 Sahana System Ltd.,Information Technology,SAHANA,SM,INE0LEX01011
 Sahasra Electronic Solutions Ltd.,Capital Goods,SAHASRA,SM,INE0RBQ01018
 Saj Hotels Ltd.,Consumer Services,SAJHOTELS,ST,INE00MT01022
-Samay Project Services Ltd.,Construction,SAMAY,ST,INE124101010
+Samay Project Services Ltd.,Construction,SAMAY,SM,INE124101010
 Sameera Agro And Infra Ltd.,Fast Moving Consumer Goods,SAIFL,SM,INE0PZA01015
 Sangani Hospitals Ltd.,Healthcare,SANGANI,SM,INE0OVI01010
 Sar Televenture Ltd.,Telecommunication,SARTELE,SM,INE0PUC01020
@@ -448,7 +448,7 @@ Spectrum Talent Management Ltd.,Services,SPECTSTM,SM,INE0OL001018
 Spunweb Nonwoven Ltd.,Textiles,SPUNWEB,SM,INE19QH01010
 Srinibas Pradhan Constructions Ltd.,Construction,SPCON,SM,INE0TPJ01019
 Srivari Spices And Foods Ltd.,Fast Moving Consumer Goods,SSFL,ST,INE0ON201012
-Srivasavi Adhesive Tapes Ltd.,Capital Goods,SRIVASAVI,ST,INE0NPI01014
+Srivasavi Adhesive Tapes Ltd.,Capital Goods,SRIVASAVI,SM,INE0NPI01014
 Striders Impex Ltd.,Consumer Durables,STRIDERS,SM,INE1XWN01017
 Studio LSD Ltd.,Media Entertainment & Publication,STUDIOLSD,SM,INE17VO01028
 Suba Hotels Ltd.,Consumer Services,SUBAHOTELS,SM,INE0RYR01018
@@ -459,7 +459,7 @@ Sunrest Lifescience Ltd.,Healthcare,SUNREST,SM,INE0PLZ01012
 Suntech Infra Solutions Ltd.,Construction,SUNTECH,SM,INE0SGZ01016
 Supreme Facility Management Ltd.,Services,SFML,SM,INE0U6N01014
 Supreme Power Equipment Ltd.,Capital Goods,SUPREMEPWR,SM,INE0QHG01026
-Surani Steel Tubes Ltd.,Capital Goods,SURANI,SM,INE01ZJ01015
+Surani Steel Tubes Ltd.,Capital Goods,SURANI,ST,INE01ZJ01015
 Swastik Pipe Ltd.,Capital Goods,SWASTIK,ST,INE0DGC01025
 Sylvan Plyboard (India) Ltd.,Consumer Durables,SYLVANPLY,SM,INE01IH01015
 Synoptics Technologies Ltd.,Information Technology,SYNOPTICS,SM,INE0BTR01012
@@ -515,7 +515,7 @@ Vigor Plast India Ltd.,Capital Goods,VIGOR,SM,INE1DM601016
 Vijaypd Ceutical Ltd.,Consumer Services,VIJAYPD,SM,INE0WL901019
 Vilas Transcore Ltd.,Capital Goods,VILAS,SM,INE0AZY01017
 Vinit Mobile Ltd.,Consumer Services,VMOBILE,SM,INE27V201011
-Vinsys IT Services India Ltd.,Consumer Services,VINSYS,ST,INE0OSJ01014
+Vinsys IT Services India Ltd.,Consumer Services,VINSYS,SM,INE0OSJ01014
 Vinyas Innovative Technologies Ltd.,Capital Goods,VINYAS,SM,INE0OLS01010
 Virtual Galaxy Infotech Ltd.,Information Technology,VGINFOTECH,SM,INE0VRH01015
 Visdem Technosys Ltd.,Consumer Durables,VISDEM,SM,INE0OWX01025
