@@ -1,6 +1,3 @@
-# Updated core.py with realistic_execution added to StrategyConfig
-# Also added to address criticisms: Momentum Weighting Bias (made weights configurable and adaptive option), Metric Gaps (not here, but in metrics calculation in etf_momentum_strategy.py)
-
 """
 Core components for the ETF Momentum Strategy.
 

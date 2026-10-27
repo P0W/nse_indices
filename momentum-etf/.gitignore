@@ -124,4 +124,6 @@ logs/
 *.png
 *.xlsx
 *.csv
+*.pptx
+*linkedin*.pdf
 momentum_strategy_*.log

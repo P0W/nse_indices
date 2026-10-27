@@ -1,386 +1,158 @@
-# 🚀 ETF Momentum Strategy for Indian Markets
+# Cross-Sectional ETF Momentum Strategy (NSE)
 
-## 🇮🇳 Why Indian ETFs? The Trillion-Dollar Opportunity
+Systematic dual-timeframe cross-sectional momentum engine for liquid Indian NSE-listed ETFs, supporting live 5-ETF portfolio rotation (deployed via Smallcase/broker baskets), stateful holdings rebalancing, and multi-parameter `Backtrader` simulation with Indian statutory transaction costs and square-root market-impact slippage modeling.
 
-The Indian ETF market has **exploded from ₹1,000 crores in 2019 to over ₹7,50,000 crores in 2024** - a **75x growth**! With India's economy projected to become the world's 3rd largest by 2030, ETFs offer the perfect vehicle to capture this growth systematically.
+---
 
-**Key Indian ETF Market Facts:**
-- 📈 **Average ETF AUM growth**: 85% annually (2019-2024)
-- 🏆 **Top performing ETFs**: Gold, Banking, and Technology sectors
-- 💰 **Low expense ratios**: 0.05% to 0.65% vs 1.5-2.5% for mutual funds
-- 🔄 **Liquidity**: ₹500+ crores daily trading volume
-- 📊 **Tax efficiency**: Long-term capital gains at 10% vs 15% for equity funds
+## Quantitative Methodology
 
-## 🎯 Strategy Overview
+### 1. Dual-Horizon Momentum Score (`core.py`)
+For each ETF $i$ in the liquid universe with at least `min_data_points = 200` trading days of history, the composite momentum score combines long-horizon trend persistence with medium-term acceleration:
 
-This system implements a **battle-tested dual-timeframe momentum strategy** that automatically identifies and invests in the top-performing Indian ETFs:
+$$\text{Score}_i = w_L \cdot R_{i, L} + w_S \cdot R_{i, S}$$
 
-### 🧠 The Science Behind Momentum
+- **Long-term lookback ($L$):** `252` trading days (~12 months; configurable `180–252` days)
+- **Short-term lookback ($S$):** `60` trading days (~3 months)
+- **Default weights:** $(w_L, w_S) = (0.60, 0.40)$
+- **Volatility-adaptive regime (`adaptive_weights=True`):** Shifts weights to $(0.50, 0.50)$ when 30-day annualized cross-sectional market volatility exceeds `20%`.
 
-**Academic Research Shows:**
-- Momentum strategies have delivered **8-12% annual alpha** globally (Jegadeesh & Titman, 1993)
-- **84% of institutional investors** use momentum-based strategies (Goldman Sachs, 2023)
-- Indian markets exhibit **stronger momentum effects** than developed markets due to lower efficiency
+### 2. Regime Filters & Turnover Controls
+Before ranking, candidate ETFs are screened through three filters:
+- **Trend Filter (`50-EMA`):** Requires current adjusted close above its 50-day exponential moving average ($P_t > \text{EMA}_{50}$).
+- **Retracement Filter:** Excludes ETFs whose drawdown from their rolling lookback peak exceeds `50%`.
+- **Liquidity Filter (optional):** Enforces minimum 30-day average traded volume.
+- **Equal-Weight Top-$N$ Selection & Rank-Buffered Exit:** Allocates equal weight (`20%` each for $N = 5$) to the top $N$ ranked ETFs on the 5th of each month. Existing holdings are retained until their cross-sectional rank falls below `exit_rank_buffer_multiplier × N` (`Rank > 10` for $N = 5$), reducing unnecessary monthly churn.
 
-### ⚡ Our Winning Formula
+### 3. Statutory Transaction Costs & Market Impact (`TradingCostCalculator`, `MarketImpactModel`)
+- **Indian Equity/ETF Delivery Cost Structure:** Models brokerage (`0.03%` capped at ₹20/order), sell-side STT (`0.025%`), NSE exchange turnover charges (`0.00325%`), SEBI regulatory fees, buy-side stamp duty (`0.003%`), and `18%` GST on brokerage + exchange fees.
+- **Market-Impact Slippage Model:** Models execution slippage as a function of order volume participation ($Q / V_{\text{daily}}$) and realized volatility ($\sigma$):
+  $$\text{Slippage} = \min\!\left(0.03,\; \left(c_{\text{lin}} \frac{Q}{V} + c_{\text{sqrt}} \sqrt{\frac{Q}{V}} + 0.02\sigma\right) \cdot \eta_{\text{dir}}\right)$$
 
-**Momentum Score Calculation:**
-```
-Combined Score = (12-month return × 60%) + (3-month return × 40%)
-```
+---
 
-**Why This Works:**
-- **12-month period (252 days)**: Captures long-term structural trends
-- **3-month period (60 days)**: Identifies recent acceleration  
-- **60/40 weighting**: Balances stability with responsiveness
+## Backtest Evaluation (Jan 2020 – Jul 2025)
 
-**Smart Risk Management:**
-- ✅ **Moving Average Filter**: Only invest when ETF > 50-day average
-- ✅ **Drawdown Protection**: Skip ETFs down >50% from recent highs
-- ✅ **Data Quality Check**: Minimum 200 days of reliable data required
-- ✅ **Position Sizing**: Equal weight top 5 ETFs (max 20% each)
-- ✅ **Exit Buffer**: Sell when ETF rank falls below 10 (2x portfolio size)
+Evaluated over `2020-01-01` to `2025-07-09` (5.5 years) across the 13-ETF NSE universe using `Backtrader` (`backtrader_momentum_strategy.py`) and the native portfolio simulator (`etf_momentum_strategy.py`):
 
-## 🏆 Proven Performance
-
-**Backtested Results (2020-2025):**
-- 💰 **₹1,00,000 → ₹2,36,568** (136.6% total return)
-- 📈 **19.5% annualized return** (vs 12% Nifty average)
-- 🎯 **89.4% win ratio** (237 winning trades out of 265)
-- 📉 **16.1% max drawdown** (₹14,720)
-- ⚡ **1.29 Sharpe ratio** (excellent risk-adjusted returns)
-- 🔄 **265 trades** over 5.5 years (disciplined approach)
-- 💸 **₹2,067 total transaction costs** (2% of initial capital)
-- ⏳ **557 days to recover** from max drawdown
-- 🔥 **Max Winning Streak**: 52 trades
-- 🥶 **Max Losing Streak**: 8 trades
-
-## 📈 Backtesting Results (2020-2025)
-
-### Performance Summary
-
-The momentum ETF strategy was backtested from January 1, 2020, to July 9, 2025, showing strong performance across the test period:
-
-**Key Performance Metrics:**
-- **Initial Capital**: ₹1,00,000
-- **Final Portfolio Value**: ₹2,36,568
-- **Total Return**: 136.6%
-- **Annualized Return**: 19.5%
-- **Volatility**: 11.7%
-- **Maximum Drawdown**: -16.1%
-- **Sharpe Ratio**: 1.29
-- **Win Ratio**: 89.4%
-- **Total Trades**: 265
-- **Transaction Costs**: ₹2,067
+| Metric | Backtrader (`L=252, S=60, N=5`) | Parameter Sweep (`L=200, S=60, N=5`) |
+| :--- | :--- | :--- |
+| **Initial Capital** | ₹1,00,000 | ₹1,00,000 |
+| **Final Portfolio Value** | ₹2,36,568 | ₹2,42,126 |
+| **Cumulative Return** | `136.6%` | `142.1%` |
+| **Annualized Return (CAGR)** | `19.5%` | `19.3%` |
+| **Annualized Volatility** | `11.7%` | `11.7%` |
+| **Sharpe Ratio** | `1.29` | `1.32` |
+| **Maximum Drawdown** | `-16.1%` | `-12.1%` |
+| **Total Rebalance Trades** | `265` | `265` |
+| **Simulated Transaction Costs** | ₹2,067 | ₹2,005 |
 
 ### Strategy Performance Analysis
 
 ![Backtrader Analysis](backtrader_analysis_20200101_20250709.png)
 
-*Performance analysis showing portfolio value progression, returns distribution, and key metrics over the backtesting period.*
+*Portfolio equity curve, return distribution, and rolling performance metrics (`2020-01-01` to `2025-07-09`).*
 
-### Portfolio Dashboard
+### Portfolio Risk & Drawdown Dashboard
 
 ![Backtrader Dashboard](backtrader_dashboard_20200101_20250709.png)
 
-*Comprehensive dashboard displaying cumulative returns, drawdowns, trade analysis, and risk metrics.*
-
-**Note:** The images reflect the backtest results as of July 9, 2025.
-
-### Key Insights from Backtesting
-
-1. **Consistent Growth**: The strategy delivered steady portfolio growth with a 136.6% total return over 5.5 years.
-2. **Strong Risk-Adjusted Returns**: Sharpe ratio of 1.29 indicates good risk-adjusted performance.
-3. **Excellent Win Rate**: 89.4% win ratio demonstrates the effectiveness of the momentum selection process.
-4. **Low Transaction Costs**: At ₹2,067 total costs, transaction expenses remain very manageable.
-5. **Controlled Drawdowns**: Maximum drawdown of 16.1% (₹14,720) shows reasonable risk management.
-6. **Drawdown Recovery**: Recovered from max drawdown in 557 days.
-7. **Strong Streaks**: Achieved a maximum winning streak of 52 trades and a maximum losing streak of 8 trades.
-8. **Low Volatility**: 11.7% volatility indicates relatively stable returns.
-
-### Backtest Methodology
-
-- **Period**: January 1, 2020 - July 9, 2025 (5.5 years)
-- **Initial Capital**: ₹1,00,000 (as per backtrader config)
-- **Rebalancing**: Monthly on the 5th of each month
-- **Universe**: 13 liquid Indian ETFs
-- **Portfolio Size**: Top 5 ETFs by momentum score
-- **Weighting**: Equal weight allocation (20% each)
-- **Long-term Momentum**: 252 trading days (~12 months)
-- **Short-term Momentum**: 60 trading days (~3 months)
-- **Exit Rule**: Sell when ETF rank falls below 10 (2x portfolio size)
-- **Transaction Costs**: Realistic brokerage simulation
+*Cumulative returns, underwater drawdown profile, trade distribution, and risk diagnostics.*
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & CLI Usage
 
 ```bash
-# Quick 30-second setup
-git clone <repository-url>
 cd momentum-etf
 uv sync
 ```
 
-That's it! You're ready to discover tomorrow's winning ETFs today.
-
-## 🎮 4 Super Simple Commands
-
-No complex analysis needed. Just run these commands and follow the clear instructions:
-
-### 1. � **Discover Today's Winners**
+### 1. Generate Target Top-5 Momentum Portfolio
 
 ```bash
-uv run  portfolio
+uv run portfolio --amount 1000000
 ```
 
-**What you get:** Exact ETFs to buy with precise allocation for any amount.
+**Sample Output:**
+```text
+TODAY'S OPTIMAL ETF PORTFOLIO
+Investment Amount: ₹1,000,000.00
 
-**Real Output:**
-```
-💼 TODAY'S OPTIMAL ETF PORTFOLIO
-💰 Investment Amount: ₹1,000,000.00
-
-📈 TOP 5 MOMENTUM ETFS TO BUY NOW:
+TOP 5 MOMENTUM ETFS:
 ┌────────────────┬──────────┬─────────┬──────────────┬─────────────┐
-│ 🥇 GOLDBEES    │ ₹80.53   │ 2,483   │ ₹199,956     │ 🔥 17.99%   │
-│ 🥈 SILVERBEES  │ ₹103.79  │ 1,926   │ ₹199,900     │ 🔥 16.96%   │
-│ 🥉 PSUBNKBEES  │ ₹79.50   │ 2,515   │ ₹199,942     │ 🔥 11.64%   │
-│ 4️⃣ INFRAIETF   │ ₹96.63   │ 2,069   │ ₹199,927     │ 🔥 8.04%    │
-│ 5️⃣ NIFTYBEES   │ ₹286.07  │ 699     │ ₹199,963     │ 🔥 7.21%    │
+│ 1. GOLDBEES    │ ₹80.53   │ 2,483   │ ₹199,956     │ 17.99%      │
+│ 2. SILVERBEES  │ ₹103.79  │ 1,926   │ ₹199,900     │ 16.96%      │
+│ 3. PSUBNKBEES  │ ₹79.50   │ 2,515   │ ₹199,942     │ 11.64%      │
+│ 4. INFRAIETF   │ ₹96.63   │ 2,069   │ ₹199,927     │ 8.04%       │
+│ 5. NIFTYBEES   │ ₹286.07  │ 699     │ ₹199,963     │ 7.21%       │
 └────────────────┴──────────┴─────────┴──────────────┴─────────────┘
-
-💰 Cash Remaining: ₹312
-🎯 Next: Buy these ETFs through your broker app
+Cash Remaining: ₹312
 ```
 
-### 2. 🕐 **Time Travel Analysis**
+### 2. Rebalance Existing Holdings (`JSON` or `CSV`)
 
 ```bash
-uv run historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 500000 --size 7
+uv run rebalance --holdings-file holdings.json --from-date 2024-01-01
 ```
 
-**What you get:** See how the strategy evolved between any two dates and what portfolio changes were needed.
-
-### 3. 🔄 **Portfolio Health Check**
-
-```bash
-uv run  rebalance --holdings-file holdings.json --from-date 2024-01-01
-```
-
-**What you get:** Complete rebalancing analysis comparing your current holdings with optimal allocation.
-
-**Example Holdings File (JSON):**
+**Holdings File Format (`holdings.json`):**
 ```json
 [
   {"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50},
   {"symbol": "GOLDBEES.NS", "units": 200, "price": -1}
 ]
 ```
+*(Setting `"price": -1` instructs the data provider to look up the historical adjusted close on `--from-date`.)*
 
-**Example Holdings File (CSV):**
-```csv
-symbol,units,price
-NIFTYBEES.NS,350,120.50
-GOLDBEES.NS,200,-1
-```
-
-**Real Output:**
-```
-🔄 PORTFOLIO REBALANCING ANALYSIS
-📅 Purchase Date: 2024-01-01
-📅 Current Date: 2025-07-09
-🎯 Target Portfolio Size: 5 ETFs
-
-💼 CURRENT PORTFOLIO ANALYSIS:
-┌─────────────┬───────┬───────────┬──────────────┬────────────┬──────────────┬────────────┬──────────┐
-│ ETF         │ Units │ Buy Price │ Current Price│ Invested   │ Current Value│ Gain/Loss  │ Return % │
-├─────────────┼───────┼───────────┼──────────────┼────────────┼──────────────┼────────────┼──────────┤
-│ NIFTYBEES   │ 350   │ ₹120.50   │ ₹286.07      │ ₹42,175    │ ₹100,125     │ +₹57,950   │ +137.4%  │
-│ GOLDBEES    │ 200   │ ₹65.20    │ ₹80.53       │ ₹13,040    │ ₹16,106      │ +₹3,066    │ +23.5%   │
-└─────────────┴───────┴───────────┴──────────────┴────────────┴──────────────┴────────────┴──────────┘
-
-💰 PORTFOLIO SUMMARY:
-   Total Invested:    ₹55,215
-   Current Value:     ₹116,231
-   Total Gain/Loss:   +₹61,016
-   Total Return:      +110.5%
-   Annualized Return: +25.8%
-
-🔄 REBALANCING RECOMMENDATIONS:
-❌ SELL (no longer in optimal portfolio):
-   • NIFTYBEES.NS: SELL ALL 350 units → ₹100,125
-
-✅ BUY (new entries to optimal portfolio):
-   • SILVERBEES.NS: BUY 224 units → ₹23,246
-   • PSUBNKBEES.NS: BUY 293 units → ₹23,292
-```
-
-### 4. � **Performance Validation**
+### 3. Historical Point-in-Time Portfolio Reconstruction
 
 ```bash
-uv run backtest --portfolio-sizes 5  --exit-rank-buffers 2   --long-term-periods 200  --short-term-periods 60 --initial-capitals 100000 --start-date 2020-01-01 --end-date 2025-07-09
+uv run historical --from-date 2024-01-01 --to-date 2024-12-31 --amount 500000 --size 5
 ```
 
-**What you get:** Full historical performance with charts and metrics.
-
-**Real Output:**
-```
-🎯 BACKTEST RESULTS:
-==================================================
-💰 Final Value: ₹2,42,126.26
-📈 Total Return: 142.13%
-📊 Annualized Return: 19.34%
-🎲 Volatility: 11.74%
-📉 Max Drawdown: -12.09%
-⚡ Sharpe Ratio: 1.32
-🔄 Total Trades: 265
-🏆 Win Ratio: 93.6%
-💸 Transaction Costs: ₹2,005.26
-==================================================
-
-📊 Generating performance charts...
-📁 Chart files saved in current directory
-```
+### 4. Multi-Parameter Backtest Sweep
 
 ```bash
-## 📈 Indian ETF Universe - Your Investment Playground
-
-**13 Carefully Selected Liquid ETFs** spanning India's growth story:
-
-| **Sector** | **ETF** | **What It Tracks** | **Why It Matters** |
-|------------|---------|-------------------|-------------------|
-| 🏛️ **Broad Market** | NIFTYBEES | Top 50 Indian companies | India's economic backbone |
-| 📊 **Growth** | SETFNN50 | Next 50 large companies | Tomorrow's giants |
-| 🏦 **Banking** | PSUBNKBEES | Public sector banks | Credit growth story |
-| 💰 **Gold** | GOLDBEES | Physical gold | Inflation hedge |
-| 🥈 **Silver** | SILVERBEES | Physical silver | Industrial demand |
-| � **Healthcare** | PHARMABEES | Pharmaceutical sector | Global export leader |
-| 💻 **Technology** | ITBEES | IT services | Digital transformation |
-| � **Auto** | AUTOBEES | Automobile sector | EV revolution |
-| 🏗️ **Infrastructure** | INFRAIETF | Roads, power, utilities | Nation building |
-| 📱 **Consumer** | CONSUMBEES | Consumer goods | Rising middle class |
-| 📈 **Dividends** | DIVOPPBEES | High dividend stocks | Income generation |
-| 🕌 **Shariah** | SHARIABEES | Shariah-compliant stocks | Faith-based investing |
-| 🏢 **CPSE** | CPSEETF | Central PSU stocks | Government reforms |
-
-## 🎯 Current Market Insights (July 2025)
-
-**Top Momentum Leaders:**
-1. **🥇 GOLDBEES (17.99%)** - Safe haven demand amid global uncertainty
-2. **🥈 PSUBNKBEES (11.64%)** - Banking sector revival post-NPA cleanup  
-3. **🥉 NIFTYBEES (7.21%)** - Broad market strength
-4. **4️⃣ ITBEES (4.18%)** - Tech sector recovery
-5. **5️⃣ SILVERBEES (3.85%)** - Industrial demand surge
-
-**Market Themes:**
-- 🏆 **Precious metals** leading due to inflation concerns
-- 🏦 **Banking revival** with improved asset quality
-- 💻 **Tech recovery** after 2022-23 correction
-- 🏗️ **Infrastructure** benefiting from government capex
-
-## 🚀 Why This Strategy Crushes the Market
-
-### **vs. Traditional Investing:**
-- ❌ **Buy & Hold**: No adaptation to market cycles
-- ❌ **Mutual Funds**: High fees (1.5-2.5%) + manager risk
-- ❌ **Stock Picking**: Requires expertise + time
-- ✅ **Our Strategy**: Systematic, low-cost, adaptive
-
-### **vs. Other ETF Strategies:**
-- ❌ **Static Allocation**: No momentum capture
-- ❌ **Market Cap Weighting**: Overweight in expensive stocks
-- ❌ **Sector Rotation**: Timing risk
-- ✅ **Our Strategy**: Data-driven momentum with risk controls
+uv run backtest --portfolio-sizes 5 --exit-rank-buffers 2 --long-term-periods 200 --short-term-periods 60 --initial-capitals 100000 --start-date 2020-01-01 --end-date 2025-07-09
 ```
 
 ---
 
-## 🏃‍♂️ Get Started
+## Liquid NSE ETF Universe (13 Instruments)
 
-**Step 1:** Install
-```bash
-uv sync
-```
+| Category | Ticker (`.NS`) | Underlying Benchmark / Exposure |
+| :--- | :--- | :--- |
+| **Broad Large-Cap** | `NIFTYBEES` | Nifty 50 Index |
+| **Large/Mid Growth** | `SETFNN50` | Nifty Next 50 Index |
+| **PSU Banking** | `PSUBNKBEES` | Nifty PSU Bank Index |
+| **Precious Metals (Gold)** | `GOLDBEES` | Domestic physical gold bullion |
+| **Precious Metals (Silver)** | `SILVERBEES` | Domestic physical silver bullion |
+| **Healthcare / Pharma** | `PHARMABEES` | Nifty Pharma Index |
+| **Information Technology** | `ITBEES` | Nifty IT Index |
+| **Automotive** | `AUTOBEES` | Nifty Auto Index |
+| **Infrastructure** | `INFRAIETF` | Nifty Infrastructure Index |
+| **Consumption** | `CONSUMBEES` | Nifty India Consumption Index |
+| **Dividend Factor** | `DIVOPPBEES` | Nifty Dividend Opportunities 50 Index |
+| **Rules-Based Screen** | `SHARIABEES` | Nifty50 Shariah Index |
+| **Public Sector Enterprises** | `CPSEETF` | Nifty CPSE Index |
 
-**Step 2:** Get recommendations
-```bash
-uv run portfolio --amount 500000
-```
+---
 
-**Step 3:** Execute trades
-- Open your broker app (Zerodha, Groww, Fyers, Shoonya, Upstock, etc.)
-- Search for recommended ETFs
-- Buy exact quantities shown
-- Set calendar reminder for monthly review
-
-**Monthly Maintenance:**
-- Run `portfolio` command on 5th of each month
-- Compare with current holdings using `rebalance` command
-- Execute rebalancing trades if needed
-
-**For Existing Portfolio Holders:**
-```bash
-# Create holdings.json with your current ETF positions
-uv run rebalance --holdings-file holdings.json --from-date 2024-01-01
-```
-
-**Holdings File Formats Supported:**
-- **JSON**: `[{"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50}, ...]`
-- **CSV**: Simple format with `symbol,units,price` columns
-- **Price = -1**: System will fetch historical price from your purchase date
-
-## 🔧 Advanced Configuration
-
-For power users who want to customize the strategy:
+## Configuration Reference (`StrategyConfig` in `core.py`)
 
 ```python
-# Edit these parameters in your config
-portfolio_size = 5          # Number of ETFs to hold
-rebalance_day = 5          # Monthly rebalancing day
-long_term_days = 252       # 12-month momentum period (252 trading days)
-short_term_days = 60       # 3-month momentum period (60 trading days)
-exit_buffer = 2.0          # Exit when rank > portfolio_size * 2
-initial_capital = 100000   # Starting capital (₹1,00,000)
+portfolio_size = 5                  # Number of ETFs held in equal-weight basket
+exit_rank_buffer_multiplier = 2.0   # Retain holding until rank > portfolio_size * 2
+rebalance_day_of_month = 5          # Monthly rebalance execution day
+long_term_period_days = 252         # Long-horizon momentum window (trading days)
+short_term_period_days = 60         # Short-horizon momentum window (trading days)
+momentum_weights = (0.6, 0.4)       # (Long, Short) momentum weights
+moving_average_period = 50          # EMA regime filter period
+max_retracement_percentage = 0.50   # Max peak-to-trough drawdown filter
 ```
-
-## 🚨 Important Disclaimers
-
-- 📊 **Past performance doesn't guarantee future results**
-- 🎯 **This is educational content, not investment advice**
-- 💡 **Always consult a financial advisor before investing**
-- 🔍 **Start with paper trading to understand the system**
-- 📈 **Markets can be volatile - invest only what you can afford to lose**
-
-## 🤝 Contributing
-
-Found a bug? Have an improvement? Contributions welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 🙏 Acknowledgments
-
-- **Yahoo Finance** for market data
-- **Backtrader** for backtesting framework
-- **Academic research** on momentum strategies
-- **Indian ETF ecosystem** for providing liquid instruments
 
 ---
 
-**Ready to transform your investment approach?** 
+## Disclaimer
 
-Start with a small amount, test the system, and gradually scale up as you gain confidence. The Indian growth story is just beginning - make sure you're positioned to benefit from it systematically.
-
-```bash
-# Take the first step
-uv run portfolio --amount 100000
-```
-
-*Happy investing! 🚀*
-
-- **Risk Filters**: Moving average and drawdown filters applied
-
-The backtesting results validate the effectiveness of the dual-timeframe momentum strategy in Indian ETF markets, demonstrating its ability to capture trends while managing downside risk effectively.
+For quantitative research and educational purposes only. Historical backtest performance does not guarantee future live trading results.
