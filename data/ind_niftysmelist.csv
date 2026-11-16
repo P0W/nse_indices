@@ -2,7 +2,7 @@ Company Name,Industry,Symbol,Series,ISIN Code
 A G Universal Ltd.,Capital Goods,AGUL,ST,INE0O6N01012
 ABS Marine Services Ltd.,Services,ABSMARINE,SM,INE0QRV01016
 ANB Metal Cast Ltd.,Capital Goods,AMCL,SM,INE0VG001016
-ANI Integrated Services Ltd.,Services,AISL,SM,INE635Y01015
+ANI Integrated Services Ltd.,Services,AISL,ST,INE635Y01015
 ARC Insulation & Insulators Ltd.,Capital Goods,ARCIIL,SM,INE0YDV01010
 ARISTO BIO-TECH AND LIFESCIENCE Ltd.,Chemicals,ARISTO,SM,INE082101010
 ATC Energies System Ltd.,Capital Goods,ATCENERGY,SM,INE0V0Q01019
@@ -191,7 +191,7 @@ HVAX Technologies Ltd.,Construction,HVAX,SM,INE0TO501019
 Happy Square Outsourcing Services Ltd.,Services,WHITEFORCE,SM,INE0TLP01015
 Happy Steels Ltd.,Automobile and Auto Components,HAPPY,SM,INE1GFG01011
 Hi-Green Carbon Ltd.,Utilities,HIGREEN,SM,INE0PIC01017
-Hoac Foods India Ltd.,Fast Moving Consumer Goods,HOACFOODS,ST,INE0S6S01017
+Hoac Foods India Ltd.,Fast Moving Consumer Goods,HOACFOODS,SM,INE0S6S01017
 Holmarc Opto-Mechatronics Ltd.,Capital Goods,HOLMARC,SM,INE0LXA01019
 Homesfy Realty Ltd.,Realty,HOMESFY,SM,INE0N7F01017
 IBL Finance Ltd.,Financial Services,IBLFL,SM,INE0O7401018
@@ -358,7 +358,7 @@ RBM Infracon Ltd.,Oil Gas & Consumable Fuels,RBMINFRA,SM,INE0NA301016
 RFBL Flexi Pack Ltd.,Capital Goods,RFBL,ST,INE0V2V01015
 RNFI Services Ltd.,Financial Services,RNFI,SM,INE0SA001017
 Rachana Infrastructure Ltd.,Construction,RILINFRA,SM,INE02OY01016
-Radiowalla Network Ltd.,Media Entertainment & Publication,RADIOWALLA,ST,INE430U01019
+Radiowalla Network Ltd.,Media Entertainment & Publication,RADIOWALLA,SM,INE430U01019
 Rajgor Castor Derivatives Ltd.,Fast Moving Consumer Goods,RCDL,SM,INE0BZQ01011
 Rajputana Biodiesel Ltd.,Oil Gas & Consumable Fuels,RAJPUTANA,SM,INE0VHU01019
 Rajputana Industries Ltd.,Capital Goods,RAJINDLTD,SM,INE0PCU01012
@@ -384,7 +384,7 @@ S J Logistics (India) Ltd.,Services,SJLOGISTIC,SM,INE0F3301020
 SKP Bearing Industries Ltd.,Capital Goods,SKP,SM,INE0KZA01016
 SMVD Poly Pack Ltd.,Capital Goods,SMVD,SM,INE702Y01013
 SPP Polymer Ltd.,Capital Goods,SPPPOLY,SM,INE0QR801013
-Saakshi Medtech and Panels Ltd.,Capital Goods,SAAKSHI,ST,INE0PSK01027
+Saakshi Medtech and Panels Ltd.,Capital Goods,SAAKSHI,SM,INE0PSK01027
 Sabar Flex India Ltd.,Capital Goods,SABAR,ST,INE0DZ101013
 Sacheerome Ltd.,Chemicals,SACHEEROME,SM,INE1ARD01016
 Sadhav Shipping Ltd.,Services,SADHAV,SM,INE0K5H01010
@@ -520,7 +520,7 @@ Vishnusurya Projects and Infra Ltd.,Construction,VISHNUINFR,SM,INE0PQ001012
 Vishwas Agri Seeds Ltd.,Fast Moving Consumer Goods,VISHWAS,SM,INE0S2E01016
 Vision Infra Equipment Solutions Ltd.,Services,VIESL,SM,INE0TR001017
 Vivid Electromech Ltd.,Capital Goods,VIVIDEL,SM,INE24H301028
-Vivo Collaboration Solutions Ltd.,Telecommunication,VIVO,ST,INE0IA701014
+Vivo Collaboration Solutions Ltd.,Telecommunication,VIVO,SM,INE0IA701014
 Voler Car Ltd.,Services,VOLERCAR,ST,INE241X01014
 Walpar Nutritions Ltd.,Healthcare,WALPAR,SM,INE0G2G01015
 Winny Immigration & Education Services Ltd.,Consumer Services,WINNY,SM,INE0S9101013
