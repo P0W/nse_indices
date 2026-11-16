@@ -7,24 +7,24 @@ Systematic dual-timeframe cross-sectional momentum engine for liquid Indian NSE-
 ## Quantitative Methodology
 
 ### 1. Dual-Horizon Momentum Score (`core.py`)
-For each ETF $i$ in the liquid universe with at least `min_data_points = 200` trading days of history, the composite momentum score combines long-horizon trend persistence with medium-term acceleration:
+For each ETF $i$ in the liquid universe with at least `min_data_points = 201` trading bars of history, the composite momentum score combines long-horizon trend persistence with medium-term acceleration:
 
 $$\text{Score}_i = w_L \cdot R_{i, L} + w_S \cdot R_{i, S}$$
 
-- **Long-term lookback ($L$):** `252` trading days (~12 months; configurable `180–252` days)
-- **Short-term lookback ($S$):** `60` trading days (~3 months)
-- **Default weights:** $(w_L, w_S) = (0.60, 0.40)$
-- **Volatility-adaptive regime (`adaptive_weights=True`):** Shifts weights to $(0.50, 0.50)$ when 30-day annualized cross-sectional market volatility exceeds `20%`.
+- **Long-term lookback ($L$):** `200` trading days (~10 months)
+- **Short-term lookback ($S$):** `90` trading days (~4.5 months)
+- **Default weights:** $(w_L, w_S) = (0.70, 0.30)$
+- **Volatility-adaptive regime (`adaptive_weights=True`):** Shifts weights to $(0.50, 0.50)$ when 30-day annualized `NIFTYBEES.NS` volatility exceeds `20%`.
 
-### 2. Regime Filters & Turnover Controls
+### 2. Regime Filters & Slot-Capped Allocation
 Before ranking, candidate ETFs are screened through three filters:
-- **Trend Filter (`50-EMA`):** Requires current adjusted close above its 50-day exponential moving average ($P_t > \text{EMA}_{50}$).
-- **Retracement Filter:** Excludes ETFs whose drawdown from their rolling lookback peak exceeds `50%`.
-- **Liquidity Filter (optional):** Enforces minimum 30-day average traded volume.
-- **Equal-Weight Top-$N$ Selection & Rank-Buffered Exit:** Allocates equal weight (`20%` each for $N = 5$) to the top $N$ ranked ETFs on the 5th of each month. Existing holdings are retained until their cross-sectional rank falls below `exit_rank_buffer_multiplier × N` (`Rank > 10` for $N = 5$), reducing unnecessary monthly churn.
+- **Trend Filter (`20-EMA`):** Requires current adjusted close above its 20-day exponential moving average ($P_t > \text{EMA}_{20}$).
+- **Retracement Filter:** Excludes ETFs whose drawdown from their rolling 200-bar close high exceeds `25%`.
+- **Liquidity Filter:** Requires 30-day average completed daily volume $\ge 200,000$ shares (`JUNIORBEES.NS` acts as signal/liquidity proxy for `SBINEXT50.NS` following the NSE rename from `SETFNN50.NS`).
+- **Rolling Top-$N$ Selection & Per-Slot Cap:** Rebalances on a rolling `30`-day cadence into the top $N$ strictly positive-momentum ETFs, capping each slot at `1 / N` (`20%` max per ETF for $N = 5$) and holding any unfilled slots in cash / `LIQUIDBEES`.
 
 ### 3. Statutory Transaction Costs & Market Impact (`TradingCostCalculator`, `MarketImpactModel`)
-- **Indian Equity/ETF Delivery Cost Structure:** Models brokerage (`0.03%` capped at ₹20/order), sell-side STT (`0.025%`), NSE exchange turnover charges (`0.00325%`), SEBI regulatory fees, buy-side stamp duty (`0.003%`), and `18%` GST on brokerage + exchange fees.
+- **Indian NSE ETF Delivery Cost Structure:** Models discount brokerage (`₹0` on live delivery or `0.03%` capped at ₹20/order), equity-ETF sell-side STT (`0.001%`, `0%` on buys and `0%` on Gold/Silver/Liquid/International ETFs), NSE exchange turnover charges (`0.00297%`), SEBI regulatory fees (`₹10/crore`), buy-side stamp duty (`0.015%`), `18%` GST on brokerage + exchange + SEBI fees, and `₹15.34` CDSL DP charge per sell scrip.
 - **Market-Impact Slippage Model:** Models execution slippage as a function of order volume participation ($Q / V_{\text{daily}}$) and realized volatility ($\sigma$):
   $$\text{Slippage} = \min\!\left(0.03,\; \left(c_{\text{lin}} \frac{Q}{V} + c_{\text{sqrt}} \sqrt{\frac{Q}{V}} + 0.02\sigma\right) \cdot \eta_{\text{dir}}\right)$$
 
@@ -123,7 +123,7 @@ uv run backtest --portfolio-sizes 5 --exit-rank-buffers 2 --long-term-periods 20
 | Category | Ticker (`.NS`) | Underlying Benchmark / Exposure |
 | :--- | :--- | :--- |
 | **Broad Large-Cap** | `NIFTYBEES` | Nifty 50 Index |
-| **Large/Mid Growth** | `SETFNN50` | Nifty Next 50 Index |
+| **Large/Mid Growth** | `SBINEXT50` | Nifty Next 50 Index (formerly `SETFNN50`, scored via `JUNIORBEES` proxy) |
 | **PSU Banking** | `PSUBNKBEES` | Nifty PSU Bank Index |
 | **Precious Metals (Gold)** | `GOLDBEES` | Domestic physical gold bullion |
 | **Precious Metals (Silver)** | `SILVERBEES` | Domestic physical silver bullion |
@@ -141,14 +141,17 @@ uv run backtest --portfolio-sizes 5 --exit-rank-buffers 2 --long-term-periods 20
 ## Configuration Reference (`StrategyConfig` in `core.py`)
 
 ```python
-portfolio_size = 5                  # Number of ETFs held in equal-weight basket
-exit_rank_buffer_multiplier = 2.0   # Retain holding until rank > portfolio_size * 2
-rebalance_day_of_month = 5          # Monthly rebalance execution day
-long_term_period_days = 252         # Long-horizon momentum window (trading days)
-short_term_period_days = 60         # Short-horizon momentum window (trading days)
-momentum_weights = (0.6, 0.4)       # (Long, Short) momentum weights
-moving_average_period = 50          # EMA regime filter period
-max_retracement_percentage = 0.50   # Max peak-to-trough drawdown filter
+portfolio_size = 5                  # Number of ETFs held (max 1/N per slot)
+exit_rank_buffer_multiplier = 1.0   # Strict top-N rotation matching rolling strategy
+rebalance_frequency = "rolling"     # Rolling N-day rebalance cadence
+rebalance_period_days = 30          # Days between rolling rebalances
+long_term_period_days = 200         # Long-horizon momentum window (trading bars)
+short_term_period_days = 90         # Short-horizon momentum window (trading bars)
+momentum_weights = (0.7, 0.3)       # (Long, Short) weights; (0.5, 0.5) if Nifty vol > 20%
+moving_average_period = 20          # EMA regime filter period
+max_retracement_percentage = 0.25   # Max 200-bar peak-to-close drawdown filter
+use_volume_filter = True            # Require 30d avg completed volume >= 200,000
+min_avg_volume = 200000
 ```
 
 ---

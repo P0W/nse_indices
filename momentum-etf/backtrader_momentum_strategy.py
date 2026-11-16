@@ -8,7 +8,13 @@ import codecs
 import argparse
 import itertools
 
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+elif hasattr(sys.stdout, "buffer"):
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
 
 import backtrader as bt
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -46,7 +52,8 @@ class MomentumPortfolioStrategy(bt.Strategy):
         ("config", None),  # StrategyConfig object
         ("rebalance_dates", None),  # List of rebalancing dates
         ("etf_universe", None),  # List of ETF symbols
-        ("all_data_prices", None),  # Pre-fetched price data
+        ("all_data_prices", None),  # Pre-fetched tradeable price data
+        ("all_signal_prices", None),  # Pre-fetched signal price data
         ("all_data_volumes", None),  # Pre-fetched volume data
     )
 
@@ -55,6 +62,11 @@ class MomentumPortfolioStrategy(bt.Strategy):
         self.rebalance_dates = self.params.rebalance_dates
         self.etf_universe = self.params.etf_universe
         self.all_data_prices = self.params.all_data_prices
+        self.all_signal_prices = (
+            self.params.all_signal_prices
+            if self.params.all_signal_prices is not None
+            else self.params.all_data_prices
+        )
         self.all_data_volumes = self.params.all_data_volumes
 
         # Initialize momentum calculator with same config
@@ -82,7 +94,11 @@ class MomentumPortfolioStrategy(bt.Strategy):
         self.min_daily_volume = (
             10000  # Minimum daily volume threshold (lower for Indian market)
         )
-        self.max_position_size = 0.25  # Max 25% in any single position
+        self.max_position_size = max(
+            getattr(self.config, "max_position_size", 1.0),
+            1.0 / max(1, self.config.portfolio_size),
+        )
+        self.pending_order_meta = {}
 
         # Create data feeds mapping
         self.data_feeds = {}
@@ -123,6 +139,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
         """Called for each bar/date."""
         current_datetime = self.datetime.datetime()
         current_date = current_datetime.date()
+        rebalanced_today = False
 
         # Check if today is a rebalancing date
         if self.rebalance_idx < len(self.rebalance_dates):
@@ -138,14 +155,15 @@ class MomentumPortfolioStrategy(bt.Strategy):
                     )
                     self.rebalance_portfolio()
                     self.rebalance_idx += 1
-
-                    # Handle threshold-based rebalancing
-                    if self.config.use_threshold_rebalancing:
-                        self.check_threshold_rebalancing()
+                    rebalanced_today = True
                 else:
                     logger.warning(
                         f"Market conditions not suitable for rebalancing on {current_date}"
                     )
+
+        # Handle threshold-based rebalancing on intermediate bars
+        if not rebalanced_today and self.config.use_threshold_rebalancing:
+            self.check_threshold_rebalancing()
 
         # Always record daily portfolio state for tracking
         self.record_portfolio_state(current_datetime, [])
@@ -158,7 +176,7 @@ class MomentumPortfolioStrategy(bt.Strategy):
         if current_datetime.weekday() >= 5:  # Saturday or Sunday
             return False
 
-        # Check data quality - need at least 80% of ETFs with valid data
+        # Check data quality - need at least 80% of active feeds with valid data
         valid_data_count = 0
         for ticker in self.etf_universe:
             if ticker in self.data_feeds:
@@ -166,26 +184,28 @@ class MomentumPortfolioStrategy(bt.Strategy):
                 if data_feed.close[0] > 0:  # Valid price data
                     valid_data_count += 1
 
-        return valid_data_count >= 0.8 * len(self.etf_universe)
+        return valid_data_count >= 0.8 * max(1, len(self.data_feeds))
 
     def validate_liquidity(
         self, ticker: str, shares: float, daily_volume: float
-    ) -> Tuple[bool, float]:
-        """Validate and adjust order size based on liquidity constraints."""
-        if daily_volume < self.min_daily_volume:
+    ) -> Tuple[bool, int]:
+        """Validate and adjust whole-share order size based on liquidity constraints."""
+        if daily_volume is None or pd.isna(daily_volume) or daily_volume < self.min_daily_volume:
             logger.warning(
-                f"Insufficient liquidity for {ticker}: daily volume {daily_volume:,.0f} < {self.min_daily_volume:,.0f}"
+                f"Insufficient liquidity for {ticker}: daily volume {daily_volume} < {self.min_daily_volume:,.0f}"
             )
-            return False, 0  # Insufficient liquidity
+            return False, 0
 
-        max_shares = daily_volume * self.max_volume_participation
+        max_shares = int(daily_volume * self.max_volume_participation)
+        req_shares = int(shares)
+        if req_shares <= 0 or max_shares <= 0:
+            return False, 0
 
-        if shares <= max_shares:
-            return True, shares
+        if req_shares <= max_shares:
+            return True, req_shares
         else:
-            # Adjust to maximum allowable size
             logger.debug(
-                f"Adjusting order size for {ticker}: {shares:.2f} -> {max_shares:.2f} shares"
+                f"Adjusting order size for {ticker}: {req_shares} -> {max_shares} shares"
             )
             return True, max_shares
 
@@ -203,51 +223,48 @@ class MomentumPortfolioStrategy(bt.Strategy):
         current_data_prices = self.all_data_prices[
             self.all_data_prices.index <= current_datetime
         ]
+        current_signal_prices = self.all_signal_prices[
+            self.all_signal_prices.index <= current_datetime
+        ]
         current_data_volumes = (
             self.all_data_volumes[self.all_data_volumes.index <= current_datetime]
             if self.all_data_volumes is not None
             else None
         )
 
-        if current_data_prices.empty:
+        if current_data_prices.empty or current_signal_prices.empty:
             logger.warning(
                 f"No data available up to {current_date}. Skipping rebalance."
             )
             return
 
-        # Apply filters to find eligible ETFs
-        eligible_tickers = self.momentum_calculator.apply_filters(
-            current_data_prices, current_data_volumes
-        )
-
-        if not eligible_tickers:
-            logger.warning(f"No eligible ETFs found for {current_date}")
-            self.record_portfolio_state(current_datetime, [])
-            return
-
-        # Calculate momentum scores
-        eligible_data = current_data_prices[eligible_tickers]
-        momentum_scores = self.momentum_calculator.calculate_momentum_scores(
-            eligible_data
-        )
-
-        if momentum_scores.empty:
-            logger.warning(f"Could not calculate momentum scores for {current_date}")
-            self.record_portfolio_state(current_datetime, [])
-            return
-
-        # Rank ETFs by momentum score
-        ranked_etfs = sorted(
-            [(ticker, score) for ticker, score in momentum_scores.items()],
-            key=lambda x: x[1],
-            reverse=True,
-        )
-
-        # Get current prices for rebalancing
         current_prices = current_data_prices.iloc[-1]
 
-        # Execute rebalancing logic
+        # Apply filters to find eligible ETFs
+        eligible_tickers = self.momentum_calculator.apply_filters(
+            current_signal_prices, current_data_volumes
+        )
+
+        ranked_etfs: List[Tuple[str, float]] = []
+        if eligible_tickers:
+            eligible_data = current_signal_prices[eligible_tickers]
+            momentum_scores = self.momentum_calculator.calculate_momentum_scores(
+                eligible_data, market_prices_df=current_signal_prices
+            )
+            threshold = self.config.min_momentum_threshold
+            ranked_etfs = sorted(
+                [
+                    (ticker, score)
+                    for ticker, score in momentum_scores.items()
+                    if (score > 0.0 if threshold == 0 else score >= threshold)
+                ],
+                key=lambda x: x[1],
+                reverse=True,
+            )
+
+        # Execute rebalancing logic (exits to cash if ranked_etfs is empty)
         self.execute_rebalancing(ranked_etfs, current_prices, current_datetime)
+        self.last_rebalance_value = current_portfolio_value
 
         # Record portfolio state
         self.record_portfolio_state(current_datetime, ranked_etfs[:10])
@@ -267,24 +284,27 @@ class MomentumPortfolioStrategy(bt.Strategy):
         # Get current portfolio value
         current_portfolio_value = self.broker.getvalue()
 
-        # Get current volumes and calculate volatilities for market impact modeling
-        current_volumes = (
-            self.all_data_volumes.iloc[-1]
-            if self.all_data_volumes is not None
-            else pd.Series()
-        )
+        # Slice volumes and prices causally up to rebalance_date (preventing look-ahead bias)
+        if self.all_data_volumes is not None:
+            hist_volumes = self.all_data_volumes[
+                self.all_data_volumes.index <= rebalance_date
+            ]
+            current_volumes = (
+                hist_volumes.iloc[-1] if not hist_volumes.empty else pd.Series(dtype=float)
+            )
+        else:
+            current_volumes = pd.Series(dtype=float)
 
-        # Calculate 30-day volatility for each ETF
-        volatility_window = min(30, len(self.all_data_prices))
+        hist_prices = self.all_data_prices[self.all_data_prices.index <= rebalance_date]
+        volatility_window = min(30, len(hist_prices))
         volatilities = {}
         for ticker, _ in ranked_etfs:
-            if ticker in self.all_data_prices.columns:
+            if ticker in hist_prices.columns and volatility_window >= 2:
                 returns = (
-                    self.all_data_prices[ticker].pct_change().tail(volatility_window)
+                    hist_prices[ticker].dropna().pct_change().tail(volatility_window)
                 )
-                volatilities[ticker] = returns.std() * np.sqrt(
-                    252
-                )  # Annualized volatility
+                vol = float(returns.std() * np.sqrt(252))
+                volatilities[ticker] = vol if pd.notna(vol) and vol > 0 else 0.2
 
         # Determine target portfolio (top N ETFs)
         target_tickers = [
@@ -333,39 +353,33 @@ class MomentumPortfolioStrategy(bt.Strategy):
         remaining_tickers = [
             t
             for t in target_tickers
-            if t in current_prices.index and t in self.data_feeds
+            if t in current_prices.index
+            and pd.notna(current_prices[t])
+            and current_prices[t] > 0
+            and t in self.data_feeds
         ]
 
-        if remaining_tickers:
-            # Equal weight allocation with max position size constraint
-            base_allocation = current_portfolio_value / len(remaining_tickers)
-            max_position_value = current_portfolio_value * self.max_position_size
+        if remaining_tickers and self.config.portfolio_size > 0:
+            # Reserve commission buffer so the 5th slot never hits Margin rejection,
+            # and cap each slot at 1 / portfolio_size so unfilled slots remain in cash.
+            usable_value = current_portfolio_value * 0.992
+            base_allocation = usable_value / self.config.portfolio_size
+            max_position_value = usable_value * self.max_position_size
             allocation_per_etf = min(base_allocation, max_position_value)
 
-            # Phase 3: Rebalance positions with realistic constraints
+            # Phase 3: Submit partial-trim sells before buys
+            pending_buys = []
             for ticker in remaining_tickers:
                 if ticker in current_prices.index and ticker in self.data_feeds:
                     data_feed = self.data_feeds[ticker]
                     current_position = self.getposition(data_feed)
-                    current_shares = current_position.size
+                    current_shares = int(current_position.size)
 
-                    # Calculate target shares
-                    target_shares = allocation_per_etf / current_prices[ticker]
+                    target_shares = int(allocation_per_etf / current_prices[ticker])
                     shares_diff = target_shares - current_shares
 
-                    if abs(shares_diff) > 0.01:  # Minimum trade threshold
-                        if shares_diff > 0:
-                            # Buy additional shares
-                            self.execute_realistic_buy(
-                                ticker,
-                                shares_diff,
-                                current_prices,
-                                current_volumes,
-                                volatilities,
-                                rebalance_date,
-                            )
-                        else:
-                            # Sell excess shares
+                    if abs(shares_diff) >= 1:
+                        if shares_diff < 0:
                             self.execute_realistic_sell(
                                 ticker,
                                 abs(shares_diff),
@@ -374,6 +388,52 @@ class MomentumPortfolioStrategy(bt.Strategy):
                                 volatilities,
                                 rebalance_date,
                             )
+                        else:
+                            pending_buys.append((ticker, shares_diff))
+
+            for ticker, shares_diff in pending_buys:
+                self.execute_realistic_buy(
+                    ticker,
+                    shares_diff,
+                    current_prices,
+                    current_volumes,
+                    volatilities,
+                    rebalance_date,
+                )
+
+    def notify_order(self, order):
+        """Record trades and costs only on actual broker execution."""
+        meta = self.pending_order_meta.get(order.ref)
+        if order.status == order.Completed:
+            if meta is not None:
+                exec_size = int(abs(order.executed.size))
+                exec_px = float(order.executed.price)
+                action = meta["action"]
+                slippage = meta["slippage"]
+                modeled_px = (
+                    exec_px * (1 + slippage)
+                    if action.upper() == "BUY"
+                    else exec_px * (1 - slippage)
+                )
+                cost_breakdown = self.cost_calculator.calculate_costs(
+                    meta["ticker"], exec_size, modeled_px, action.upper()
+                )
+                self.record_realistic_trade(
+                    meta["date"],
+                    meta["ticker"],
+                    action,
+                    exec_size,
+                    modeled_px,
+                    cost_breakdown["total_cost"],
+                    slippage,
+                )
+                self.pending_order_meta.pop(order.ref, None)
+        elif order.status in (order.Canceled, order.Margin, order.Rejected):
+            ticker = meta["ticker"] if meta else getattr(order.data, "_name", "unknown")
+            logger.warning(
+                f"Backtrader order {order.getstatusname()} for {ticker}: size={order.size}"
+            )
+            self.pending_order_meta.pop(order.ref, None)
 
     def _execute_realistic_trade(
         self,
@@ -385,26 +445,26 @@ class MomentumPortfolioStrategy(bt.Strategy):
         date: datetime,
         action: str,
     ):
-        """Executes a trade with realistic market constraints."""
+        """Executes a whole-share trade with realistic market constraints."""
         current_price = prices.get(ticker, 0)
-        daily_volume = volumes.get(ticker, 0)
-        if len(volumes) == 0:
-            daily_volume = 100000  # Default to 100k if no volume data
+        daily_volume = volumes.get(ticker, np.nan)
+        if len(volumes) == 0 or pd.isna(daily_volume):
+            daily_volume = 100000
             logger.warning(
                 f"No volume data available for {ticker}. Using default volume."
             )
 
-        volatility = volatilities.get(ticker, 0.2)  # Default 20% volatility
+        volatility = volatilities.get(ticker, 0.2)
 
-        if current_price <= 0:
+        if pd.isna(current_price) or current_price <= 0:
             logger.warning(f"Invalid price for {ticker}: {current_price}")
             return
 
-        # Validate liquidity and adjust order size
+        # Validate liquidity and adjust whole-share order size
         is_valid, adjusted_shares = self.validate_liquidity(
             ticker, shares, daily_volume
         )
-        if not is_valid:
+        if not is_valid or adjusted_shares <= 0:
             logger.warning(f"Order rejected for {ticker}: insufficient liquidity")
             return
 
@@ -413,40 +473,21 @@ class MomentumPortfolioStrategy(bt.Strategy):
             ticker, adjusted_shares, daily_volume, volatility, action.upper()
         )
 
-        # Calculate execution price with slippage
-        if action.upper() == "BUY":
-            execution_price = current_price * (1 + slippage)
-        else:
-            execution_price = current_price * (1 - slippage)
-
-        # Calculate comprehensive trading costs
-        cost_breakdown = self.cost_calculator.calculate_costs(
-            ticker, adjusted_shares, execution_price, action.upper()
-        )
-
-        # Execute in backtrader
+        # Submit order in backtrader; actual trade log is recorded in notify_order on fill
         if ticker in self.data_feeds:
             data_feed = self.data_feeds[ticker]
             if action.upper() == "BUY":
-                self.buy(data=data_feed, size=adjusted_shares)
+                order = self.buy(data=data_feed, size=adjusted_shares)
             else:
-                self.sell(data=data_feed, size=adjusted_shares)
+                order = self.sell(data=data_feed, size=adjusted_shares)
 
-            # Record trade with comprehensive details
-            self.record_realistic_trade(
-                date,
-                ticker,
-                action,
-                adjusted_shares,
-                execution_price,
-                cost_breakdown["total_cost"],
-                slippage,
-            )
-
-            logger.debug(
-                f"{action.capitalize()} {adjusted_shares:.2f} shares of {ticker} at ₹{execution_price:.2f} "
-                f"(slippage: {slippage:.2%}, costs: ₹{cost_breakdown['total_cost']:.2f})"
-            )
+            if order is not None:
+                self.pending_order_meta[order.ref] = {
+                    "date": date,
+                    "ticker": ticker,
+                    "action": action,
+                    "slippage": slippage,
+                }
 
     def execute_realistic_buy(
         self,
@@ -597,6 +638,7 @@ class BacktraderMomentumStrategy:
         show_trade_plot: bool = False,
         pre_fetched_prices_df: pd.DataFrame = None,
         pre_fetched_volume_df: pd.DataFrame = None,
+        pre_fetched_signal_prices_df: pd.DataFrame = None,
     ) -> Dict:
         """
         Run backtest using backtrader with same logic as original implementation.
@@ -615,34 +657,44 @@ class BacktraderMomentumStrategy:
         if pre_fetched_prices_df is not None and pre_fetched_volume_df is not None:
             logger.info("Using pre-fetched data for backtest")
             prices_df_full = pre_fetched_prices_df.copy()
+            signal_prices_df_full = (
+                pre_fetched_signal_prices_df.copy()
+                if pre_fetched_signal_prices_df is not None
+                else pre_fetched_prices_df.copy()
+            )
             volume_df_full = pre_fetched_volume_df.copy()
         else:
             logger.info("Fetching fresh data from data provider")
-            # Fetch all historical data (same as original)
-            max_lookback = max(
-                self.config.long_term_period_days, self.config.moving_average_period
+            max_bars = max(
+                self.config.long_term_period_days + 1,
+                self.config.moving_average_period,
+                self.config.min_data_points,
             )
-            data_fetch_start = start_date - timedelta(days=max_lookback + 50)
+            calendar_days = max(int(max_bars * 1.8) + 60, 420)
+            data_fetch_start = start_date - timedelta(days=calendar_days)
 
             all_data = self.data_provider.fetch_etf_data(
                 self.config.etf_universe, data_fetch_start, end_date
             )
 
             prices_df_full = self.data_provider.get_prices(all_data)
+            signal_prices_df_full = self.data_provider.get_signal_prices(all_data)
             volume_df_full = self.data_provider.get_volumes(all_data)
 
         # Ensure timezone-naive data
         if prices_df_full.index.tz is not None:
             prices_df_full.index = prices_df_full.index.tz_localize(None)
-
+        if signal_prices_df_full.index.tz is not None:
+            signal_prices_df_full.index = signal_prices_df_full.index.tz_localize(None)
         if volume_df_full is not None and volume_df_full.index.tz is not None:
             volume_df_full.index = volume_df_full.index.tz_localize(None)
 
         # Initialize backtrader cerebro
         cerebro = bt.Cerebro()
 
-        # Set initial cash and commission
+        # Set initial cash, cheat-on-close execution, and commission
         cerebro.broker.setcash(self.config.initial_capital)
+        cerebro.broker.set_coc(True)
         cerebro.broker.setcommission(commission=self.config.commission_rate)
 
         # Add data feeds for each ETF
@@ -665,23 +717,28 @@ class BacktraderMomentumStrategy:
             f"Test data range: {test_prices.index[0].date()} to {test_prices.index[-1].date()}"
         )
 
-        # Create feeds for ETFs with sufficient data for the FULL test period
+        # Create feeds for ETFs with sufficient warm-up history and test-period coverage
         for ticker in self.config.etf_universe:
             if ticker in test_prices.columns:
                 etf_data = test_prices[ticker].dropna()
+                full_signal = (
+                    signal_prices_df_full[ticker].dropna()
+                    if ticker in signal_prices_df_full.columns
+                    else etf_data
+                )
 
                 # Check if ETF has data for most of the test period (at least 80%)
                 data_coverage = len(etf_data) / len(test_prices)
                 min_coverage = 0.8  # Require at least 80% data coverage
 
                 if (
-                    len(etf_data) > self.config.min_data_points
+                    len(full_signal) >= self.config.min_data_points
+                    and len(etf_data) >= 2
                     and data_coverage >= min_coverage
                 ):
-                    # Create backtrader data feed for the full test period
-                    # Fill missing data with forward fill for consistency
+                    # Slice from first valid observation in test window so PandasData has no leading NaNs
                     aligned_data = (
-                        test_prices[ticker].reindex(test_prices.index).ffill()
+                        test_prices[ticker].loc[etf_data.index[0] :].ffill()
                     )
                     data_feed = self._create_data_feed(
                         aligned_data, ticker, volume_df_full
@@ -708,6 +765,7 @@ class BacktraderMomentumStrategy:
             rebalance_dates=rebalance_dates,
             etf_universe=etf_feeds,
             all_data_prices=prices_df_full,
+            all_signal_prices=signal_prices_df_full,
             all_data_volumes=volume_df_full,
         )
 
@@ -806,9 +864,22 @@ class BacktraderMomentumStrategy:
     def _generate_rebalance_dates(
         self, start_date: datetime, end_date: datetime
     ) -> List[datetime]:
-        """Generate list of rebalancing dates (same as original)."""
+        """Generate list of rebalancing dates (rolling N-day or monthly calendar)."""
         dates = []
-        current = start_date.replace(day=self.config.rebalance_day_of_month)
+        if self.config.rebalance_frequency == "rolling":
+            step_days = max(1, int(self.config.rebalance_period_days))
+            current = start_date
+            while current <= end_date:
+                dates.append(current)
+                current = current + timedelta(days=step_days)
+            return dates
+
+        try:
+            current = start_date.replace(day=self.config.rebalance_day_of_month)
+        except ValueError:
+            current = start_date.replace(
+                day=pd.Timestamp(start_date.year, start_date.month, 1).days_in_month
+            )
 
         # If start date is after rebalance day, move to next month
         if start_date.day > self.config.rebalance_day_of_month:
@@ -1051,6 +1122,7 @@ def run_backtest(
     show_trade_plot: bool = False,
     pre_fetched_prices_df: pd.DataFrame = None,
     pre_fetched_volume_df: pd.DataFrame = None,
+    pre_fetched_signal_prices_df: pd.DataFrame = None,
 ) -> Dict:
     """
     Run the ETF Momentum Strategy backtest using Backtrader.
@@ -1064,17 +1136,9 @@ def run_backtest(
     Returns:
         Dictionary containing backtest results and performance metrics
     """
-    # Use default parameters if not provided
+    # Use default StrategyConfig parameters if not provided
     if config is None:
-        config = StrategyConfig(
-            portfolio_size=7,
-            rebalance_day_of_month=5,
-            exit_rank_buffer_multiplier=2.0,
-            long_term_period_days=252,
-            short_term_period_days=60,
-            initial_capital=1000000,
-            use_threshold_rebalancing=False,
-        )
+        config = StrategyConfig()
 
     if start_date is None:
         start_date = datetime(2020, 1, 1)
@@ -1098,6 +1162,7 @@ def run_backtest(
         show_trade_plot=show_trade_plot,
         pre_fetched_prices_df=pre_fetched_prices_df,
         pre_fetched_volume_df=pre_fetched_volume_df,
+        pre_fetched_signal_prices_df=pre_fetched_signal_prices_df,
     )
 
     # Display results
@@ -1202,8 +1267,8 @@ def run_backtrader_experiments(
 
     data_provider = DataProvider(temp_config)
 
-    # Calculate lookback period based on max long term period
-    max_lookback = max(long_term_periods) + 50  # Add buffer
+    # Calculate calendar-day lookback (~280+ NSE trading days for 200-bar lookback)
+    max_lookback = max(int((max(long_term_periods) + 1) * 1.8) + 60, 420)
     data_fetch_start = start_date - timedelta(days=max_lookback)
 
     try:
@@ -1215,6 +1280,12 @@ def run_backtrader_experiments(
         if prices_df_full_pre_fetched.index.tz is not None:
             prices_df_full_pre_fetched.index = (
                 prices_df_full_pre_fetched.index.tz_localize(None)
+            )
+
+        signal_prices_df_pre_fetched = data_provider.get_signal_prices(all_data)
+        if signal_prices_df_pre_fetched.index.tz is not None:
+            signal_prices_df_pre_fetched.index = (
+                signal_prices_df_pre_fetched.index.tz_localize(None)
             )
 
         volume_df_full_pre_fetched = data_provider.get_volumes(all_data)
@@ -1238,10 +1309,12 @@ def run_backtrader_experiments(
         print(f"❌ Failed to pre-fetch data: {e}")
         print("⚠️  Falling back to individual data fetching per experiment (slower)")
         prices_df_full_pre_fetched = None
+        signal_prices_df_pre_fetched = None
         volume_df_full_pre_fetched = None
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_params = {}
+        sweep_monthly = len(rebalance_days) > 1 and all(1 <= d <= 28 for d in rebalance_days)
         for (
             p_size,
             r_day,
@@ -1253,7 +1326,9 @@ def run_backtrader_experiments(
         ) in param_combinations:
             config = StrategyConfig(
                 portfolio_size=p_size,
+                rebalance_schedule="monthly" if sweep_monthly else "rolling",
                 rebalance_day_of_month=r_day,
+                rebalance_period_days=r_day if not sweep_monthly and r_day >= 10 else 30,
                 exit_rank_buffer_multiplier=exit_buffer,
                 long_term_period_days=lt_period,
                 short_term_period_days=st_period,
@@ -1272,6 +1347,7 @@ def run_backtrader_experiments(
                 show_trade_plot=False,
                 pre_fetched_prices_df=prices_df_full_pre_fetched,
                 pre_fetched_volume_df=volume_df_full_pre_fetched,
+                pre_fetched_signal_prices_df=signal_prices_df_pre_fetched,
             )
             future_to_params[future] = (
                 p_size,

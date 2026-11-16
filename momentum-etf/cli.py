@@ -7,12 +7,120 @@ Author : Prashant Srivastava
 import argparse
 import sys
 from datetime import datetime, timedelta
+import pandas as pd
 from tabulate import tabulate
 from etf_momentum_strategy import (
     ETFMomentumStrategy,
     run_parameter_experiments,
 )
-from core import StrategyConfig
+from core import StrategyConfig, TradingCostCalculator
+
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
+def _normalize_ticker(symbol: str, config: StrategyConfig) -> str:
+    """Normalize ticker symbol to Yahoo Finance .NS format and resolve legacy NSE renames."""
+    sym = str(symbol).strip().upper()
+    if not sym:
+        return ""
+    if sym in config.ticker_aliases:
+        return config.ticker_aliases[sym]
+    if not sym.endswith(".NS") and not sym.endswith(".BO"):
+        sym = f"{sym}.NS"
+    return config.ticker_aliases.get(sym, sym)
+
+
+def _merge_holding(
+    holdings: dict,
+    symbol: str,
+    units: float,
+    purchase_price: float,
+    csv_current_price: float = None,
+) -> None:
+    """Insert or merge duplicate/aliased holdings using weighted-average buy price."""
+    units = float(units)
+    purchase_price = (
+        float(purchase_price)
+        if purchase_price is not None and pd.notna(purchase_price)
+        else -1.0
+    )
+    if purchase_price < 0:
+        purchase_price = -1.0
+    csv_val = (
+        float(csv_current_price)
+        if csv_current_price is not None and str(csv_current_price).strip() != ""
+        else None
+    )
+    if csv_val is not None and (pd.isna(csv_val) or csv_val <= 0):
+        csv_val = None
+
+    if symbol in holdings:
+        prev = holdings[symbol]
+        total_units = prev["units"] + units
+        prev_buy = prev["purchase_price"]
+        if (
+            pd.notna(prev_buy)
+            and prev_buy >= 0
+            and pd.notna(purchase_price)
+            and purchase_price >= 0
+            and total_units > 0
+        ):
+            merged_buy = (
+                prev["units"] * prev_buy + units * purchase_price
+            ) / total_units
+        else:
+            merged_buy = purchase_price if purchase_price >= 0 else prev_buy
+        holdings[symbol] = {
+            "units": int(round(total_units))
+            if float(total_units).is_integer()
+            else total_units,
+            "purchase_price": merged_buy,
+            "csv_current_price": csv_val or prev.get("csv_current_price"),
+        }
+    else:
+        holdings[symbol] = {
+            "units": int(round(units)) if float(units).is_integer() else units,
+            "purchase_price": purchase_price,
+            "csv_current_price": csv_val,
+        }
+
+
+def _parse_smallcase_overview(lines: list, header_line_idx: int) -> dict:
+    """Extract Investment Overview metrics from top rows of a Smallcase CSV export."""
+    import csv
+
+    meta = {}
+    known_labels = {
+        "Current Value": "current_value",
+        "Total Returns": "total_returns",
+        "Current Investment": "current_investment",
+        "Money Put In": "money_put_in",
+        "Current Returns": "current_returns",
+        "Realized Returns": "realized_returns",
+        "Dividends": "dividends",
+    }
+    try:
+        rows = list(csv.reader(lines[:header_line_idx]))
+        for r_idx in range(len(rows) - 1):
+            label_row = rows[r_idx]
+            val_row = rows[r_idx + 1]
+            for c_idx, cell in enumerate(label_row):
+                key = known_labels.get(cell.strip())
+                if key and c_idx < len(val_row):
+                    raw_val = val_row[c_idx].strip().replace(",", "")
+                    if raw_val:
+                        try:
+                            meta[key] = float(raw_val)
+                        except ValueError:
+                            pass
+    except Exception:
+        pass
+    return meta
 
 
 # Shared parser factories to eliminate duplication
@@ -201,17 +309,29 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
         actual_size = len(top_etfs)
 
         if actual_size == 0:
-            print("❌ No ETFs have positive momentum. Consider holding cash.")
+            print(f"📅 Data Date: {status['market_data_date']}")
+            print(
+                "⚠️  0 ETFs currently pass trend/retracement/volume filters with positive momentum."
+            )
+            print("💡 Recommendation: Hold 100% Cash / LIQUIDBEES until regime improves.")
             return
 
         print(f"📅 Data Date: {status['market_data_date']}")
 
-        if actual_size < portfolio_size:
-            print(f"⚠️  Only {actual_size} ETFs have positive momentum (requested {portfolio_size})")
-            print(f"   Allocating to {actual_size} ETFs to avoid investing in declining assets")
+        slot_weight_pct = 100.0 / portfolio_size
+        slot_allocation = investment_amount / portfolio_size
 
-        print(f"🎯 Portfolio Size: {actual_size} ETFs")
-        print(f"📊 Equal Weight Allocation: {100/actual_size:.1f}% per ETF")
+        if actual_size < portfolio_size:
+            print(
+                f"⚠️  Only {actual_size} of {portfolio_size} ETF slots qualify with positive momentum"
+            )
+            print(
+                f"   Capping each ETF at {slot_weight_pct:.1f}% (₹{slot_allocation:,.0f}/slot) "
+                f"and keeping {portfolio_size - actual_size} slot(s) in Cash / LIQUIDBEES"
+            )
+
+        print(f"🎯 Qualifying ETFs: {actual_size} / {portfolio_size} slots")
+        print(f"📊 Per-Slot Allocation Cap: {slot_weight_pct:.1f}% per ETF")
 
         print(f"\n📈 OPTIMAL PORTFOLIO ALLOCATION:")
 
@@ -221,8 +341,7 @@ def show_current_portfolio(investment_amount=1000000, portfolio_size=5):
 
         for i, (ticker, score) in enumerate(top_etfs, 1):
             price = current_prices.get(ticker, 0)
-            allocation = investment_amount / actual_size
-            units = int(allocation / price) if price > 0 else 0
+            units = int(slot_allocation / price) if price > 0 else 0
             actual_investment = units * price
             weight = (
                 (actual_investment / investment_amount) * 100
@@ -306,6 +425,9 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
     print(f"📅 Current Date: {current_date.strftime('%Y-%m-%d')}")
     print(f"🎯 Target Portfolio Size: {portfolio_size} ETFs")
 
+    config = StrategyConfig(portfolio_size=portfolio_size)
+    smallcase_meta = {}
+
     # Load holdings from file
     try:
         holdings_path = Path(holdings_file)
@@ -317,48 +439,37 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
 
         if holdings_path.suffix.lower() == ".json":
             # Load from JSON
-            with open(holdings_path, "r") as f:
+            with open(holdings_path, "r", encoding="utf-8-sig") as f:
                 data = json.load(f)
 
             # Expected format: [{"symbol": "NIFTYBEES.NS", "units": 350, "price": 120.50}, ...]
             # or {"NIFTYBEES.NS": {"units": 350, "price": 120.50}, ...}
             if isinstance(data, list):
                 for item in data:
-                    symbol = item.get("symbol", "").strip()
+                    symbol = _normalize_ticker(item.get("symbol", ""), config)
                     units = item.get("units", 0)
                     price = item.get("price", -1)
                     if symbol and units > 0:
-                        current_holdings[symbol] = {
-                            "units": units,
-                            "purchase_price": price,
-                        }
+                        _merge_holding(current_holdings, symbol, units, price)
             elif isinstance(data, dict):
-                for symbol, details in data.items():
+                for raw_symbol, details in data.items():
+                    symbol = _normalize_ticker(raw_symbol, config)
+                    if not symbol:
+                        continue
                     if isinstance(details, dict):
                         units = details.get("units", 0)
                         price = details.get("price", -1)
                         if units > 0:
-                            current_holdings[symbol] = {
-                                "units": units,
-                                "purchase_price": price,
-                            }
-                    else:
-                        # Simple format: {"NIFTYBEES.NS": 350, ...}
-                        current_holdings[symbol] = {
-                            "units": details,
-                            "purchase_price": -1,
-                        }
+                            _merge_holding(current_holdings, symbol, units, price)
+                    elif details > 0:
+                        _merge_holding(current_holdings, symbol, details, -1)
 
         elif holdings_path.suffix.lower() == ".csv":
             # Load from CSV
-            # First, try to detect if this is a Smallcase export by checking for the data structure
             try:
-                # Read the first few lines to detect format
-                with open(holdings_path, "r") as f:
+                with open(holdings_path, "r", encoding="utf-8-sig") as f:
                     lines = f.readlines()
 
-                # Look for the header line with Ticker, Shares, etc.
-                # Smallcase exports may have different column name formats
                 header_line_idx = None
                 for i, line in enumerate(lines):
                     if (
@@ -370,64 +481,65 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
                         break
 
                 if header_line_idx is not None:
-                    # This is a Smallcase export - read from the header line
-                    df = pd.read_csv(holdings_path, skiprows=header_line_idx)
+                    smallcase_meta = _parse_smallcase_overview(lines, header_line_idx)
+                    df = pd.read_csv(
+                        holdings_path, skiprows=header_line_idx, encoding="utf-8-sig"
+                    )
                     print(
                         f"📊 Detected Smallcase export format (skipped {header_line_idx} header rows)"
                     )
 
-                    # Find the Avg Buy Price column (handles different formats)
                     avg_buy_price_col = None
                     for col in df.columns:
                         if "Avg" in col and "Buy" in col and "Price" in col:
                             avg_buy_price_col = col
                             break
 
-                    # Find the Current Price column (handles different formats)
                     current_price_col = None
                     for col in df.columns:
                         if "Current" in col and "Price" in col:
                             current_price_col = col
                             break
 
-                    # Check if this is a Smallcase export format
                     if (
                         "Ticker" in df.columns
                         and "Shares" in df.columns
                         and avg_buy_price_col is not None
                     ):
-                        # Smallcase export format: Ticker, Shares, Avg Buy Price, Current Price
                         for _, row in df.iterrows():
-                            ticker = str(row["Ticker"]).strip()
+                            raw_ticker = str(row["Ticker"]).strip()
                             shares = row["Shares"]
                             avg_buy_price = row[avg_buy_price_col]
-                            # Get current price from CSV if available
-                            csv_current_price = row[current_price_col] if current_price_col else None
+                            csv_current_price = (
+                                row[current_price_col] if current_price_col else None
+                            )
 
-                            if ticker and shares > 0:
-                                # Add .NS suffix if not present for Yahoo Finance compatibility
-                                if not ticker.endswith(".NS") and not ticker.endswith(
-                                    ".BO"
-                                ):
-                                    ticker = ticker + ".NS"
+                            if (
+                                raw_ticker
+                                and raw_ticker.lower() != "nan"
+                                and pd.notna(shares)
+                                and float(shares) > 0
+                            ):
+                                ticker = _normalize_ticker(raw_ticker, config)
+                                _merge_holding(
+                                    current_holdings,
+                                    ticker,
+                                    shares,
+                                    avg_buy_price,
+                                    csv_current_price,
+                                )
 
-                                current_holdings[ticker] = {
-                                    "units": shares,
-                                    "purchase_price": avg_buy_price,
-                                    "csv_current_price": csv_current_price,
-                                }
-                        
                         if current_price_col:
-                            print(f"   Using current prices from Smallcase export (not Yahoo Finance)")
+                            print(
+                                f"   Using current prices from Smallcase export (Yahoo Finance for new ETFs)"
+                            )
                     else:
                         raise ValueError(
                             "Smallcase format detected but required columns not found"
                         )
                 else:
-                    # Not a Smallcase export - try standard CSV format
-                    df = pd.read_csv(holdings_path)
-
-                    # Standard CSV format - check required columns
+                    # Standard CSV format
+                    df = pd.read_csv(holdings_path, encoding="utf-8-sig")
                     required_columns = ["symbol", "units"]
 
                     if not all(col in df.columns for col in required_columns):
@@ -441,16 +553,18 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
                         return
 
                     for _, row in df.iterrows():
-                        symbol = str(row["symbol"]).strip()
+                        raw_symbol = str(row["symbol"]).strip()
                         units = row["units"]
                         price = row.get("price", -1)
 
-                        if symbol and units > 0:
-                            current_holdings[symbol] = {
-                                "units": units,
-                                "purchase_price": price,
-                                "csv_current_price": None,
-                            }
+                        if (
+                            raw_symbol
+                            and raw_symbol.lower() != "nan"
+                            and pd.notna(units)
+                            and float(units) > 0
+                        ):
+                            symbol = _normalize_ticker(raw_symbol, config)
+                            _merge_holding(current_holdings, symbol, units, price)
 
                     # Check if any holdings have price = -1 and from_date is not provided
                     has_missing_prices = any(
@@ -506,7 +620,6 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
 
     # Initialize strategy
     try:
-        config = StrategyConfig(portfolio_size=portfolio_size)
         strategy = ETFMomentumStrategy(config)
 
         # Get current market data and optimal portfolio
@@ -517,16 +630,37 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
             print(f"❌ Error: {status['message']}")
             return
 
-        current_prices = status["current_prices"]
-        top_etfs = status["top_10_momentum_scores"][:portfolio_size]
+        current_prices = dict(status["current_prices"])
 
-        # Filter to only include ETFs with positive momentum scores
+        # Fetch live prices for any legacy/out-of-universe held tickers missing CSV prices
+        missing_live_tickers = [
+            sym
+            for sym, h in current_holdings.items()
+            if sym not in current_prices
+            and not (h.get("csv_current_price") and h["csv_current_price"] > 0)
+        ]
+        if missing_live_tickers:
+            try:
+                extra_data = strategy.data_provider.fetch_etf_data(
+                    missing_live_tickers,
+                    current_date - timedelta(days=15),
+                    current_date,
+                )
+                extra_prices = strategy.data_provider.get_prices(extra_data)
+                if not extra_prices.empty:
+                    for sym in missing_live_tickers:
+                        if sym in extra_prices.columns and pd.notna(
+                            extra_prices[sym].iloc[-1]
+                        ):
+                            current_prices[sym] = float(extra_prices[sym].iloc[-1])
+            except Exception as extra_err:
+                print(
+                    f"⚠️  Warning: Could not fetch live price for non-universe ticker(s) {missing_live_tickers}: {extra_err}"
+                )
+
+        top_etfs = status["top_10_momentum_scores"][:portfolio_size]
         top_etfs = [(t, s) for t, s in top_etfs if s > 0]
         optimal_tickers = [ticker for ticker, _ in top_etfs]
-
-        if not top_etfs:
-            print("❌ No ETFs have positive momentum. Consider holding cash or staying put.")
-            return
 
         print(f"📅 Market Data Date: {status['market_data_date']}")
 
@@ -589,9 +723,14 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
             purchase_price = holding["purchase_price"]
 
             # Use historical price if purchase_price is -1
-            if purchase_price == -1:
-                if symbol in purchase_prices and len(purchase_prices) > 0:
-                    purchase_price = purchase_prices[symbol]
+            if purchase_price == -1 or pd.isna(purchase_price):
+                if (
+                    symbol in purchase_prices
+                    and len(purchase_prices) > 0
+                    and pd.notna(purchase_prices[symbol])
+                    and purchase_prices[symbol] > 0
+                ):
+                    purchase_price = float(purchase_prices[symbol])
                 else:
                     print(
                         f"⚠️  Warning: No historical price found for {symbol}, skipping..."
@@ -600,11 +739,12 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
 
             # Get current price - prefer CSV price from Smallcase, fallback to Yahoo Finance
             csv_price = holding.get("csv_current_price")
-            if csv_price is not None and csv_price > 0:
-                current_price = csv_price
+            if csv_price is not None and pd.notna(csv_price) and csv_price > 0:
+                current_price = float(csv_price)
             else:
-                current_price = current_prices.get(symbol, 0)
-            if current_price == 0:
+                yf_px = current_prices.get(symbol, 0)
+                current_price = float(yf_px) if pd.notna(yf_px) and yf_px > 0 else 0.0
+            if current_price <= 0:
                 print(f"⚠️  Warning: No current price found for {symbol}, skipping...")
                 continue
 
@@ -649,10 +789,24 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
         )
 
         print(f"\n💰 PORTFOLIO SUMMARY:")
-        print(f"   Total Invested:    ₹{total_invested:,.0f}")
-        print(f"   Current Value:     ₹{total_current_value:,.0f}")
-        print(f"   Total Gain/Loss:   ₹{total_gain_loss:+,.0f}")
-        print(f"   Total Return:      {total_return_pct:+.1f}%")
+        print(f"   Cost Basis (Open Shares): ₹{total_invested:,.0f}")
+        print(f"   Current Value:            ₹{total_current_value:,.0f}")
+        print(f"   Unrealized Gain/Loss:     ₹{total_gain_loss:+,.0f}")
+        print(f"   Unrealized Return:        {total_return_pct:+.1f}%")
+
+        if (
+            "current_value" in smallcase_meta
+            and "total_returns" in smallcase_meta
+        ):
+            net_principal = (
+                smallcase_meta["current_value"] - smallcase_meta["total_returns"]
+            )
+            realized_ret = smallcase_meta.get("realized_returns", 0.0)
+            total_ret = smallcase_meta["total_returns"]
+            print(f"\n🏦 SMALLCASE CAPITAL BREAKDOWN:")
+            print(f"   Net Principal Retained:   ₹{net_principal:,.0f}")
+            print(f"   Realized Gains Reinvested:₹{realized_ret:+,.0f}")
+            print(f"   Total Net Strategy P&L:   ₹{total_ret:+,.0f}")
 
         # Calculate days and annualized return
         if purchase_date:
@@ -675,71 +829,90 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
 
         # Use target_amount if specified, otherwise use current portfolio value
         rebalance_target_value = target_amount if target_amount else total_current_value
-        
-        # Check how many ETFs are actually available
+
+        # Cap each ETF slot at 1 / portfolio_size so unfilled slots remain in cash / LIQUIDBEES
         available_etfs = len(top_etfs)
-        actual_portfolio_size = min(portfolio_size, available_etfs)
-        
-        if available_etfs < portfolio_size:
-            print(f"⚠️  Only {available_etfs} ETFs have positive momentum (requested {portfolio_size})")
-            print(f"   Adjusting portfolio to {available_etfs} ETFs with full allocation")
-            print()
-        
+        slot_allocation = (
+            rebalance_target_value / portfolio_size if portfolio_size > 0 else 0.0
+        )
+        slot_weight_pct = 100.0 / portfolio_size if portfolio_size > 0 else 0.0
+
         if target_amount:
             print(f"📊 Target Investment Amount: ₹{target_amount:,.0f}")
         else:
             print(f"📊 Using Current Portfolio Value: ₹{total_current_value:,.0f}")
-        
-        print(f"📊 Actual Portfolio Size: {actual_portfolio_size} ETFs")
 
-        # Build a merged price dictionary: prefer CSV prices, fallback to Yahoo Finance for new ETFs
-        # This ensures consistent pricing across all calculations
-        prices_for_calc = {}
-        for ticker in set(optimal_tickers) | set(current_holdings.keys()):
-            # First check if we have a CSV price from Smallcase
-            if ticker in current_holdings:
-                csv_price = current_holdings[ticker].get("csv_current_price")
-                if csv_price is not None and csv_price > 0:
-                    prices_for_calc[ticker] = csv_price
-                    continue
-            # Fallback to Yahoo Finance price
-            prices_for_calc[ticker] = current_prices.get(ticker, 0)
-        
-        # Check if we're using mixed price sources
-        csv_price_count = sum(1 for t in optimal_tickers if t in current_holdings and current_holdings[t].get("csv_current_price"))
-        yf_price_count = len(optimal_tickers) - csv_price_count
-        if csv_price_count > 0 and yf_price_count > 0:
-            print(f"📊 Prices: {csv_price_count} from CSV, {yf_price_count} from Yahoo Finance (for new ETFs)")
+        print(
+            f"📊 Qualifying Slots: {available_etfs} / {portfolio_size} ETFs "
+            f"(max {slot_weight_pct:.1f}% = ₹{slot_allocation:,.0f} per slot)"
+        )
 
-        optimal_data = []
-        # Allocate across actual available ETFs, not requested size
-        target_allocation = rebalance_target_value / actual_portfolio_size
-
-        for i, (ticker, score) in enumerate(top_etfs, 1):
-            price = prices_for_calc.get(ticker, 0)
-            target_units = int(target_allocation / price) if price > 0 else 0
-            target_value = target_units * price
-
-            optimal_data.append(
-                [
-                    i,
-                    ticker,
-                    f"₹{price:.2f}",
-                    f"{target_units:,}",
-                    f"₹{target_value:,.0f}",
-                    f"{score:.4f}",
-                ]
+        if available_etfs == 0:
+            print(
+                "⚠️  0 ETFs currently pass regime/volume filters with positive momentum!"
+            )
+            print(
+                "   Recommending 100% exit to Cash / LIQUIDBEES until momentum turns positive."
+            )
+        elif available_etfs < portfolio_size:
+            unfilled = portfolio_size - available_etfs
+            print(
+                f"⚠️  Only {available_etfs} ETFs qualify — keeping {unfilled} slot(s) "
+                f"(~₹{unfilled * slot_allocation:,.0f}) in Cash / LIQUIDBEES"
             )
 
-        headers = [
-            "Rank",
-            "ETF",
-            "Price",
-            "Target Units",
-            "Target Value",
-            "Momentum Score",
-        ]
-        print(tabulate(optimal_data, headers=headers, tablefmt="grid"))
+        # Build a merged price dictionary: prefer CSV prices, fallback to Yahoo Finance for new ETFs
+        prices_for_calc = {}
+        for ticker in set(optimal_tickers) | set(current_holdings.keys()):
+            if ticker in current_holdings:
+                csv_price = current_holdings[ticker].get("csv_current_price")
+                if csv_price is not None and pd.notna(csv_price) and csv_price > 0:
+                    prices_for_calc[ticker] = float(csv_price)
+                    continue
+            yf_px = current_prices.get(ticker, 0)
+            prices_for_calc[ticker] = (
+                float(yf_px) if pd.notna(yf_px) and yf_px > 0 else 0.0
+            )
+
+        csv_price_count = sum(
+            1
+            for t in optimal_tickers
+            if t in current_holdings and current_holdings[t].get("csv_current_price")
+        )
+        yf_price_count = len(optimal_tickers) - csv_price_count
+        if csv_price_count > 0 and yf_price_count > 0:
+            print(
+                f"📊 Prices: {csv_price_count} from CSV, {yf_price_count} from Yahoo Finance (for new ETFs)"
+            )
+
+        target_allocation = slot_allocation
+        if top_etfs:
+            optimal_data = []
+            for i, (ticker, score) in enumerate(top_etfs, 1):
+                price = prices_for_calc.get(ticker, 0)
+                target_units = int(target_allocation / price) if price > 0 else 0
+                target_value = target_units * price
+
+                optimal_data.append(
+                    [
+                        i,
+                        ticker,
+                        f"₹{price:.2f}",
+                        f"{target_units:,}",
+                        f"₹{target_value:,.0f}",
+                        f"{score:.4f}",
+                    ]
+                )
+
+            headers = [
+                "Rank",
+                "ETF",
+                "Price",
+                "Target Units",
+                "Target Value",
+                "Momentum Score",
+            ]
+            print(tabulate(optimal_data, headers=headers, tablefmt="grid"))
 
         # Rebalancing recommendations
         print(f"\n🔄 REBALANCING RECOMMENDATIONS:")
@@ -805,35 +978,71 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
         if not to_sell and not to_buy and not to_adjust:
             print(f"✅ Your portfolio is already optimal! No rebalancing needed.")
 
-        # Calculate detailed cash flow summary
+        # Calculate detailed cash flow and Zerodha/NSE statutory + DP cost summary
+        cost_calc = TradingCostCalculator(config)
         total_sell_value = 0
         total_buy_value = 0
         total_adjust_buy = 0
         total_adjust_sell = 0
+        estimated_fees = 0.0
+        adjusted_trade_count = 0
 
-        # Calculate sell value
-        for ticker in to_sell:
+        for ticker in sorted(to_sell):
             units = current_holdings[ticker]["units"]
             price = prices_for_calc.get(ticker, 0)
             total_sell_value += units * price
+            if price > 0 and units > 0:
+                estimated_fees += cost_calc.calculate_costs(
+                    ticker,
+                    units,
+                    price,
+                    "SELL",
+                    include_dp_charge=True,
+                    zero_delivery_brokerage=True,
+                )["total_cost"]
 
-        # Calculate buy value for new ETFs
-        for ticker in to_buy:
+        for ticker in sorted(to_buy):
             price = prices_for_calc.get(ticker, 0)
             target_units = int(target_allocation / price) if price > 0 else 0
             total_buy_value += target_units * price
+            if price > 0 and target_units > 0:
+                estimated_fees += cost_calc.calculate_costs(
+                    ticker,
+                    target_units,
+                    price,
+                    "BUY",
+                    include_dp_charge=False,
+                    zero_delivery_brokerage=True,
+                )["total_cost"]
 
-        # Calculate adjustments
-        for ticker in to_adjust:
+        for ticker in sorted(to_adjust):
             current_units = current_holdings[ticker]["units"]
             price = prices_for_calc.get(ticker, 0)
             target_units = int(target_allocation / price) if price > 0 else 0
             diff_units = target_units - current_units
             diff_value = diff_units * price
+            if diff_units != 0:
+                adjusted_trade_count += 1
             if diff_value > 0:
                 total_adjust_buy += diff_value
-            else:
+                estimated_fees += cost_calc.calculate_costs(
+                    ticker,
+                    diff_units,
+                    price,
+                    "BUY",
+                    include_dp_charge=False,
+                    zero_delivery_brokerage=True,
+                )["total_cost"]
+            elif diff_value < 0:
                 total_adjust_sell += abs(diff_value)
+                estimated_fees += cost_calc.calculate_costs(
+                    ticker,
+                    abs(diff_units),
+                    price,
+                    "SELL",
+                    include_dp_charge=True,
+                    zero_delivery_brokerage=True,
+                )["total_cost"]
 
         # Calculate total optimal portfolio value
         total_optimal_value = 0
@@ -845,26 +1054,14 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
         # Net cash flow
         total_proceeds = total_sell_value + total_adjust_sell
         total_purchases = total_buy_value + total_adjust_buy
-        net_cash_flow = total_proceeds - total_purchases
 
         # Summary of actions needed
         print(f"\n📋 REBALANCING SUMMARY:")
         print("-" * 40)
-        total_transactions = (
-            len(to_sell)
-            + len(to_buy)
-            + len(
-                [
-                    t
-                    for t in to_adjust
-                    if int(target_allocation / prices_for_calc.get(t, 1))
-                    != current_holdings[t]["units"]
-                ]
-            )
-        )
+        total_transactions = len(to_sell) + len(to_buy) + adjusted_trade_count
         print(f"   ETFs to sell:     {len(to_sell)}")
         print(f"   ETFs to buy:      {len(to_buy)}")
-        print(f"   ETFs to adjust:   {len(to_adjust)}")
+        print(f"   ETFs to adjust:   {adjusted_trade_count} (of {len(to_adjust)} retained)")
         print(f"   Total transactions: {total_transactions}")
 
         # Cash flow summary
@@ -872,43 +1069,84 @@ def show_rebalancing_needs(holdings_file, from_date, target_amount=None, portfol
         print("-" * 40)
         print(f"   Current Portfolio Value:  ₹{total_current_value:,.0f}")
         print(f"   Target Investment:        ₹{rebalance_target_value:,.0f}")
-        
-        # Calculate how much new capital is needed to reach target
+
         new_capital_needed = rebalance_target_value - total_current_value
         if new_capital_needed > 0:
-            print(f"   New Capital Needed:       ₹{new_capital_needed:,.0f} (to reach target)")
+            print(
+                f"   New Capital Needed:       ₹{new_capital_needed:,.0f} (to reach target)"
+            )
         elif new_capital_needed < 0:
-            print(f"   Capital to Withdraw:      ₹{abs(new_capital_needed):,.0f} (target < current)")
-        
+            print(
+                f"   Capital to Withdraw:      ₹{abs(new_capital_needed):,.0f} (target < current)"
+            )
+
         print(f"   Optimal Portfolio Value:  ₹{total_optimal_value:,.0f}")
         print()
         print(f"   📤 Proceeds from selling:  ₹{total_proceeds:,.0f}")
         print(f"   📥 Cost of buying:         ₹{total_purchases:,.0f}")
-        
-        # Net transaction cash flow
-        transaction_net = total_proceeds - total_purchases
+        print(
+            f"   🧾 Est. Statutory + DP:    ₹{estimated_fees:,.0f} (STT/Stamp/Exch/GST/CDSL DP)"
+        )
+
+        transaction_net = total_proceeds - total_purchases - estimated_fees
+        unfilled_slots = max(0, portfolio_size - available_etfs)
+        unfilled_slot_reserve = unfilled_slots * slot_allocation
+        # External cash delta relative to target capital (reserving unfilled slots in Cash/LIQUIDBEES)
+        external_cash_delta = transaction_net - unfilled_slot_reserve
+
         print()
         if transaction_net >= 0:
-            print(f"   Transaction Net:          ₹{transaction_net:,.0f} (cash left from trades)")
+            print(
+                f"   ETF Trades Net Cash:      ₹{transaction_net:,.0f} (cash freed after ETF orders & charges)"
+            )
         else:
-            print(f"   Transaction Net:          ₹{transaction_net:,.0f} (need cash for trades)")
-        
-        # Final summary - what user actually needs to do
+            print(
+                f"   ETF Trades Net Cash:      ₹{transaction_net:,.0f} (cash needed for ETF orders & charges)"
+            )
+
+        if unfilled_slots > 0:
+            print(
+                f"   Unfilled Slot Reserve:    ₹{unfilled_slot_reserve:,.0f} ({unfilled_slots} slot(s) kept in Cash / LIQUIDBEES)"
+            )
+
+        # Final summary - what user actually needs to do (consistent across filled & unfilled slot regimes)
         print()
         print("   " + "=" * 35)
-        if new_capital_needed > 0:
-            print(f"   💸 ADD ₹{new_capital_needed:,.0f} to reach ₹{rebalance_target_value:,.0f} target")
-        elif new_capital_needed < 0:
-            print(f"   ✅ WITHDRAW ₹{abs(new_capital_needed):,.0f} (portfolio exceeds target)")
+        if external_cash_delta < -1.0:
+            print(
+                f"   💸 ADD / KEEP ₹{abs(external_cash_delta):,.0f} fresh cash in broker "
+                f"(funds target + ~₹{estimated_fees:,.0f} charges"
+                + (
+                    f" + ₹{unfilled_slot_reserve:,.0f} cash-slot reserve)"
+                    if unfilled_slots > 0
+                    else ")"
+                )
+            )
+        elif new_capital_needed < 0 and external_cash_delta > 1.0:
+            print(
+                f"   ✅ WITHDRAW up to ₹{external_cash_delta:,.0f} net cash "
+                + (
+                    f"(after keeping ₹{unfilled_slot_reserve:,.0f} in Cash / LIQUIDBEES reserve)"
+                    if unfilled_slots > 0
+                    else "after trades & charges"
+                )
+            )
         else:
-            print(f"   ✅ No additional capital needed")
+            print(
+                f"   ✅ Self-funding rebalance "
+                + (
+                    f"(keep ₹{transaction_net:,.0f} freed proceeds in Cash / LIQUIDBEES for {unfilled_slots} unfilled slot(s))"
+                    if unfilled_slots > 0
+                    else f"(₹{transaction_net:,.0f} rounding cash buffer left after charges)"
+                )
+            )
 
-        # Show gap between target and actual optimal
-        gap = rebalance_target_value - total_optimal_value
-        if abs(gap) > 100:
+        # Show whole-share rounding residual separately from unfilled slot reserve
+        invested_slot_target = available_etfs * slot_allocation
+        rounding_gap = max(0.0, invested_slot_target - total_optimal_value)
+        if rounding_gap > 100:
             print()
-            if gap > 0:
-                print(f"   ⚠️  ₹{gap:,.0f} uninvested due to lot sizes")
+            print(f"   ⚠️  ₹{rounding_gap:,.0f} uninvested due to whole-share rounding")
 
         if total_transactions > 0:
             print(f"\n💡 NEXT STEPS:")
@@ -965,8 +1203,8 @@ def show_historical_portfolio(
     strategy = ETFMomentumStrategy(config)
 
     try:
-        # Fetch historical data with extra buffer for momentum calculation
-        data_start = from_date - timedelta(days=config.min_data_points + 100)
+        # Fetch historical data with generous calendar-day buffer for 200-trading-day lookback
+        data_start = from_date - timedelta(days=strategy._calendar_lookback_days())
 
         print(
             f"📡 Fetching historical data from {data_start.strftime('%Y-%m-%d')} to {to_date.strftime('%Y-%m-%d')}..."
@@ -976,15 +1214,25 @@ def show_historical_portfolio(
             config.etf_universe, data_start, to_date
         )
 
-        prices_df = strategy.data_provider.get_prices(all_data)
-
-        # Convert timezone-aware index to timezone-naive
-        if prices_df.index.tz is not None:
-            prices_df.index = prices_df.index.tz_localize(None)
+        prices_df = strategy._ensure_ist_naive_index(
+            strategy.data_provider.get_prices(all_data)
+        )
+        signal_prices_df = strategy._ensure_ist_naive_index(
+            strategy.data_provider.get_signal_prices(all_data)
+        )
+        volumes_df = strategy._ensure_ist_naive_index(
+            strategy.data_provider.get_volumes(all_data)
+        )
 
         # Get data up to from_date for initial portfolio
         from_data = prices_df[prices_df.index <= from_date]
-        if from_data.empty:
+        from_signal = signal_prices_df[signal_prices_df.index <= from_date]
+        from_vol = (
+            volumes_df[volumes_df.index <= from_date]
+            if volumes_df is not None
+            else None
+        )
+        if from_data.empty or from_signal.empty:
             print(f"❌ No data available for from-date: {from_date_str}")
             return
 
@@ -992,20 +1240,25 @@ def show_historical_portfolio(
         print("-" * 60)
 
         # Calculate momentum scores for from_date
-        eligible_tickers = strategy.momentum_calculator.apply_filters(from_data, None)
+        eligible_tickers = strategy.momentum_calculator.apply_filters(
+            from_signal, from_vol
+        )
+        from_top_etfs = []
+        from_prices = from_data.iloc[-1]
         if eligible_tickers:
-            eligible_from_data = from_data[eligible_tickers]
+            eligible_from_data = from_signal[eligible_tickers]
             from_momentum_scores = (
                 strategy.momentum_calculator.calculate_momentum_scores(
-                    eligible_from_data
+                    eligible_from_data, market_prices_df=from_signal
                 )
             )
             from_top_etfs = [
-                (ticker, score) for ticker, score in from_momentum_scores.items()
+                (ticker, score)
+                for ticker, score in from_momentum_scores.items()
+                if score > 0
             ][:portfolio_size]
-            from_prices = from_data.iloc[-1]
 
-            # Prepare table data
+        if from_top_etfs:
             from_table_data = []
             from_total = 0
             for i, (ticker, score) in enumerate(from_top_etfs, 1):
@@ -1029,12 +1282,17 @@ def show_historical_portfolio(
             headers = ["Rank", "ETF Name", "Price", "Units", "Investment", "Score"]
             print(tabulate(from_table_data, headers=headers, tablefmt="grid"))
         else:
-            print("❌ No eligible ETFs found for from-date")
-            return
+            print("⚠️  0 ETFs passed regime/momentum filters on from-date (100% Cash).")
 
         # Get data up to to_date for final portfolio
         to_data = prices_df[prices_df.index <= to_date]
-        if to_data.empty:
+        to_signal = signal_prices_df[signal_prices_df.index <= to_date]
+        to_vol = (
+            volumes_df[volumes_df.index <= to_date]
+            if volumes_df is not None
+            else None
+        )
+        if to_data.empty or to_signal.empty:
             print(f"❌ No data available for to-date: {to_date_str}")
             return
 
@@ -1042,18 +1300,21 @@ def show_historical_portfolio(
         print("-" * 60)
 
         # Calculate momentum scores for to_date
-        eligible_tickers = strategy.momentum_calculator.apply_filters(to_data, None)
+        eligible_tickers = strategy.momentum_calculator.apply_filters(to_signal, to_vol)
+        to_top_etfs = []
+        to_prices = to_data.iloc[-1]
         if eligible_tickers:
-            eligible_to_data = to_data[eligible_tickers]
+            eligible_to_data = to_signal[eligible_tickers]
             to_momentum_scores = strategy.momentum_calculator.calculate_momentum_scores(
-                eligible_to_data
+                eligible_to_data, market_prices_df=to_signal
             )
             to_top_etfs = [
-                (ticker, score) for ticker, score in to_momentum_scores.items()
+                (ticker, score)
+                for ticker, score in to_momentum_scores.items()
+                if score > 0
             ][:portfolio_size]
-            to_prices = to_data.iloc[-1]
 
-            # Prepare table data
+        if to_top_etfs:
             to_table_data = []
             to_total = 0
             for i, (ticker, score) in enumerate(to_top_etfs, 1):
@@ -1077,8 +1338,7 @@ def show_historical_portfolio(
             headers = ["Rank", "ETF Name", "Price", "Units", "Investment", "Score"]
             print(tabulate(to_table_data, headers=headers, tablefmt="grid"))
         else:
-            print("❌ No eligible ETFs found for to-date")
-            return
+            print("⚠️  0 ETFs passed regime/momentum filters on to-date (100% Cash).")
 
         # Show changes needed
         print(f"\n🔄 REBALANCING CHANGES NEEDED:")
@@ -1131,38 +1391,43 @@ def show_historical_portfolio(
         days_diff = (to_date - from_date).days
         print(f"📅 Period: {days_diff} days")
 
-        # Calculate overall portfolio performance
-        from_portfolio_value = 0
-        to_portfolio_value = 0
+        # Calculate overall portfolio performance (including uninvested cash slots)
+        from_invested_value = 0
+        to_invested_value = 0
 
         for ticker, _ in from_top_etfs:
             from_price = from_prices.get(ticker, 0)
             allocation = investment_amount / portfolio_size
             units = int(allocation / from_price) if from_price > 0 else 0
-            from_portfolio_value += units * from_price
+            from_invested_value += units * from_price
 
-            # Calculate value of same units at to_date
-            if ticker in to_prices.index:
-                to_price = to_prices[ticker]
-                to_portfolio_value += units * to_price
+            if ticker in to_prices.index and pd.notna(to_prices[ticker]):
+                to_invested_value += units * to_prices[ticker]
+            else:
+                to_invested_value += units * from_price
 
-        # Overall portfolio performance
+        cash_held = max(0.0, investment_amount - from_invested_value)
+        from_portfolio_value = from_invested_value + cash_held
+        to_portfolio_value = to_invested_value + cash_held
+
         if from_portfolio_value > 0:
             portfolio_return = ((to_portfolio_value / from_portfolio_value) - 1) * 100
             portfolio_gain_loss = to_portfolio_value - from_portfolio_value
 
             print(f"\n💰 OVERALL PORTFOLIO PERFORMANCE:")
-            print(f"   From Portfolio Value: ₹{from_portfolio_value:,.0f}")
-            print(f"   To Portfolio Value:   ₹{to_portfolio_value:,.0f}")
-            print(f"   Absolute Gain/Loss:   ₹{portfolio_gain_loss:+,.0f}")
-            print(f"   Percentage Return:    {portfolio_return:+.2f}%")
+            print(
+                f"   Initial Deployed / Cash: ₹{from_invested_value:,.0f} invested + ₹{cash_held:,.0f} cash"
+            )
+            print(f"   From Portfolio Value:    ₹{from_portfolio_value:,.0f}")
+            print(f"   To Portfolio Value:      ₹{to_portfolio_value:,.0f}")
+            print(f"   Absolute Gain/Loss:      ₹{portfolio_gain_loss:+,.0f}")
+            print(f"   Percentage Return:       {portfolio_return:+.2f}%")
 
-            # Annualized return if period is long enough
             if days_diff >= 30:
                 annualized_return = (
                     (to_portfolio_value / from_portfolio_value) ** (365 / days_diff) - 1
                 ) * 100
-                print(f"   Annualized Return:    {annualized_return:+.2f}%")
+                print(f"   Annualized Return:       {annualized_return:+.2f}%")
 
         # Show how each ETF performed during the holding period
         print(f"\n📈 ETF PERFORMANCE DURING PERIOD:")
@@ -1326,7 +1591,7 @@ Holdings File Formats:
 
         elif args.command == "backtest":
             print(
-                f"🚀 Quick Backtest - Portfolio Size: {args.size}, Amounts: {args.amounts}"
+                f"🚀 Quick Backtest - Portfolio Sizes: {args.sizes}, Amounts: {args.amounts}"
             )
             if args.use_threshold:
                 print(

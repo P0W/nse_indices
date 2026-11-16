@@ -6,7 +6,7 @@ Author : Prashant Srivastava
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import itertools
 from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -28,6 +28,7 @@ class Portfolio:
     def __init__(self, config: StrategyConfig):
         self.config = config
         self.holdings = {}  # {ticker: shares}
+        self.last_valid_prices: Dict[str, float] = {}
         self.cash = config.initial_capital
         self.total_value = config.initial_capital
         self.transaction_costs = 0.0
@@ -61,9 +62,17 @@ class Portfolio:
         # Update portfolio value
         self._update_portfolio_value(current_prices)
 
+        # Keep only ETFs meeting minimum momentum threshold
+        threshold = self.config.min_momentum_threshold
+        qualified_ranked = [
+            (t, s)
+            for t, s in ranked_etfs
+            if (s > 0.0 if threshold == 0 else s >= threshold)
+        ]
+
         # Determine target portfolio
         target_tickers = [
-            ticker for ticker, _ in ranked_etfs[: self.config.portfolio_size]
+            ticker for ticker, _ in qualified_ranked[: self.config.portfolio_size]
         ]
 
         # Calculate exit threshold
@@ -73,20 +82,27 @@ class Portfolio:
 
         # Determine which holdings to exit
         tickers_to_exit = []
-        for ticker in self.holdings.keys():
+        for ticker in list(self.holdings.keys()):
             current_rank = next(
-                (i for i, (t, _) in enumerate(ranked_etfs) if t == ticker), float("inf")
+                (i for i, (t, _) in enumerate(qualified_ranked) if t == ticker),
+                float("inf"),
             )
             if current_rank >= exit_rank_threshold:
                 tickers_to_exit.append(ticker)
 
         # Exit positions
         for ticker in tickers_to_exit:
-            # Ensure the ticker is still in current_prices before attempting to sell
-            if ticker in current_prices.index:
+            sell_price = (
+                float(current_prices[ticker])
+                if ticker in current_prices.index
+                and pd.notna(current_prices[ticker])
+                and current_prices[ticker] > 0
+                else self.last_valid_prices.get(ticker)
+            )
+            if sell_price is not None and sell_price > 0:
                 self._sell_position(
                     ticker,
-                    current_prices[ticker],
+                    sell_price,
                     rebalance_date,
                     "rank_exit",
                     (
@@ -101,79 +117,87 @@ class Portfolio:
                     f"Cannot sell {ticker} on {rebalance_date.date()}: Price data not available."
                 )
 
-        # Calculate target allocation for remaining + new positions
+        # Calculate target allocation for remaining + new positions (capped at 1 / portfolio_size per slot,
+        # reserving a fee/slippage buffer so the 5th slot is never cash-starved)
         target_positions = {}
-        # Only consider tickers that are in current_prices for buying
         remaining_tickers = [
             t
             for t in target_tickers
             if t in current_prices.index
+            and pd.notna(current_prices[t])
+            and current_prices[t] > 0
             and (t in self.holdings or t not in tickers_to_exit)
         ]
 
-        if remaining_tickers:
+        if remaining_tickers and self.config.portfolio_size > 0:
+            fee_buffer = max(self.config.commission_rate * 2.5, 0.004)
+            investable_value = self.total_value * (1.0 - fee_buffer)
             allocation_per_etf = min(
-                self.total_value / len(remaining_tickers),
-                self.total_value * self.config.max_position_size,
+                investable_value / self.config.portfolio_size,
+                investable_value * self.config.max_position_size,
             )
 
             for ticker in remaining_tickers:
-                if ticker in current_prices.index:
-                    target_shares = allocation_per_etf / current_prices[ticker]
-                    target_positions[ticker] = target_shares
+                target_shares = int(allocation_per_etf / current_prices[ticker])
+                target_positions[ticker] = target_shares
 
-        # Rebalance positions
+        # Execute partial-trim sells first so freed cash is available for buys
+        pending_buys = []
         for ticker, target_shares in target_positions.items():
-            current_shares = self.holdings.get(ticker, 0)
+            current_shares = int(round(self.holdings.get(ticker, 0)))
             shares_diff = target_shares - current_shares
 
-            if abs(shares_diff) > 0.01:  # Minimum trade threshold
-                if shares_diff > 0:
-                    # Ensure price data is available for buying
-                    if ticker in current_prices.index:
-                        self._buy_shares(
-                            ticker,
-                            shares_diff,
-                            current_prices[ticker],
-                            rebalance_date,
-                            (
-                                current_volumes.get(ticker, 100000)
-                                if current_volumes is not None
-                                else 100000
-                            ),
-                            volatilities.get(ticker, 0.2) if volatilities else 0.2,
-                        )
-                    else:
-                        logger.warning(
-                            f"Cannot buy {ticker} on {rebalance_date.date()}: Price data not available."
-                        )
-
+            if abs(shares_diff) >= 1:
+                if shares_diff < 0:
+                    self._sell_shares(
+                        ticker,
+                        abs(shares_diff),
+                        current_prices[ticker],
+                        rebalance_date,
+                        (
+                            current_volumes.get(ticker, 100000)
+                            if current_volumes is not None
+                            else 100000
+                        ),
+                        volatilities.get(ticker, 0.2) if volatilities else 0.2,
+                    )
                 else:
-                    # Ensure price data is available for selling
-                    if ticker in current_prices.index:
-                        self._sell_shares(
-                            ticker,
-                            abs(shares_diff),
-                            current_prices[ticker],
-                            rebalance_date,
-                            (
-                                current_volumes.get(ticker, 100000)
-                                if current_volumes is not None
-                                else 100000
-                            ),
-                            volatilities.get(ticker, 0.2) if volatilities else 0.2,
-                        )
-                    else:
-                        logger.warning(
-                            f"Cannot sell {ticker} on {rebalance_date.date()}: Price data not available."
-                        )
+                    pending_buys.append((ticker, shares_diff))
+
+        for ticker, shares_diff in pending_buys:
+            self._buy_shares(
+                ticker,
+                shares_diff,
+                current_prices[ticker],
+                rebalance_date,
+                (
+                    current_volumes.get(ticker, 100000)
+                    if current_volumes is not None
+                    else 100000
+                ),
+                volatilities.get(ticker, 0.2) if volatilities else 0.2,
+            )
 
     def _update_portfolio_value(self, current_prices: pd.Series) -> None:
-        """Update total portfolio value based on current prices."""
-        holdings_value = 0
+        """Update total portfolio value based on current or last valid prices."""
+        for ticker, val in current_prices.items():
+            if pd.notna(val) and float(val) > 0:
+                self.last_valid_prices[ticker] = float(val)
+
+        holdings_value = 0.0
         for ticker, shares in self.holdings.items():
-            if ticker in current_prices.index:
-                holdings_value += shares * current_prices[ticker]
+            price = None
+            if (
+                ticker in current_prices.index
+                and pd.notna(current_prices[ticker])
+                and current_prices[ticker] > 0
+            ):
+                price = float(current_prices[ticker])
+            elif ticker in self.last_valid_prices:
+                price = self.last_valid_prices[ticker]
+
+            if price is not None:
+                holdings_value += shares * price
 
         self.total_value = holdings_value + self.cash
 
@@ -186,31 +210,43 @@ class Portfolio:
         daily_volume: float,
         volatility: float,
     ) -> None:
-        """Buy shares of an ETF with optional realism."""
-        if self.config.realistic_execution:
-            # Realistic execution
-            slippage = self.market_impact_model.estimate_slippage(
-                ticker, shares, daily_volume, volatility, "buy"
-            )
-            execution_price = price * (1 + slippage)
-            cost_breakdown = self.cost_calculator.calculate_costs(
-                ticker, shares, execution_price, "buy"
-            )
-            total_cost = shares * execution_price + cost_breakdown["total_cost"]
-        else:
-            # Simple execution
-            cost = shares * price
-            commission = cost * self.config.commission_rate
-            total_cost = cost + commission
+        """Buy whole shares of an ETF with optional realism, downsizing to affordable cash if needed."""
+        shares = int(shares)
+        if shares <= 0 or price <= 0 or self.cash <= 0:
+            return
 
-        if total_cost <= self.cash:
+        def _calc_order(qty: int):
+            if self.config.realistic_execution:
+                slippage = self.market_impact_model.estimate_slippage(
+                    ticker, qty, daily_volume, volatility, "buy"
+                )
+                exec_px = price * (1 + slippage)
+                breakdown = self.cost_calculator.calculate_costs(
+                    ticker, qty, exec_px, "buy"
+                )
+                fee = breakdown["total_cost"]
+                return exec_px, fee, qty * exec_px + fee
+            else:
+                cost = qty * price
+                fee = cost * self.config.commission_rate
+                return price, fee, cost + fee
+
+        execution_price, fee_cost, total_cost = _calc_order(shares)
+        if total_cost > self.cash:
+            unit_cost = total_cost / shares
+            shares = int(self.cash / unit_cost) if unit_cost > 0 else 0
+            if shares > 0:
+                execution_price, fee_cost, total_cost = _calc_order(shares)
+            while shares > 0 and total_cost > self.cash:
+                shares -= 1
+                if shares > 0:
+                    execution_price, fee_cost, total_cost = _calc_order(shares)
+
+        if shares > 0 and total_cost <= self.cash:
             self.holdings[ticker] = self.holdings.get(ticker, 0) + shares
+            self.last_valid_prices[ticker] = float(price)
             self.cash -= total_cost
-            self.transaction_costs += (
-                cost_breakdown["total_cost"]
-                if self.config.realistic_execution
-                else commission
-            )
+            self.transaction_costs += fee_cost
 
             self.trade_log.append(
                 {
@@ -218,9 +254,7 @@ class Portfolio:
                     "ticker": ticker,
                     "action": "buy",
                     "shares": shares,
-                    "price": (
-                        execution_price if self.config.realistic_execution else price
-                    ),
+                    "price": execution_price,
                     "cost": total_cost,
                 }
             )
@@ -305,21 +339,42 @@ class ETFMomentumStrategy:
         self.portfolio = Portfolio(config)
         self.performance_metrics = {}
 
+    @staticmethod
+    def _ensure_ist_naive_index(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
+        """Ensure DataFrame index is IST date-naive without shifting already-naive IST dates."""
+        if df is None or df.empty:
+            return df
+        out = df.copy()
+        idx = pd.to_datetime(out.index)
+        if idx.tz is not None:
+            ist_tz = pytz.timezone("Asia/Kolkata")
+            idx = idx.tz_convert(ist_tz).tz_localize(None)
+        out.index = idx.normalize()
+        return out
+
+    def _calendar_lookback_days(self) -> int:
+        """Compute safe calendar-day buffer (~280+ NSE trading days for 200-bar lookback)."""
+        max_bars = max(
+            self.config.long_term_period_days + 1,
+            self.config.moving_average_period,
+            self.config.min_data_points,
+        )
+        return max(int(max_bars * 1.8) + 60, 420)
+
     def get_current_portfolio_status(self) -> Dict:
         """
-        Get current portfolio status and check if rebalancing is needed.
+        Check current market conditions and determine if portfolio needs rebalancing.
+        Uses real-time/latest available data up to today.
 
         Returns:
-            Dictionary containing current portfolio status and rebalancing recommendation
+            Dictionary with current portfolio status and recommendations
         """
         logger.info("Checking current portfolio status...")
 
         # Get current date in IST timezone
-        ist_tz = pytz.timezone('Asia/Kolkata')
-        current_date = datetime.now(ist_tz).replace(tzinfo=None)  # Convert to naive datetime in IST
-        data_start = current_date - timedelta(
-            days=self.config.min_data_points + 100
-        )  # Increased buffer
+        ist_tz = pytz.timezone("Asia/Kolkata")
+        current_date = datetime.now(ist_tz).replace(tzinfo=None)
+        data_start = current_date - timedelta(days=self._calendar_lookback_days())
 
         try:
             # Fetch current market data
@@ -327,64 +382,107 @@ class ETFMomentumStrategy:
                 self.config.etf_universe, data_start, current_date
             )
 
-            prices_df = self.data_provider.get_prices(all_data)
+            prices_df = self._ensure_ist_naive_index(
+                self.data_provider.get_prices(all_data)
+            )
+            signal_prices_df = self._ensure_ist_naive_index(
+                self.data_provider.get_signal_prices(all_data)
+            )
+            volume_df = self._ensure_ist_naive_index(
+                self.data_provider.get_volumes(all_data)
+            )
 
-            # Convert timezone-aware index to IST timezone, then to timezone-naive
-            if prices_df.index.tz is not None:
-                ist_tz = pytz.timezone('Asia/Kolkata')
-                prices_df.index = prices_df.index.tz_convert(ist_tz).tz_localize(None)
-            else:
-                # If already timezone-naive, assume it's in UTC and convert to IST
-                prices_df.index = pd.to_datetime(prices_df.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
+            if (
+                prices_df is None
+                or prices_df.empty
+                or signal_prices_df is None
+                or signal_prices_df.empty
+            ):
+                return {
+                    "status": "error",
+                    "message": "No market price data available",
+                    "date": current_date,
+                }
 
-            # Forward-fill prices to handle gaps
-            prices_df = prices_df.ffill()
+            # Verify sufficient universe coverage so partial data outages cannot trigger false liquidations
+            min_required_bars = max(
+                self.config.min_data_points, self.config.long_term_period_days + 1
+            )
+            valid_universe_signals = [
+                t
+                for t in signal_prices_df.columns
+                if self.momentum_calculator._has_fresh_observation(
+                    signal_prices_df[t], signal_prices_df.index
+                )
+                and len(signal_prices_df[t].dropna()) >= min_required_bars
+            ]
+            min_coverage_count = max(
+                1,
+                min(
+                    len(self.config.etf_universe),
+                    max(
+                        self.config.portfolio_size,
+                        int(len(self.config.etf_universe) * 0.6),
+                    ),
+                ),
+            )
+            if len(valid_universe_signals) < min_coverage_count:
+                return {
+                    "status": "error",
+                    "message": (
+                        f"Insufficient fresh market data coverage ({len(valid_universe_signals)}/"
+                        f"{len(self.config.etf_universe)} ETFs have >= {min_required_bars} bars); "
+                        "aborting to prevent false rebalancing signals."
+                    ),
+                    "date": current_date,
+                }
 
-            volume_df = self.data_provider.get_volumes(all_data)
-            if volume_df is not None:
-                if volume_df.index.tz is not None:
-                    ist_tz = pytz.timezone('Asia/Kolkata')
-                    volume_df.index = volume_df.index.tz_convert(ist_tz).tz_localize(None)
-                else:
-                    # If already timezone-naive, assume it's in UTC and convert to IST
-                    volume_df.index = pd.to_datetime(volume_df.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
-
-            # Get current prices (latest available)
+            # Get current tradeable prices (latest available)
             current_prices = prices_df.iloc[-1]
             latest_date = prices_df.index[-1]
 
-            # Apply filters to find eligible ETFs
+            # Apply filters on signal prices + volume
             eligible_tickers = self.momentum_calculator.apply_filters(
-                prices_df, volume_df
+                signal_prices_df, volume_df
             )
 
-            if not eligible_tickers:
-                return {
-                    "status": "error",
-                    "message": "No eligible ETFs found with current filters",
-                    "date": latest_date,
-                }
+            # Require a fresh real market quote in `prices_df` for live sizing/trading
+            tradable_eligible_tickers = []
+            for ticker in eligible_tickers:
+                if (
+                    ticker in prices_df.columns
+                    and self.momentum_calculator._has_fresh_observation(
+                        prices_df[ticker], prices_df.index
+                    )
+                    and pd.notna(current_prices.get(ticker))
+                    and float(current_prices.get(ticker, 0)) > 0
+                ):
+                    tradable_eligible_tickers.append(ticker)
+                else:
+                    logger.warning(
+                        f"Excluding {ticker} from live selection: missing/stale real market quote"
+                    )
 
-            # Calculate current momentum scores
-            eligible_data = prices_df[eligible_tickers]
-            logger.info(f"Calculating momentum scores for eligible ETFs: {eligible_tickers}")
-            momentum_scores = self.momentum_calculator.calculate_momentum_scores(
-                eligible_data
-            )
+            ranked_etfs: List[Tuple[str, float]] = []
+            if tradable_eligible_tickers:
+                eligible_data = signal_prices_df[tradable_eligible_tickers]
+                logger.info(
+                    f"Calculating momentum scores for eligible ETFs: {tradable_eligible_tickers}"
+                )
+                momentum_scores = self.momentum_calculator.calculate_momentum_scores(
+                    eligible_data, market_prices_df=signal_prices_df
+                )
+                threshold = self.config.min_momentum_threshold
+                ranked_etfs = sorted(
+                    [
+                        (ticker, score)
+                        for ticker, score in momentum_scores.items()
+                        if (score > 0.0 if threshold == 0 else score >= threshold)
+                    ],
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
 
-            if momentum_scores.empty:
-                return {
-                    "status": "error",
-                    "message": "Could not calculate momentum scores",
-                    "date": latest_date,
-                }
-
-            # Get top ranked ETFs
-            ranked_etfs = sorted(
-                [(ticker, score) for ticker, score in momentum_scores.items()],
-                key=lambda x: x[1],
-                reverse=True,
-            )
             top_etfs = ranked_etfs[: self.config.portfolio_size]
 
             # Analyze current portfolio vs optimal portfolio
@@ -490,15 +588,28 @@ class ETFMomentumStrategy:
 
     def _get_next_rebalance_date(self, current_date: datetime) -> datetime:
         """Calculate the next scheduled rebalancing date."""
-        # Start with current month
-        next_date = current_date.replace(day=self.config.rebalance_day_of_month)
+        if self.config.rebalance_frequency == "rolling":
+            return current_date + timedelta(days=self.config.rebalance_period_days)
 
-        # If we've passed this month's rebalance date, move to next month
+        # Monthly calendar rebalance
+        try:
+            next_date = current_date.replace(day=self.config.rebalance_day_of_month)
+        except ValueError:
+            next_date = current_date.replace(
+                day=pd.Timestamp(current_date.year, current_date.month, 1).days_in_month
+            )
+
         if current_date.day > self.config.rebalance_day_of_month:
             if next_date.month == 12:
-                next_date = next_date.replace(year=next_date.year + 1, month=1)
+                target_year, target_month = next_date.year + 1, 1
             else:
-                next_date = next_date.replace(month=next_date.month + 1)
+                target_year, target_month = next_date.year, next_date.month + 1
+            max_day = pd.Timestamp(target_year, target_month, 1).days_in_month
+            next_date = next_date.replace(
+                year=target_year,
+                month=target_month,
+                day=min(self.config.rebalance_day_of_month, max_day),
+            )
 
         return next_date
 
@@ -514,47 +625,29 @@ class ETFMomentumStrategy:
         # Generate rebalancing dates
         rebalance_dates = self._generate_rebalance_dates(start_date, end_date)
 
-        # Fetch all historical data
-        # Fetch enough data to cover the longest lookback period plus the backtest range
-        max_lookback = max(
-            self.config.long_term_period_days, self.config.moving_average_period
-        )
-        data_fetch_start = start_date - timedelta(days=max_lookback + 50)  # Add buffer
+        # Fetch enough historical data to cover the longest trading-day lookback
+        data_fetch_start = start_date - timedelta(days=self._calendar_lookback_days())
 
         all_data = self.data_provider.fetch_etf_data(
             self.config.etf_universe, data_fetch_start, end_date
         )
 
-        prices_df_full = self.data_provider.get_prices(all_data)
-        # Convert timezone-aware index to IST timezone, then to timezone-naive
-        if prices_df_full.index.tz is not None:
-            ist_tz = pytz.timezone('Asia/Kolkata')
-            prices_df_full.index = prices_df_full.index.tz_convert(ist_tz).tz_localize(None)
-        else:
-            # If already timezone-naive, assume it's in UTC and convert to IST
-            prices_df_full.index = pd.to_datetime(prices_df_full.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
-
-        # Forward-fill prices to handle gaps
-        prices_df_full = prices_df_full.ffill()
-
-        volume_df_full = self.data_provider.get_volumes(all_data)
-        # Convert timezone-aware index to IST timezone, then to timezone-naive for volume data too
-        if volume_df_full is not None:
-            if volume_df_full.index.tz is not None:
-                ist_tz = pytz.timezone('Asia/Kolkata')
-                volume_df_full.index = volume_df_full.index.tz_convert(ist_tz).tz_localize(None)
-            else:
-                # If already timezone-naive, assume it's in UTC and convert to IST
-                volume_df_full.index = pd.to_datetime(volume_df_full.index).tz_localize('UTC').tz_convert('Asia/Kolkata').tz_localize(None)
+        prices_df_full = self._ensure_ist_naive_index(
+            self.data_provider.get_prices(all_data)
+        )
+        signal_prices_df_full = self._ensure_ist_naive_index(
+            self.data_provider.get_signal_prices(all_data)
+        )
+        volume_df_full = self._ensure_ist_naive_index(
+            self.data_provider.get_volumes(all_data)
+        )
 
         portfolio_history = []
-        # Track portfolio value at last rebalance for threshold comparisons
         last_rebalance_value = self.config.initial_capital
         last_rebalance_date = start_date
         rebalance_idx = 0
         current_date = rebalance_dates[0] if rebalance_dates else start_date
 
-        # Log configuration info
         if self.config.use_threshold_rebalancing:
             logger.info(
                 f"Threshold rebalancing enabled: profit {self.config.profit_threshold_pct}%, loss {self.config.loss_threshold_pct}%"
@@ -563,7 +656,6 @@ class ETFMomentumStrategy:
         while rebalance_idx < len(rebalance_dates):
             current_date = rebalance_dates[rebalance_idx]
 
-            # Ensure current_date is within the fetched data range
             if (
                 current_date < prices_df_full.index.min()
                 or current_date > prices_df_full.index.max()
@@ -576,96 +668,61 @@ class ETFMomentumStrategy:
 
             # Get data strictly up to current_date for calculations (addressing look-ahead bias)
             current_data_prices = prices_df_full[prices_df_full.index <= current_date]
+            current_signal_prices = signal_prices_df_full[
+                signal_prices_df_full.index <= current_date
+            ]
             current_data_volume = (
                 volume_df_full[volume_df_full.index <= current_date]
                 if volume_df_full is not None
                 else None
             )
 
-            if current_data_prices.empty:
+            if current_data_prices.empty or current_signal_prices.empty:
                 logger.warning(
                     f"No data available up to {current_date.date()}. Skipping rebalance."
                 )
                 rebalance_idx += 1
                 continue
 
-            # Apply filters
-            eligible_tickers = self.momentum_calculator.apply_filters(
-                current_data_prices, current_data_volume
-            )
-
-            if not eligible_tickers:
-                logger.warning(f"No eligible ETFs found for {current_date.date()}")
-                # Still record portfolio value on rebalance date even if no trades
-                if not current_data_prices.empty:
-                    current_prices_for_value = current_data_prices.iloc[-1]
-                    self.portfolio._update_portfolio_value(current_prices_for_value)
-                    portfolio_history.append(
-                        {
-                            "date": current_date,
-                            "total_value": self.portfolio.total_value,
-                            "cash": self.portfolio.cash,
-                            "holdings": dict(self.portfolio.holdings),
-                            "top_etfs": [],  # No eligible ETFs means no top ETFs
-                        }
-                    )
-                rebalance_idx += 1
-                continue
-
-            # Calculate momentum scores
-            eligible_data = current_data_prices[eligible_tickers]
-            momentum_scores = self.momentum_calculator.calculate_momentum_scores(
-                eligible_data
-            )
-
-            if momentum_scores.empty:
-                logger.warning(
-                    f"Could not calculate momentum scores for {current_date.date()}"
-                )
-                # Record portfolio value
-                if not current_data_prices.empty:
-                    current_prices_for_value = current_data_prices.iloc[-1]
-                    self.portfolio._update_portfolio_value(current_prices_for_value)
-                    portfolio_history.append(
-                        {
-                            "date": current_date,
-                            "total_value": self.portfolio.total_value,
-                            "cash": self.portfolio.cash,
-                            "holdings": dict(self.portfolio.holdings),
-                            "top_etfs": [],  # No momentum scores means no top ETFs
-                        }
-                    )
-                rebalance_idx += 1
-                continue
-
-            # Rank ETFs
-            ranked_etfs = sorted(
-                [(ticker, score) for ticker, score in momentum_scores.items()],
-                key=lambda x: x[1],
-                reverse=True,
-            )
-
-            # Get current prices for rebalancing (using the latest available price on or before current_date)
             current_prices_for_rebalance = current_data_prices.iloc[-1]
-
-            # For realism, get volumes and volatilities if enabled
             current_volumes = (
                 current_data_volume.iloc[-1]
-                if current_data_volume is not None
-                else pd.Series(index=eligible_tickers, data=100000)
+                if current_data_volume is not None and not current_data_volume.empty
+                else pd.Series(index=current_data_prices.columns, data=100000)
             )
+
+            # Apply filters on signal prices + volume
+            eligible_tickers = self.momentum_calculator.apply_filters(
+                current_signal_prices, current_data_volume
+            )
+
+            ranked_etfs: List[Tuple[str, float]] = []
+            if eligible_tickers:
+                eligible_data = current_signal_prices[eligible_tickers]
+                momentum_scores = self.momentum_calculator.calculate_momentum_scores(
+                    eligible_data, market_prices_df=current_signal_prices
+                )
+                ranked_etfs = sorted(
+                    [(ticker, score) for ticker, score in momentum_scores.items()],
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
+
             volatilities = {}
             if self.config.realistic_execution:
                 volatility_window = min(30, len(current_data_prices))
-                for ticker in eligible_tickers:
-                    returns = (
-                        current_data_prices[ticker].pct_change().tail(volatility_window)
-                    )
-                    volatilities[ticker] = (
-                        returns.std() * np.sqrt(252) if not returns.empty else 0.2
-                    )
+                for ticker in set(eligible_tickers) | set(self.portfolio.holdings.keys()):
+                    if ticker in current_data_prices.columns:
+                        returns = (
+                            current_data_prices[ticker]
+                            .pct_change()
+                            .tail(volatility_window)
+                        )
+                        volatilities[ticker] = (
+                            returns.std() * np.sqrt(252) if not returns.empty else 0.2
+                        )
 
-            # Rebalance portfolio
+            # Rebalance portfolio (exits all holdings to cash when ranked_etfs is empty)
             self.portfolio.rebalance(
                 ranked_etfs,
                 current_prices_for_rebalance,
@@ -769,9 +826,23 @@ class ETFMomentumStrategy:
     def _generate_rebalance_dates(
         self, start_date: datetime, end_date: datetime
     ) -> List[datetime]:
-        """Generate list of rebalancing dates."""
+        """Generate list of rebalancing dates (rolling N-day or monthly calendar)."""
         dates = []
-        current = start_date.replace(day=self.config.rebalance_day_of_month)
+
+        if self.config.rebalance_frequency == "rolling":
+            step_days = max(1, int(self.config.rebalance_period_days))
+            current = start_date
+            while current <= end_date:
+                dates.append(current)
+                current = current + timedelta(days=step_days)
+            return dates
+
+        try:
+            current = start_date.replace(day=self.config.rebalance_day_of_month)
+        except ValueError:
+            current = start_date.replace(
+                day=pd.Timestamp(start_date.year, start_date.month, 1).days_in_month
+            )
 
         # If start date is after rebalance day, move to next month
         if start_date.day > self.config.rebalance_day_of_month:
